@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ms">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin Khairat SHK</title>
+    <link rel="stylesheet" href="styles.css?v=20260607-daftar-fields">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="topbar">
+        <div class="container topbar__inner">
+          <span>Admin AJK Khairat SHK</span>
+          <a href="index.html">Kembali ke Website</a>
+        </div>
+      </div>
+      <nav class="container nav" aria-label="Navigasi admin">
+        <a class="brand" href="admin.html">
+          <span class="brand__mark">SHK</span>
+          <span>
+            <strong>Admin Approval</strong>
+            <small>Semak dan sahkan data baru</small>
+          </span>
+        </a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="section admin-hero">
+        <div class="container admin-grid">
+          <form class="form-panel" id="loginForm">
+            <p class="eyebrow">Login AJK</p>
+            <h1>Masuk Admin</h1>
+            <label>Email
+              <input id="adminEmail" type="email" placeholder="Email Supabase Auth" required>
+            </label>
+            <label>Password
+              <input id="adminPassword" type="password" placeholder="Password" required>
+            </label>
+            <button class="button button--primary" type="submit">Login</button>
+            <p class="form-message" id="loginMessage" aria-live="polite"></p>
+          </form>
+
+          <aside class="info-card">
+            <h3>Cara Approval Berfungsi</h3>
+            <ul>
+              <li>Semakan ahli boleh ditanda approved atau rejected.</li>
+              <li>Daftar ahli baru yang approved akan dimasukkan ke table `members`.</li>
+              <li>Tanggungan approved akan dikemaskini ke `member_dependants`.</li>
+              <li>Bayaran verified akan dimasukkan ke `member_yearly_payments`.</li>
+            </ul>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section section--tint admin-panel" id="adminPanel" hidden>
+        <div class="container admin-toolbar">
+          <div>
+            <p class="eyebrow">Pending approval</p>
+            <h2>Data Baru Dari Website</h2>
+            <p class="form-message" id="adminStatus" aria-live="polite"></p>
+          </div>
+          <div class="form-actions">
+            <label class="admin-filter">Status
+              <select id="statusFilter">
+                <option value="pending">Pending</option>
+                <option value="approved">Approved / Verified</option>
+                <option value="rejected">Rejected</option>
+                <option value="all">All</option>
+              </select>
+            </label>
+            <button class="button button--secondary" id="refreshAdmin" type="button">Refresh</button>
+            <button class="button button--secondary" id="logoutAdmin" type="button">Logout</button>
+          </div>
+        </div>
+
+        <div class="container admin-sections">
+          <section class="admin-list">
+            <h3>Semakan / Daftar Ahli</h3>
+            <div id="membershipList" class="admin-cards"></div>
+          </section>
+          <section class="admin-list">
+            <h3>Kemaskini Tanggungan</h3>
+            <div id="dependantList" class="admin-cards"></div>
+          </section>
+          <section class="admin-list">
+            <h3>Bayaran</h3>
+            <div id="paymentList" class="admin-cards"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="supabase-config.js?v=20260607-daftar-fields"></script>
+    <script src="admin.js?v=20260607-daftar-fields"></script>
+  </body>
+</html>
