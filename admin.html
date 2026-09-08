@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Admin Khairat SHK</title>
-    <link rel="stylesheet" href="styles.css?v=20260908-backup-fix">
+    <link rel="stylesheet" href="styles.css?v=20260908-remove-manual-tools">
   </head>
   <body>
     <header class="site-header">
@@ -34,8 +34,6 @@
           <button type="button" data-admin-view="transfers">Pindahan Ahli</button>
           <button type="button" data-admin-view="paid">Paid / Not Paid</button>
           <button type="button" data-admin-view="receipt">Pengesahan Resit</button>
-          <button type="button" data-admin-view="backup">Database Backup</button>
-          <button type="button" data-admin-view="reminder">Email Reminder</button>
         </div>
       </nav>
     </header>
@@ -170,34 +168,10 @@
           </section>
         </div>
 
-        <div class="container admin-tools" id="adminBackupSection" hidden>
-          <section class="payment-card admin-tool-wide">
-            <h3>Database Backup</h3>
-            <p>Backup auto bulanan akan disimpan ke Supabase Storage selepas schedule dipasang.</p>
-            <button class="button button--primary" id="runBackup" type="button">Run Backup Sekarang</button>
-            <p class="form-message" id="backupMessage" aria-live="polite"></p>
-          </section>
-        </div>
-
-        <div class="container admin-tools" id="adminReminderSection" hidden>
-          <section class="payment-card admin-tool-wide">
-            <h3>Email Reminder</h3>
-            <p>Queue reminder akan dihantar bila Edge Function email dipasang.</p>
-            <label>Email Penerima
-              <input id="reminderEmail" type="email">
-            </label>
-            <label>Subjek
-              <input id="reminderSubject" type="text" value="Peringatan Bayaran Khairat">
-            </label>
-            <button class="button button--secondary" id="queueReminder" type="button">Simpan Reminder</button>
-            <button class="button button--primary" id="sendReminders" type="button">Send Queued Email</button>
-            <p class="form-message" id="reminderMessage" aria-live="polite"></p>
-          </section>
-        </div>
       </section>
     </main>
 
-    <script src="supabase-config.js?v=20260908-backup-fix"></script>
-    <script src="admin.js?v=20260908-backup-fix"></script>
+    <script src="supabase-config.js?v=20260908-remove-manual-tools"></script>
+    <script src="admin.js?v=20260908-remove-manual-tools"></script>
   </body>
 </html>

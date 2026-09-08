@@ -73,15 +73,6 @@ document.querySelector("#logoutAdmin")?.addEventListener("click", () => {
   location.reload();
 });
 document.querySelector("#adminReceiptButton")?.addEventListener("click", checkAdminReceipt);
-document.querySelector("#queueReminder")?.addEventListener("click", () => {
-  queueEmailReminder().catch((error) => setAdminMessage("#reminderMessage", error.message, "error"));
-});
-document.querySelector("#sendReminders")?.addEventListener("click", () => {
-  sendQueuedReminders().catch((error) => setAdminMessage("#reminderMessage", error.message, "error"));
-});
-document.querySelector("#runBackup")?.addEventListener("click", () => {
-  runDatabaseBackup().catch((error) => setAdminMessage("#backupMessage", error.message, "error"));
-});
 document.querySelector("#adminExitButton")?.addEventListener("click", moveMemberToInactive);
 document.querySelectorAll("[data-admin-view]").forEach((button) => {
   button.addEventListener("click", () => showAdminView(button.dataset.adminView));
@@ -115,9 +106,7 @@ function showAdminView(view) {
     donations: document.querySelector("#adminDonationSection"),
     transfers: document.querySelector("#adminTransferSection"),
     paid: document.querySelector("#adminPaidSection"),
-    receipt: document.querySelector("#adminReceiptSection"),
-    backup: document.querySelector("#adminBackupSection"),
-    reminder: document.querySelector("#adminReminderSection")
+    receipt: document.querySelector("#adminReceiptSection")
   };
 
   Object.entries(sections).forEach(([key, section]) => {
@@ -423,7 +412,6 @@ function renderPaidTable(records) {
           <th>Tahun</th>
           <th>Status</th>
           <th>Email</th>
-          <th>Tindakan</th>
         </tr>
       </thead>
       <tbody>
@@ -434,7 +422,6 @@ function renderPaidTable(records) {
             <td>${escapeHtml(String(record.payment_year))}</td>
             <td><span class="status-pill ${record.paid ? "status-pill--success" : ""}">${record.paid ? "Paid" : "Not paid"}</span></td>
             <td>${escapeHtml(record.email || "-")}</td>
-            <td>${!record.paid && record.email ? `<button class="button button--secondary button--small" data-action="queue-user-reminder" data-email="${escapeHtml(record.email)}" data-name="${escapeHtml(record.member_name || "")}" type="button">Reminder</button>` : "-"}</td>
           </tr>
         `).join("")}
       </tbody>
@@ -466,9 +453,7 @@ async function handleAdminAction(event) {
     if (action === "reject-donation") await updateStatus("non_member_donations", id, "rejected");
     if (action === "approve-exit") await approveExit(id);
     if (action === "reject-exit") await updateStatus("kariah_exit_requests", id, "rejected");
-    if (action === "queue-user-reminder") await queueReminderForMember(button.dataset.email, button.dataset.name);
-
-    if (selectedStatus() === "pending" && card && action !== "queue-user-reminder") {
+    if (selectedStatus() === "pending" && card) {
       card.remove();
     }
     await loadAdminData();
@@ -507,7 +492,7 @@ async function approveDependant(id) {
   const items = await supabaseRequest(`dependant_update_items?update_id=eq.${id}&select=*`);
 
   for (const item of items) {
-    if (item.item_status === "Tambah") {
+    if (item.item_status === "Tambah" || item.item_status === "Kekal") {
       await supabaseRequest("member_dependants", {
         method: "POST",
         headers: { Prefer: "return=minimal" },
@@ -659,88 +644,6 @@ async function checkAdminReceipt() {
     answer.hidden = false;
     answer.innerHTML = `<p>${escapeHtml(error.message)}</p>`;
   }
-}
-
-async function queueEmailReminder() {
-  const recipientEmail = document.querySelector("#reminderEmail")?.value.trim();
-  if (!recipientEmail) {
-    setAdminMessage("#reminderMessage", "Masukkan email penerima.", "error");
-    return;
-  }
-
-  setAdminMessage("#reminderMessage", "Sedang simpan reminder...", "neutral");
-  await supabaseRequest("reminder_queue", {
-    method: "POST",
-    headers: { Prefer: "return=minimal" },
-    body: JSON.stringify({
-      reminder_type: "user_unpaid",
-      recipient_email: recipientEmail,
-      subject: document.querySelector("#reminderSubject")?.value.trim() || "Peringatan Bayaran Khairat",
-      message: "Sila semak dan jelaskan bayaran khairat jika masih belum selesai."
-    })
-  });
-
-  setAdminMessage("#reminderMessage", "Reminder dimasukkan ke queue.", "success");
-}
-
-async function queueReminderForMember(email, name) {
-  await supabaseRequest("reminder_queue", {
-    method: "POST",
-    headers: { Prefer: "return=minimal" },
-    body: JSON.stringify({
-      reminder_type: "user_unpaid",
-      recipient_email: email,
-      recipient_name: name || null,
-      subject: "Peringatan Bayaran Khairat",
-      message: "Rekod menunjukkan bayaran khairat tahun ini belum selesai. Sila semak dan jelaskan bayaran jika masih belum dibuat."
-    })
-  });
-}
-
-async function sendQueuedReminders() {
-  setAdminMessage("#reminderMessage", "Sedang hantar email reminder...", "neutral");
-  const result = await callEdgeFunction("send-reminders");
-  setAdminMessage("#reminderMessage", `Email diproses: ${result.sent || 0} berjaya, ${result.failed || 0} gagal.`, "success");
-}
-
-async function runDatabaseBackup() {
-  setAdminMessage("#backupMessage", "Sedang buat backup database...", "neutral");
-  const result = await callEdgeFunction("database-backup");
-  const tableWarnings = result.table_errors && Object.keys(result.table_errors).length
-    ? ` Ada warning table: ${Object.keys(result.table_errors).join(", ")}.`
-    : "";
-  const warning = result.warning ? ` ${result.warning}` : "";
-  setAdminMessage("#backupMessage", `Backup disimpan: ${result.backup_name || result.path || "selesai"}.${tableWarnings}${warning}`, "success");
-}
-
-async function callEdgeFunction(functionName) {
-  const response = await fetch(`${config.url}/functions/v1/${functionName}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      apikey: config.anonKey,
-      Authorization: `Bearer ${adminState.accessToken}`
-    },
-    body: JSON.stringify({})
-  });
-
-  const text = await response.text();
-  let result = {};
-  try {
-    result = text ? JSON.parse(text) : {};
-  } catch {
-    result = { error: text };
-  }
-  if (!response.ok) {
-    if (response.status === 404) {
-      throw new Error(`${functionName} belum deploy di Supabase Edge Functions.`);
-    }
-    if (response.status === 401 || response.status === 403) {
-      throw new Error(`${functionName} tiada permission. Pastikan awak login admin dan email ada dalam admin_users.`);
-    }
-    throw new Error(result.error || text || `${functionName} gagal.`);
-  }
-  return result;
 }
 
 async function moveMemberToInactive() {
