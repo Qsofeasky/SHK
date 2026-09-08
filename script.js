@@ -331,9 +331,10 @@ if (dependantForm) {
       .filter((item) => item.dependant_name || item.dependant_ic || item.relationship || item.gender || item.age);
 
     try {
+      const memberIc = document.querySelector("#memberId").value.trim();
       const [update] = await insertRow("dependant_updates", {
-        member_name: document.querySelector("#memberName").value.trim(),
-        member_identifier: document.querySelector("#memberId").value.trim(),
+        member_name: `IC: ${memberIc}`,
+        member_identifier: memberIc,
         update_action: document.querySelector("#dependantAction").value,
         dependant_total: Number(document.querySelector("#dependantTotal").value) || null
       }, { returning: true });
@@ -344,7 +345,7 @@ if (dependantForm) {
           update_id: update.id
         })));
       }
-      await queueAdminReminder("Kemaskini tanggungan baru", `Kemaskini tanggungan diterima untuk ${document.querySelector("#memberName").value.trim()}.`);
+      await queueAdminReminder("Kemaskini tanggungan baru", `Kemaskini tanggungan diterima untuk IC ${memberIc}.`);
 
       dependantForm.reset();
     } catch (error) {
