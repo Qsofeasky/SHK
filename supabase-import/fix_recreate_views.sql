@@ -1,0 +1,13 @@
+drop view if exists public.pengguna_admin;
+drop view if exists public.ahli_tidak_aktif;
+drop view if exists public.rekod_backup_database;
+drop view if exists public.senarai_reminder_email;
+drop view if exists public.permohonan_keluar_kariah;
+drop view if exists public.sumbangan_bukan_ahli;
+drop view if exists public.bayaran_dihantar;
+drop view if exists public.item_kemaskini_tanggungan;
+drop view if exists public.kemaskini_tanggungan;
+drop view if exists public.semakan_keahlian;
+drop view if exists public.bayaran_tahunan_ahli;
+drop view if exists public.tanggungan_ahli;
+drop view if exists public.ahli;

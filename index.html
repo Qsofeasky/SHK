@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="ms">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Khairat SHK | Surau Hj Kamaruddin</title>
+    <meta name="description" content="Portal Khairat Kematian Surau Hj Kamaruddin untuk semakan ahli, kemaskini tanggungan, bayaran dan maklumat kariah.">
+    <link rel="stylesheet" href="styles.css?v=20260829-nav-clean">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="topbar">
+        <div class="container topbar__inner">
+          <span>Kariah Surau Haji Kamaruddin sahaja</span>
+          <a href="mailto:shk.bt7.meru@gmail.com">shk.bt7.meru@gmail.com</a>
+        </div>
+      </div>
+      <nav class="container nav" aria-label="Navigasi utama">
+        <a class="brand" href="#home" aria-label="Khairat SHK">
+          <span class="brand__mark">SHK</span>
+          <span>
+            <strong>Khairat SHK</strong>
+            <small>Surau Hj Kamaruddin</small>
+          </span>
+        </a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu" aria-label="Buka menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div class="nav-links" id="site-menu">
+          <a href="#semakan">Semakan</a>
+          <a href="#tanggungan">Tanggungan</a>
+          <a href="#bayaran">Bayaran</a>
+          <a href="#sumbangan">Sumbangan</a>
+          <a href="#contact">Contact</a>
+          <a href="admin.html">Admin</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="home">
+      <section class="hero">
+        <div class="container hero__grid">
+          <div class="hero__content">
+            <p class="eyebrow">Badan Kebajikan Khairat Kematian</p>
+            <h1>Portal Ahli Khairat Surau Haji Kamaruddin</h1>
+          </div>
+
+          <aside class="portal-card" aria-labelledby="portal-title">
+            <span class="status-pill">Data workbook</span>
+            <h2 id="portal-title">Ringkasan Rekod 2026</h2>
+            <dl class="metrics">
+              <div>
+                <dt>Jumlah Ahli</dt>
+                <dd>271</dd>
+              </div>
+              <div>
+                <dt>Yuran 2026 Paid</dt>
+                <dd>182</dd>
+              </div>
+              <div>
+                <dt>Yuran Not Paid</dt>
+                <dd>89</dd>
+              </div>
+            </dl>
+            <p>Rekod baru daripada website akan disimpan dahulu untuk semakan dan approval AJK.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="container quick-actions" aria-label="Pintasan portal">
+        <a class="action-card" href="#semakan">
+          <span class="action-icon">01</span>
+          <strong>Semakan IC Ahli</strong>
+          <small>Status keahlian dan bayaran tahunan hanya guna no. kad pengenalan.</small>
+        </a>
+        <a class="action-card" href="#tanggungan">
+          <span class="action-icon">02</span>
+          <strong>Tambah / Kurang Tanggungan</strong>
+          <small>Ahli sedia ada boleh kemaskini tanggungan lengkap dengan no. IC.</small>
+        </a>
+        <a class="action-card" href="#bayaran">
+          <span class="action-icon">03</span>
+          <strong>Bayaran Cash / Online</strong>
+          <small>Pilih tahun bayaran, masukkan resit dan rujuk QR rasmi surau.</small>
+        </a>
+      </section>
+
+      <section class="section section--compact view-section" id="kadar">
+        <div class="container section__header">
+          <p class="eyebrow">Kadar bayaran dan bantuan</p>
+          <h2>Senarai Harga Dikekalkan</h2>
+          <p>Senarai ini mengekalkan kadar yang telah diberikan sebelum ini melalui borang dan perlembagaan Khairat SHK.</p>
+        </div>
+        <div class="container price-grid">
+          <article class="price-card">
+            <span>Bayaran borang semasa</span>
+            <strong>RM80</strong>
+            <small>Untuk yuran pendaftaran dan yuran tahunan semasa.</small>
+          </article>
+          <article class="price-card">
+            <span>Yuran pendaftaran 2027</span>
+            <strong>RM50</strong>
+            <small>Berkuat kuasa 1 Januari 2027.</small>
+          </article>
+          <article class="price-card">
+            <span>Yuran tahunan 2027</span>
+            <strong>RM50</strong>
+            <small>Bayaran tahunan ahli berdaftar.</small>
+          </article>
+          <article class="price-card">
+            <span>Bantuan ahli berdaftar</span>
+            <strong>RM1,300</strong>
+            <small>Untuk ahli aktif yang bermastautin dalam kariah SHK.</small>
+          </article>
+          <article class="price-card">
+            <span>Bantuan tanggungan</span>
+            <strong>RM1,000</strong>
+            <small>Untuk tanggungan berdaftar yang layak.</small>
+          </article>
+        </div>
+      </section>
+
+      <section class="section view-section" id="semakan">
+        <div class="container section__header">
+          <p class="eyebrow">Semakan ahli</p>
+          <h2>Letak Nama dan Isi Maklumat Semakan</h2>
+          <p>Gunakan borang ini untuk semakan keahlian, bayaran tahunan atau status ahli dalam kariah Surau Haji Kamaruddin sahaja.</p>
+        </div>
+        <div class="container form-shell">
+          <form class="form-panel" id="checkForm">
+            <div class="field-grid">
+              <label>Jenis Semakan
+                <select id="checkType" required>
+                  <option value="status">Status keahlian</option>
+                  <option value="bayaran">Status bayaran tahunan</option>
+                  <option value="daftar">Daftar ahli baru</option>
+                </select>
+              </label>
+              <label id="nameField">Nama Ahli
+                <input id="checkName" type="text" placeholder="Contoh: Farid Pouzan">
+              </label>
+              <label id="checkIdField">No. IC
+                <input id="checkId" type="text" placeholder="Contoh: 681030085233">
+              </label>
+              <label id="phoneField">No. Telefon
+                <input id="checkPhone" type="tel" placeholder="Contoh: 0194302665">
+              </label>
+              <label id="emailField" hidden>Email
+                <input id="checkEmail" type="email" placeholder="nama@email.com">
+              </label>
+              <label id="occupationField" hidden>Pekerjaan
+                <input id="checkOccupation" type="text" placeholder="Contoh: Guru / Berniaga / Kerja sendiri">
+              </label>
+              <label class="span-2" id="addressField" hidden>Alamat Rumah
+                <textarea id="checkAddress" rows="3" placeholder="Alamat dalam kariah Surau Haji Kamaruddin"></textarea>
+              </label>
+              <div class="span-2 location-field" id="locationField" hidden>
+                <button class="button button--secondary" id="detectLocation" type="button">Share Lokasi Semasa</button>
+                <p class="form-message" id="locationMessage" aria-live="polite"></p>
+              </div>
+            </div>
+            <label class="checkline">
+              <input type="checkbox" required>
+              Saya mengesahkan ahli/permohonan ini adalah untuk Kariah Surau Haji Kamaruddin sahaja.
+            </label>
+            <p class="form-message" id="checkMessage" aria-live="polite"></p>
+            <div class="check-answer" id="checkAnswer" aria-live="polite" hidden></div>
+            <button class="button button--primary" type="submit">Hantar Semakan</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="section section--tint view-section" id="tanggungan">
+        <div class="container section__header">
+          <p class="eyebrow">Ahli sedia ada</p>
+          <h2>Tambah atau Kurangkan Tanggungan</h2>
+          <p>Tanggungan wajib mempunyai nama, hubungan dan no. IC / sijil lahir untuk kemaskini rekod.</p>
+        </div>
+        <div class="container form-shell">
+          <form class="form-panel" id="dependantForm">
+            <div class="field-grid">
+              <label>Nama Ahli
+                <input type="text" id="memberName" placeholder="Nama ahli sedia ada" required>
+              </label>
+              <label>No. Ahli / IC Ahli
+                <input type="text" id="memberId" placeholder="No. ahli atau no. IC" required>
+              </label>
+              <label>Tujuan Kemaskini
+                <select id="dependantAction">
+                  <option>Tambah tanggungan</option>
+                  <option>Kurangkan tanggungan</option>
+                  <option>Kemaskini maklumat tanggungan</option>
+                </select>
+              </label>
+              <label>Jumlah Tanggungan Selepas Kemaskini
+                <input type="number" min="0" id="dependantTotal" placeholder="Contoh: 4">
+              </label>
+            </div>
+
+            <div class="dependant-table" id="dependantRows">
+              <div class="dependant-row dependant-row--head">
+                <span>Nama Tanggungan</span>
+                <span>No. IC / Sijil Lahir</span>
+                <span>Jantina</span>
+                <span>Umur</span>
+                <span>Hubungan</span>
+                <span>Status</span>
+              </div>
+              <div class="dependant-row">
+                <input type="text" placeholder="Nama penuh">
+                <input type="text" placeholder="No. IC / sijil lahir">
+                <select>
+                  <option></option>
+                  <option>Lelaki</option>
+                  <option>Perempuan</option>
+                </select>
+                <input type="number" min="0" placeholder="Umur">
+                <input type="text" placeholder="Isteri / Suami / Anak / Ibu / Bapa">
+                <select>
+                  <option>Tambah</option>
+                  <option>Kekal</option>
+                  <option>Buang</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="button button--secondary" id="addDependant" type="button">Tambah Baris</button>
+              <button class="button button--primary" type="submit">Hantar Kemaskini</button>
+            </div>
+            <p class="form-message" id="dependantMessage" aria-live="polite"></p>
+          </form>
+
+          <aside class="info-card">
+            <h3>Syarat Tanggungan</h3>
+            <ul>
+              <li>Isteri atau suami kepada ahli berdaftar.</li>
+              <li>Anak ahli yang masih belajar dan belum berkahwin, termasuk anak tiri atau anak angkat yang berdaftar.</li>
+              <li>Ibu, bapa atau mertua yang bermastautin bersama ahli.</li>
+              <li>Rekod akan diterima selepas disahkan oleh Setiausaha atau Bendahari.</li>
+            </ul>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section view-section" id="bayaran">
+        <div class="container payment-grid">
+          <div>
+            <p class="eyebrow">Bayaran khairat</p>
+            <h2>Bayaran Cash atau Online</h2>
+            <p>Ahli boleh memilih bayaran tunai kepada AJK atau pindahan online ke akaun rasmi surau. Masukkan nombor resit dan link bukti pembayaran untuk pengesahan.</p>
+            <div class="bank-box">
+              <span>Akaun Rasmi</span>
+              <strong>RHB Bank: 26229600007784</strong>
+              <small>Nama akaun: Surau Hj Kamaruddin</small>
+            </div>
+            <div class="qr-box">
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=190x190&data=RHB%20Bank%2026229600007784%20Surau%20Hj%20Kamaruddin" alt="QR bayaran Surau Hj Kamaruddin">
+              <span>QR bayaran akaun RHB Surau Hj Kamaruddin</span>
+            </div>
+          </div>
+          <form class="payment-card" id="paymentForm">
+            <label>Nama Pembayar
+              <input id="payerName" type="text" placeholder="Nama ahli / waris" required>
+            </label>
+            <label>No. Ahli / IC / No. Telefon
+              <input id="payerIdentifier" type="text" placeholder="Untuk padanan rekod ahli">
+            </label>
+            <label>Tahun Bayaran
+              <input id="paymentYear" type="number" min="2020" max="2035" value="2026">
+            </label>
+            <label>Kaedah Bayaran
+              <select id="paymentMethod">
+                <option value="online">Online transfer</option>
+                <option value="cash">Cash kepada AJK</option>
+              </select>
+            </label>
+            <label>Jumlah Bayaran
+              <input id="paymentAmount" type="number" min="0" placeholder="RM">
+            </label>
+            <label>No. Resit / Rujukan
+              <select id="proofType">
+                <option value="receipt">Masukkan no. resit / reference</option>
+                <option value="upload">Upload gambar resit</option>
+              </select>
+            </label>
+            <label id="receiptNoField">No. Resit / Rujukan
+              <input id="receiptNo" type="text" placeholder="No. resit atau reference bank">
+            </label>
+            <label class="span-2" id="receiptUploadField" hidden>Upload Gambar Resit
+              <input id="receiptProofFile" type="file" accept="image/*">
+            </label>
+            <label class="checkline">
+              <input id="applyExcess" type="checkbox">
+              Jika terlebih bayar, lebihan boleh dibawa ke tahun seterusnya selepas admin verify.
+            </label>
+            <label>Rujukan / Catatan
+              <textarea id="paymentNote" rows="3" placeholder="No. rujukan online atau nama AJK penerima cash"></textarea>
+            </label>
+            <button class="button button--primary" type="submit">Simpan Maklumat Bayaran</button>
+            <p class="form-message" id="paymentMessage" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+
+      <section class="section view-section" id="sumbangan">
+        <div class="container payment-grid">
+          <div>
+            <p class="eyebrow">Sumbangan</p>
+            <h2>Sumbangan Bukan Ahli</h2>
+            <p>Orang ramai yang bukan ahli boleh merekodkan sumbangan untuk tabung khairat. Rekod ini akan masuk admin verification.</p>
+          </div>
+          <form class="payment-card" id="donationForm">
+            <label>Nama Penyumbang
+              <input id="donorName" type="text" required>
+            </label>
+            <label>No. Telefon
+              <input id="donorPhone" type="tel">
+            </label>
+            <label>Kaedah Bayaran
+              <select id="donationMethod">
+                <option value="online">Online transfer</option>
+                <option value="cash">Cash kepada AJK</option>
+              </select>
+            </label>
+            <label>Jumlah Sumbangan
+              <input id="donationAmount" type="number" min="0" placeholder="RM">
+            </label>
+            <label class="span-2">Catatan
+              <textarea id="donationNote" rows="3"></textarea>
+            </label>
+            <button class="button button--primary" type="submit">Hantar Sumbangan</button>
+            <p class="form-message" id="donationMessage" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+
+      <section class="section section--contact view-section" id="contact">
+        <div class="container section__header section__header--light">
+          <p class="eyebrow">Contact</p>
+          <h2>Hubungi AJK Khairat SHK</h2>
+          <p>Email rasmi surau: <a href="mailto:shk.bt7.meru@gmail.com">shk.bt7.meru@gmail.com</a></p>
+          <p><a class="map-link" href="https://www.google.com/maps/search/?api=1&query=Surau%20Hj%20Kamaruddin%20Batu%207%201%2F2%20Jalan%20Meru%20Tambahan%20Klang" target="_blank" rel="noopener">Buka lokasi di Google Maps</a></p>
+        </div>
+        <div class="container contacts">
+          <a class="contact-card" href="tel:0194302665">
+            <strong>Farid Pouzan</strong>
+            <span>0194302665</span>
+          </a>
+          <a class="contact-card" href="tel:01112881312">
+            <strong>Hj Hilmi</strong>
+            <span>01112881312</span>
+          </a>
+          <a class="contact-card" href="tel:0193003610">
+            <strong>Ustaz Suhaimi</strong>
+            <span>0193003610</span>
+          </a>
+          <a class="contact-card" href="tel:0133345849">
+            <strong>Cikgu Tasni</strong>
+            <span>0133345849</span>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer__inner">
+        <span>Khairat SHK, Batu 7 1/2 Jalan Meru Tambahan, Meru, 41050 Klang, Selangor</span>
+        <span>Kariah Surau Haji Kamaruddin sahaja</span>
+      </div>
+    </footer>
+
+    <script src="supabase-config.js?v=20260829-dashboard"></script>
+    <script src="script.js?v=20260829-dashboard"></script>
+  </body>
+</html>

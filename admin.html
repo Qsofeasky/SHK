@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="ms">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin Khairat SHK</title>
+    <link rel="stylesheet" href="styles.css?v=20260829-nav-clean">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="topbar">
+        <div class="container topbar__inner">
+          <span>Admin AJK Khairat SHK</span>
+          <a href="index.html">Kembali ke Website</a>
+        </div>
+      </div>
+      <nav class="container nav" aria-label="Navigasi admin">
+        <a class="brand" href="admin.html">
+          <span class="brand__mark">SHK</span>
+          <span>
+            <strong>Admin Approval</strong>
+            <small>Semak dan sahkan data baru</small>
+          </span>
+        </a>
+        <button class="nav-toggle" id="adminNavToggle" type="button" aria-expanded="false" aria-controls="admin-menu" aria-label="Buka menu admin" hidden>
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div class="nav-links admin-nav" id="admin-menu" hidden>
+          <button type="button" data-admin-view="dashboard">Dashboard</button>
+          <button type="button" data-admin-view="approval">Approval</button>
+          <button type="button" data-admin-view="donations">Sumbangan</button>
+          <button type="button" data-admin-view="transfers">Pindahan Ahli</button>
+          <button type="button" data-admin-view="paid">Paid / Not Paid</button>
+          <button type="button" data-admin-view="receipt">Pengesahan Resit</button>
+          <button type="button" data-admin-view="backup">Database Backup</button>
+          <button type="button" data-admin-view="reminder">Email Reminder</button>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="section admin-hero">
+        <div class="container admin-grid">
+          <form class="form-panel" id="loginForm">
+            <p class="eyebrow">Login AJK</p>
+            <h1>Masuk Admin</h1>
+            <label>Email
+              <input id="adminEmail" type="email" placeholder="Email Supabase Auth" required>
+            </label>
+            <label>Password
+              <input id="adminPassword" type="password" placeholder="Password" required>
+            </label>
+            <button class="button button--primary" type="submit">Login</button>
+            <a class="helper-link" href="reset-password.html">Lupa password admin?</a>
+            <p class="form-message" id="loginMessage" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+
+      <section class="section section--tint admin-panel" id="adminPanel" hidden>
+        <div class="container admin-toolbar">
+          <div>
+            <p class="eyebrow">Admin dashboard</p>
+            <h2>Pengurusan Khairat SHK</h2>
+            <p class="form-message" id="adminStatus" aria-live="polite"></p>
+          </div>
+          <div class="form-actions">
+            <button class="button button--secondary" id="refreshAdmin" type="button">Refresh</button>
+            <button class="button button--secondary" id="logoutAdmin" type="button">Logout</button>
+          </div>
+        </div>
+
+        <div class="container admin-dashboard" id="adminDashboard">
+          <article class="price-card">
+            <span>Pending Approval</span>
+            <strong id="pendingCount">0</strong>
+            <small>Rekod baru yang perlu disemak.</small>
+          </article>
+          <article class="price-card">
+            <span>Paid Tahun Ini</span>
+            <strong id="paidCount">0</strong>
+            <small>Ahli aktif yang sudah ada rekod bayaran.</small>
+          </article>
+          <article class="price-card">
+            <span>Not Paid</span>
+            <strong id="notPaidCount">0</strong>
+            <small>Ahli aktif yang belum ada rekod bayaran.</small>
+          </article>
+        </div>
+
+        <div class="container admin-sections" id="adminApprovalSections" hidden>
+          <section class="admin-list admin-list--wide">
+            <div class="section-bar">
+              <div>
+                <p class="eyebrow">Approval</p>
+                <h3>Semak Status Rekod</h3>
+              </div>
+              <label class="admin-filter">Status
+                <select id="statusFilter">
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved / Verified</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="all">All</option>
+                </select>
+              </label>
+            </div>
+          </section>
+          <section class="admin-list">
+            <h3>Semakan / Daftar Ahli</h3>
+            <div id="membershipList" class="admin-cards"></div>
+          </section>
+          <section class="admin-list">
+            <h3>Kemaskini Tanggungan</h3>
+            <div id="dependantList" class="admin-cards"></div>
+          </section>
+          <section class="admin-list">
+            <h3>Bayaran</h3>
+            <div id="paymentList" class="admin-cards"></div>
+          </section>
+        </div>
+
+        <div class="container admin-sections" id="adminDonationSection" hidden>
+          <section class="admin-list admin-list--wide">
+            <h3>Rekod Sumbangan Bukan Ahli</h3>
+            <div id="donationList" class="admin-cards"></div>
+          </section>
+        </div>
+
+        <div class="container admin-sections" id="adminTransferSection" hidden>
+          <section class="admin-list">
+            <h3>Pindahan Ahli</h3>
+            <form class="payment-card" id="adminExitForm">
+              <label>Nama Ahli
+                <input id="adminExitName" type="text">
+              </label>
+              <label>No. IC Ahli
+                <input id="adminExitIc" type="text">
+              </label>
+              <button class="button button--primary" id="adminExitButton" type="button">Pindahkan Ahli</button>
+            </form>
+          </section>
+          <section class="admin-list admin-list--wide">
+            <h3>Rekod Pindahan Ahli</h3>
+            <div id="exitList" class="admin-cards"></div>
+          </section>
+        </div>
+
+        <div class="container admin-sections" id="adminPaidSection" hidden>
+          <section class="admin-list admin-list--wide">
+            <div class="section-bar">
+              <h3>Paid / Not Paid</h3>
+              <label class="admin-filter">Cari Ahli
+                <input id="paidSearch" type="search" placeholder="Nama atau no. ahli">
+              </label>
+            </div>
+            <div id="paidList" class="admin-table-wrap"></div>
+          </section>
+        </div>
+
+        <div class="container admin-tools" id="adminReceiptSection" hidden>
+          <section class="payment-card admin-tool-wide">
+            <h3>Pengesahan Resit</h3>
+            <label>No. Resit / Rujukan
+              <input id="adminReceiptSearch" type="text">
+            </label>
+            <button class="button button--secondary" id="adminReceiptButton" type="button">Cari Resit</button>
+            <div class="check-answer" id="adminReceiptAnswer" hidden></div>
+          </section>
+        </div>
+
+        <div class="container admin-tools" id="adminBackupSection" hidden>
+          <section class="payment-card admin-tool-wide">
+            <h3>Database Backup</h3>
+            <p>Backup auto bulanan akan disimpan ke Supabase Storage selepas schedule dipasang.</p>
+            <button class="button button--primary" id="runBackup" type="button">Run Backup Sekarang</button>
+            <p class="form-message" id="backupMessage" aria-live="polite"></p>
+          </section>
+        </div>
+
+        <div class="container admin-tools" id="adminReminderSection" hidden>
+          <section class="payment-card admin-tool-wide">
+            <h3>Email Reminder</h3>
+            <p>Queue reminder akan dihantar bila Edge Function email dipasang.</p>
+            <label>Email Penerima
+              <input id="reminderEmail" type="email">
+            </label>
+            <label>Subjek
+              <input id="reminderSubject" type="text" value="Peringatan Bayaran Khairat">
+            </label>
+            <button class="button button--secondary" id="queueReminder" type="button">Simpan Reminder</button>
+            <button class="button button--primary" id="sendReminders" type="button">Send Queued Email</button>
+            <p class="form-message" id="reminderMessage" aria-live="polite"></p>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="supabase-config.js?v=20260829-nav-clean"></script>
+    <script src="admin.js?v=20260829-nav-clean"></script>
+  </body>
+</html>
