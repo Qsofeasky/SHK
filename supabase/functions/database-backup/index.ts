@@ -49,33 +49,63 @@ Deno.serve(async (req) => {
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
     const backup: Record<string, unknown[]> = {};
+    const table_errors: Record<string, string> = {};
 
     for (const table of backupTables) {
       const { data, error } = await adminClient.from(table).select("*");
-      if (error) throw error;
-      backup[table] = data || [];
+      if (error) {
+        table_errors[table] = error.message;
+        backup[table] = [];
+      } else {
+        backup[table] = data || [];
+      }
     }
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const backupName = `shk-backup-${timestamp}.json`;
     const path = `database/${backupName}`;
-    const file = new Blob([JSON.stringify({ created_at: new Date().toISOString(), backup }, null, 2)], {
+    const file = new Blob([JSON.stringify({
+      created_at: new Date().toISOString(),
+      backup,
+      table_errors,
+    }, null, 2)], {
       type: "application/json",
     });
+
+    const { data: buckets, error: bucketListError } = await adminClient.storage.listBuckets();
+    if (bucketListError) throw bucketListError;
+
+    const hasBackupBucket = buckets?.some((bucket) => bucket.name === "database-backups");
+    if (!hasBackupBucket) {
+      const { error: createBucketError } = await adminClient.storage.createBucket("database-backups", {
+        public: false,
+      });
+      if (createBucketError) throw createBucketError;
+    }
 
     const { error: uploadError } = await adminClient.storage
       .from("database-backups")
       .upload(path, file, { contentType: "application/json", upsert: false });
     if (uploadError) throw uploadError;
 
-    await adminClient.from("database_backups").insert({
+    const { error: logError } = await adminClient.from("database_backups").insert({
       backup_name: backupName,
       backup_url: path,
-      notes: "Auto backup from Edge Function",
+      notes: Object.keys(table_errors).length
+        ? `Backup saved with table warnings: ${Object.keys(table_errors).join(", ")}`
+        : "Auto backup from Edge Function",
       created_by: "edge-function",
     });
+    if (logError) {
+      return json({
+        backup_name: backupName,
+        path,
+        warning: `Backup file saved, but database_backups log failed: ${logError.message}`,
+        table_errors,
+      });
+    }
 
-    return json({ backup_name: backupName, path });
+    return json({ backup_name: backupName, path, table_errors });
   } catch (error) {
     return json({ error: error.message || String(error) }, 500);
   }

@@ -706,7 +706,11 @@ async function sendQueuedReminders() {
 async function runDatabaseBackup() {
   setAdminMessage("#backupMessage", "Sedang buat backup database...", "neutral");
   const result = await callEdgeFunction("database-backup");
-  setAdminMessage("#backupMessage", `Backup disimpan: ${result.backup_name || result.path || "selesai"}`, "success");
+  const tableWarnings = result.table_errors && Object.keys(result.table_errors).length
+    ? ` Ada warning table: ${Object.keys(result.table_errors).join(", ")}.`
+    : "";
+  const warning = result.warning ? ` ${result.warning}` : "";
+  setAdminMessage("#backupMessage", `Backup disimpan: ${result.backup_name || result.path || "selesai"}.${tableWarnings}${warning}`, "success");
 }
 
 async function callEdgeFunction(functionName) {
@@ -728,6 +732,12 @@ async function callEdgeFunction(functionName) {
     result = { error: text };
   }
   if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error(`${functionName} belum deploy di Supabase Edge Functions.`);
+    }
+    if (response.status === 401 || response.status === 403) {
+      throw new Error(`${functionName} tiada permission. Pastikan awak login admin dan email ada dalam admin_users.`);
+    }
     throw new Error(result.error || text || `${functionName} gagal.`);
   }
   return result;
