@@ -15,7 +15,9 @@ const backupTables = [
   "dependant_update_items",
   "payments",
   "non_member_donations",
+  "kariah_exit_requests",
   "reminder_queue",
+  "database_backups",
 ];
 
 Deno.serve(async (req) => {

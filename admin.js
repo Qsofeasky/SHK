@@ -507,7 +507,7 @@ async function approveDependant(id) {
   const items = await supabaseRequest(`dependant_update_items?update_id=eq.${id}&select=*`);
 
   for (const item of items) {
-    if (item.item_status === "Tambah" || item.item_status === "Kekal") {
+    if (item.item_status === "Tambah") {
       await supabaseRequest("member_dependants", {
         method: "POST",
         headers: { Prefer: "return=minimal" },
