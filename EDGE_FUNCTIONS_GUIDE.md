@@ -60,6 +60,10 @@ For fully automatic schedule, edit and run:
 
 `supabase-import/schedule_email_and_backup.sql`
 
+For backup only, edit and run:
+
+`supabase-import/schedule_monthly_backup_only.sql`
+
 Replace these placeholders first:
 
 - `YOUR_SUPABASE_ANON_KEY`
