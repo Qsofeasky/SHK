@@ -168,7 +168,11 @@ function syncDaftarFields() {
   if (name) name.required = true;
   if (id) {
     id.required = true;
-    id.placeholder = show ? "No. IC ahli baru" : "Masukkan no. IC sahaja";
+    id.type = show ? "text" : "tel";
+    id.placeholder = show ? "No. IC ahli baru" : "Masukkan no. telefon sahaja";
+  }
+  if (checkIdField) {
+    checkIdField.childNodes[0].textContent = show ? "No. IC" : "No. Telefon";
   }
   if (phone) phone.required = show;
   if (email) email.required = show;
@@ -197,7 +201,7 @@ if (checkForm) {
     try {
       const searchText = id;
       if (!name || !searchText) {
-        throw new Error(typeInput.value === "daftar" ? "Masukkan nama dan no. IC ahli baru." : "Masukkan nama dan no. IC untuk carian.");
+        throw new Error(typeInput.value === "daftar" ? "Masukkan nama dan no. IC ahli baru." : "Masukkan nama dan no. telefon untuk carian.");
       }
 
       if (typeInput.value === "status") {
