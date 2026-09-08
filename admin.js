@@ -346,7 +346,7 @@ function renderPaymentCard(record) {
       <span class="status-pill">${escapeHtml(record.payment_method)}</span>
       <h4>${escapeHtml(record.payer_name)}</h4>
       <p>Status: ${escapeHtml(record.status)}</p>
-      <p>ID/IC/Tel: ${escapeHtml(record.payer_identifier || "-")}</p>
+      <p>No. Telefon: ${escapeHtml(record.payer_identifier || "-")}</p>
       <p>Tahun: ${escapeHtml(record.payment_year || "-")}</p>
       <p>Jumlah: RM${escapeHtml(String(record.amount || "0"))}</p>
       <p>No. Resit: ${escapeHtml(record.receipt_no || "-")}</p>

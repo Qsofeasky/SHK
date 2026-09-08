@@ -2,8 +2,8 @@
 
 ## Public Website
 
-- Semakan status keahlian: pilih `Status keahlian`, masukkan `No. IC` sahaja.
-- Semakan bayaran tahunan: pilih `Status bayaran tahunan`, masukkan `No. IC` sahaja.
+- Semakan status keahlian: pilih `Status keahlian`, masukkan `No. Telefon` sahaja.
+- Semakan bayaran tahunan: pilih `Status bayaran tahunan`, masukkan `No. Telefon` sahaja.
 - Daftar ahli baru: nama, IC, telefon, email, pekerjaan, alamat dan pilihan share lokasi akan muncul.
 - Bayaran: pilih sama ada masukkan no. resit/reference atau upload gambar resit. Hanya satu tempat bukti digunakan.
 - Sumbangan bukan ahli: orang luar boleh hantar rekod sumbangan tanpa no. resit atau link bukti.
@@ -18,8 +18,8 @@
 - Bayaran: admin boleh verify/reject, isi rujukan bank statement, dan bawa lebihan bayaran ke tahun depan.
 - Paid / Not Paid: admin boleh cari nama, no. ahli atau email dalam table ahli aktif tahun semasa.
 - Pengesahan Resit: ada tab admin asing untuk cari no. resit.
-- Email Reminder: ada tab admin asing untuk queue reminder dan hantar queue selepas Edge Function dipasang.
-- Database Backup: ada tab admin asing untuk run backup selepas Edge Function dipasang; auto bulanan melalui schedule Supabase.
+- Email Reminder: backend auto boleh dipasang melalui Edge Function, tetapi tab manual dibuang dari admin website.
+- Database Backup: backup auto bulanan melalui schedule Supabase, tetapi tab manual dibuang dari admin website.
 
 ## Supabase
 
