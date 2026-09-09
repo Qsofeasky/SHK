@@ -21,6 +21,7 @@ create table if not exists public.dependant_updates (
   id uuid primary key default gen_random_uuid(),
   member_name text not null,
   member_identifier text not null,
+  phone text,
   update_action text not null,
   dependant_total integer,
   status text not null default 'pending' check (status in ('pending', 'reviewed', 'approved', 'rejected')),
@@ -185,6 +186,9 @@ add column if not exists occupation text;
 
 alter table public.members
 add column if not exists email text;
+
+alter table public.dependant_updates
+add column if not exists phone text;
 
 alter table public.member_yearly_payments
 add column if not exists source_submission_id uuid;

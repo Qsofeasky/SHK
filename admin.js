@@ -329,7 +329,8 @@ function renderDependantCard(record) {
       <span class="status-pill">${escapeHtml(record.update_action)}</span>
       <h4>${escapeHtml(record.member_name)}</h4>
       <p>Status: ${escapeHtml(record.status)}</p>
-      <p>No. Ahli/IC: ${escapeHtml(record.member_identifier)}</p>
+      <p>IC Ahli: ${escapeHtml(record.member_identifier)}</p>
+      <p>No. Telefon: ${escapeHtml(record.phone || "-")}</p>
       <p>Jumlah selepas kemaskini: ${escapeHtml(String(record.dependant_total || "-"))}</p>
       <ul>${items || "<li>Tiada item tanggungan.</li>"}</ul>
       <div class="form-actions">
