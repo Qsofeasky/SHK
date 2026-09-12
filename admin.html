@@ -30,6 +30,7 @@
         <div class="nav-links admin-nav" id="admin-menu" hidden>
           <button type="button" data-admin-view="dashboard">Dashboard</button>
           <button type="button" data-admin-view="approval">Approval</button>
+          <button type="button" data-admin-view="locations">Lokasi Ahli</button>
           <button type="button" data-admin-view="donations">Sumbangan</button>
           <button type="button" data-admin-view="transfers">Pindahan Ahli</button>
           <button type="button" data-admin-view="paid">Paid / Not Paid</button>
@@ -109,10 +110,6 @@
             <h3>Semakan / Daftar Ahli</h3>
             <div id="membershipList" class="admin-cards"></div>
           </section>
-          <section class="admin-list admin-list--wide">
-            <h3>Lokasi Dikongsi</h3>
-            <div id="locationList" class="admin-table-wrap"></div>
-          </section>
           <section class="admin-list">
             <h3>Kemaskini Tanggungan</h3>
             <div id="dependantList" class="admin-cards"></div>
@@ -120,6 +117,18 @@
           <section class="admin-list">
             <h3>Bayaran</h3>
             <div id="paymentList" class="admin-cards"></div>
+          </section>
+        </div>
+
+        <div class="container admin-sections" id="adminLocationSection" hidden>
+          <section class="admin-list admin-list--wide">
+            <div class="section-bar">
+              <div>
+                <p class="eyebrow">Lokasi Ahli</p>
+                <h3>Senarai Lokasi Dikongsi</h3>
+              </div>
+            </div>
+            <div id="locationList" class="admin-table-wrap"></div>
           </section>
         </div>
 

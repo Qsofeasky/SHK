@@ -103,6 +103,7 @@ function showAdminView(view) {
   const sections = {
     dashboard: document.querySelector("#adminDashboard"),
     approval: document.querySelector("#adminApprovalSections"),
+    locations: document.querySelector("#adminLocationSection"),
     donations: document.querySelector("#adminDonationSection"),
     transfers: document.querySelector("#adminTransferSection"),
     paid: document.querySelector("#adminPaidSection"),
