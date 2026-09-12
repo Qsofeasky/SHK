@@ -1034,7 +1034,7 @@ function isIcDashFormat(value) {
 function requireIcDashFormat(value, label) {
   const text = String(value || "").trim();
   if (text && !isIcDashFormat(text)) {
-    throw new Error(`${label} mesti format XXXXXX-XX-XXXX, contoh 710513-10-6035.`);
+    throw new Error(`${label} mesti format XXXXXX-XX-XXXX, contoh XXXXXX-XX-XXXX.`);
   }
 }
 

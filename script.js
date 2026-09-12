@@ -139,14 +139,14 @@ function hasDash(value) {
 function requirePhoneFormat(value, label) {
   const text = String(value || "").trim();
   if (text && !isPhoneFormat(text)) {
-    throw new Error(`${label} mesti format 01X-XXXXXX, contoh 019-4302665.`);
+    throw new Error(`${label} mesti format 01X-XXXXXX, contoh 01X-XXXXXX.`);
   }
 }
 
 function requireIcDashFormat(value, label) {
   const text = String(value || "").trim();
   if (text && !/^\d{6}-\d{2}-\d{4}$/.test(text)) {
-    throw new Error(`${label} mesti format XXXXXX-XX-XXXX, contoh 710513-10-6035.`);
+    throw new Error(`${label} mesti format XXXXXX-XX-XXXX, contoh XXXXXX-XX-XXXX.`);
   }
 }
 
@@ -203,7 +203,7 @@ function syncDaftarFields() {
   if (id) {
     id.required = true;
     id.type = show ? "text" : "tel";
-    id.placeholder = show ? "IC format XXXXXX-XX-XXXX, contoh: 710513-10-6035" : "Contoh: 019-4302665";
+    id.placeholder = show ? "IC format XXXXXX-XX-XXXX, contoh: XXXXXX-XX-XXXX" : "Contoh: 01X-XXXXXX";
     id.title = show ? "No. IC mesti format XXXXXX-XX-XXXX." : "No. telefon mesti format 01X-XXXXXX.";
   }
   if (checkIdField) {
