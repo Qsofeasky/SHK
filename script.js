@@ -500,7 +500,7 @@ if (paymentForm) {
         receipt_proof_data: proofData,
         receipt_proof_name: proofFile?.name || null,
         apply_excess_to_next_year: document.querySelector("#applyExcess").checked,
-        note: null
+        note: document.querySelector("#paymentNote")?.value.trim() || null
       });
       await queueAdminReminder("Bayaran perlu verification", `Bayaran ${document.querySelector("#payerName").value.trim()} perlu disemak dengan resit/bank statement.`);
 
