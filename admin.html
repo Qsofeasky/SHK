@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Admin Khairat SHK</title>
-    <link rel="stylesheet" href="styles.css?v=20260912-info-update">
+    <link rel="stylesheet" href="styles.css?v=20260912-receipts">
   </head>
   <body>
     <header class="site-header">
@@ -34,7 +34,7 @@
           <button type="button" data-admin-view="donations">Sumbangan</button>
           <button type="button" data-admin-view="transfers">Pindahan Ahli</button>
           <button type="button" data-admin-view="paid">Paid / Not Paid</button>
-          <button type="button" data-admin-view="receipt">Pengesahan Resit</button>
+          <button type="button" data-admin-view="receipt">Resit</button>
         </div>
       </nav>
     </header>
@@ -172,9 +172,14 @@
 
         <div class="container admin-tools" id="adminReceiptSection" hidden>
           <section class="payment-card admin-tool-wide">
-            <h3>Pengesahan Resit</h3>
-            <label>No. Resit / Rujukan
-              <input id="adminReceiptSearch" type="text">
+            <h3>Resit Digital</h3>
+            <p class="form-message">Nombor resit rasmi dijana automatik selepas admin verify bayaran. Format resit: 4 digit, contoh 0001.</p>
+            <div class="receipt-status">
+              <span>Resit terakhir dijana</span>
+              <strong id="lastReceiptNo">Belum ada</strong>
+            </div>
+            <label>Cari No. Resit
+              <input id="adminReceiptSearch" type="text" inputmode="numeric" maxlength="4" placeholder="Contoh: 0001">
             </label>
             <button class="button button--secondary" id="adminReceiptButton" type="button">Cari Resit</button>
             <div class="check-answer" id="adminReceiptAnswer" hidden></div>
@@ -184,7 +189,7 @@
       </section>
     </main>
 
-    <script src="supabase-config.js?v=20260912-info-update"></script>
-    <script src="admin.js?v=20260912-info-update"></script>
+    <script src="supabase-config.js?v=20260912-receipts"></script>
+    <script src="admin.js?v=20260912-receipts"></script>
   </body>
 </html>

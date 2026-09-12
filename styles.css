@@ -712,6 +712,27 @@ textarea:focus {
   gap: 16px;
 }
 
+.receipt-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  background: var(--mint-50);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.receipt-status span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.receipt-status strong {
+  color: var(--green-950);
+  font-size: 1.7rem;
+}
+
 .section--contact {
   color: #fff;
   background:

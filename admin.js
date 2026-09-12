@@ -128,7 +128,8 @@ async function loadAdminData() {
     loadPayments(),
     loadDonations(),
     loadExitRequests(),
-    loadPaidOverview()
+    loadPaidOverview(),
+    loadLastReceiptNo()
   ]);
   await updateAdminSummary(paidOverviewRecords);
 }
@@ -174,6 +175,7 @@ function showAdminError(error) {
   renderCards("#donationList", [], renderDonationCard);
   renderCards("#exitList", [], renderExitCard);
   renderPaidTable([]);
+  setText("#lastReceiptNo", "Belum ada");
 }
 
 function selectedStatus() {
@@ -260,6 +262,37 @@ async function loadPaidOverview() {
     paid: paidKeys.has(normalKey(member.member_no || member.member_name))
   }));
   renderPaidTable(filteredPaidRecords());
+}
+
+async function loadLastReceiptNo() {
+  const receipts = await receiptSources();
+  const lastNo = highestReceiptNo(receipts);
+  setText("#lastReceiptNo", lastNo ? formatReceiptNo(lastNo) : "Belum ada");
+}
+
+async function nextReceiptNo() {
+  const receipts = await receiptSources();
+  return formatReceiptNo(highestReceiptNo(receipts) + 1);
+}
+
+async function receiptSources() {
+  const [payments, yearlyPayments] = await Promise.all([
+    supabaseRequest("payments?select=receipt_no&receipt_no=not.is.null&limit=1000"),
+    supabaseRequest("member_yearly_payments?select=receipt_no&receipt_no=not.is.null&limit=1000")
+  ]);
+  return [...payments, ...yearlyPayments].map((record) => record.receipt_no);
+}
+
+function highestReceiptNo(receipts) {
+  return receipts.reduce((highest, receipt) => {
+    const text = String(receipt || "").trim();
+    if (!/^\d{4}$/.test(text)) return highest;
+    return Math.max(highest, Number(text));
+  }, 0);
+}
+
+function formatReceiptNo(number) {
+  return String(number || 1).padStart(4, "0");
 }
 
 function filteredPaidRecords() {
@@ -619,6 +652,9 @@ async function deleteDependant(update, item) {
 async function approvePayment(id) {
   const [record] = await supabaseRequest(`payments?id=eq.${id}&select=*`);
   const bankStatementRef = prompt("Masukkan rujukan bank statement / catatan tally:", record.bank_statement_ref || record.receipt_no || "") || record.bank_statement_ref || null;
+  const officialReceiptNo = /^\d{4}$/.test(String(record.receipt_no || "").trim())
+    ? String(record.receipt_no).trim()
+    : await nextReceiptNo();
   const year = record.payment_year || new Date().getFullYear();
   const amount = Number(record.amount || 0);
   const annualAmount = 50;
@@ -633,7 +669,7 @@ async function approvePayment(id) {
       member_name: record.payer_name,
       payment_year: year,
       amount: currentYearAmount,
-      receipt_no: record.receipt_no || record.note,
+      receipt_no: officialReceiptNo,
       source_sheet: `WEBSITE-${record.payment_method}`,
       source_submission_id: record.id
     })
@@ -648,7 +684,7 @@ async function approvePayment(id) {
         member_name: record.payer_name,
         payment_year: year + 1,
         amount: excessAmount,
-        receipt_no: record.receipt_no || record.note,
+        receipt_no: officialReceiptNo,
         source_sheet: `WEBSITE-${record.payment_method}-EXCESS`,
         source_submission_id: record.id
       })
@@ -658,8 +694,10 @@ async function approvePayment(id) {
   await supabaseRequest(`payments?id=eq.${id}`, {
     method: "PATCH",
     headers: { Prefer: "return=minimal" },
-    body: JSON.stringify({ status: "verified", bank_statement_ref: bankStatementRef })
+    body: JSON.stringify({ status: "verified", receipt_no: officialReceiptNo, bank_statement_ref: bankStatementRef })
   });
+  alert(`Resit digital dijana: ${officialReceiptNo}`);
+  await loadLastReceiptNo();
 }
 
 async function approveExit(id) {
@@ -703,7 +741,8 @@ async function updateStatus(table, id, status) {
 
 async function checkAdminReceipt() {
   const answer = document.querySelector("#adminReceiptAnswer");
-  const receipt = document.querySelector("#adminReceiptSearch")?.value.trim();
+  const receiptInput = document.querySelector("#adminReceiptSearch")?.value.trim();
+  const receipt = /^\d{1,4}$/.test(receiptInput || "") ? formatReceiptNo(Number(receiptInput)) : receiptInput;
   if (!answer || !receipt) return;
 
   try {
