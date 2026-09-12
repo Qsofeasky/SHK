@@ -284,6 +284,7 @@ document.querySelector("#detectLocation")?.addEventListener("click", () => {
 });
 
 const dependantAction = document.querySelector("#dependantAction");
+const memberNameField = document.querySelector("#memberNameField");
 const memberIdField = document.querySelector("#memberIdField");
 const dependantNewNameField = document.querySelector("#dependantNewNameField");
 const dependantNewPhoneField = document.querySelector("#dependantNewPhoneField");
@@ -309,7 +310,8 @@ function syncDependantFields() {
   const showSelfUpdate = dependantAction?.value === "Kemaskini Maklumat Diri";
   const rowAction = isDependantRowAction();
 
-  if (memberIdField) memberIdField.hidden = !(showSelfUpdate || rowAction);
+  if (memberNameField) memberNameField.childNodes[0].textContent = rowAction ? "Nama Ahli" : "Nama Ahli Lama (jika ingat)";
+  if (memberIdField) memberIdField.hidden = !showSelfUpdate;
   if (dependantNewNameField) dependantNewNameField.hidden = !showSelfUpdate;
   if (dependantNewPhoneField) dependantNewPhoneField.hidden = !showSelfUpdate;
   if (dependantNewIcField) dependantNewIcField.hidden = !showSelfUpdate;
@@ -319,9 +321,14 @@ function syncDependantFields() {
   if (rows) rows.hidden = !rowAction;
   if (addDependant) addDependant.hidden = !rowAction;
 
+  const memberName = document.querySelector("#memberName");
   const memberIdentifier = document.querySelector("#memberId");
   const dependantTotal = document.querySelector("#dependantTotal");
-  if (memberIdentifier) memberIdentifier.required = showSelfUpdate || rowAction;
+  if (memberName) {
+    memberName.required = rowAction;
+    memberName.placeholder = rowAction ? "Nama ahli" : "Isi jika ingat nama lama";
+  }
+  if (memberIdentifier) memberIdentifier.required = showSelfUpdate;
   if (dependantTotal) dependantTotal.required = rowAction;
 
   document.querySelectorAll("#dependantRows .dependant-row:not(.dependant-row--head) select:last-child").forEach((select) => {
@@ -380,15 +387,19 @@ if (dependantForm) {
       const action = document.querySelector("#dependantAction").value;
       const rowAction = isDependantRowAction();
 
-      if (!memberIdentifier) {
+      if (rowAction && !memberName) {
+        throw new Error("Masukkan nama ahli.");
+      }
+
+      if (!rowAction && !memberIdentifier) {
         throw new Error("Masukkan no. telefon atau IC ahli sebagai rujukan.");
       }
 
       const updatePayload = {
         id: crypto.randomUUID(),
         member_name: memberName || memberIdentifier,
-        member_identifier: memberIdentifier,
-        phone: memberIdentifier,
+        member_identifier: rowAction ? memberName : memberIdentifier,
+        phone: rowAction ? null : memberIdentifier,
         update_action: action,
         dependant_total: rowAction ? Number(document.querySelector("#dependantTotal")?.value) || null : null
       };
