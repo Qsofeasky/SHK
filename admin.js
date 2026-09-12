@@ -378,13 +378,14 @@ function renderDependantCard(record) {
       <span class="status-pill">${escapeHtml(record.update_action)}</span>
       <h4>${escapeHtml(record.member_name)}</h4>
       <p>Status: ${escapeHtml(record.status)}</p>
-      <p>IC Ahli: ${escapeHtml(record.member_identifier)}</p>
+      <p>Rujukan Ahli: ${escapeHtml(record.member_identifier)}</p>
       <p>No. Telefon: ${escapeHtml(record.phone || "-")}</p>
       ${record.new_phone ? `<p>No. Telefon Baru: ${escapeHtml(record.new_phone)}</p>` : ""}
+      ${record.new_ic ? `<p>IC Baru: ${escapeHtml(record.new_ic)}</p>` : ""}
       ${record.new_address ? `<p>Alamat / Lokasi Baru: ${escapeHtml(record.new_address)}</p>` : ""}
       ${record.location_url ? `<p><a href="${escapeHtml(record.location_url)}" target="_blank" rel="noopener">Buka lokasi baru</a></p>` : ""}
-      <p>Jumlah selepas kemaskini: ${escapeHtml(String(record.dependant_total || "-"))}</p>
-      <ul>${items || "<li>Tiada item tanggungan.</li>"}</ul>
+      ${record.dependant_total !== null ? `<p>Jumlah selepas kemaskini: ${escapeHtml(String(record.dependant_total))}</p>` : ""}
+      ${items ? `<ul>${items}</ul>` : ""}
       <div class="form-actions">
         ${record.status === "pending" ? `<button class="button button--primary" data-action="approve-dependant" data-id="${record.id}" type="button">Approve</button>` : ""}
         <button class="button button--secondary" data-action="reject-dependant" data-id="${record.id}" type="button">Reject</button>
@@ -569,7 +570,7 @@ async function approveDependant(id) {
   }
 
   if (update.dependant_total !== null) {
-    await supabaseRequest(memberMatchPath(update.member_identifier), {
+    await supabaseRequest(memberMatchPath(update.member_identifier, update.member_name), {
       method: "PATCH",
       headers: { Prefer: "return=minimal" },
       body: JSON.stringify({ dependant_count: update.dependant_total })
@@ -578,10 +579,11 @@ async function approveDependant(id) {
 
   const memberPatch = {};
   if (update.new_phone) memberPatch.phone = update.new_phone;
+  if (update.new_ic) memberPatch.ic_no = update.new_ic;
   if (update.new_address) memberPatch.address = update.new_address;
 
   if (Object.keys(memberPatch).length) {
-    await supabaseRequest(memberMatchPath(update.member_identifier), {
+    await supabaseRequest(memberMatchPath(update.member_identifier, update.member_name), {
       method: "PATCH",
       headers: { Prefer: "return=minimal" },
       body: JSON.stringify(memberPatch)
@@ -591,9 +593,13 @@ async function approveDependant(id) {
   await updateStatus("dependant_updates", id, "approved");
 }
 
-function memberMatchPath(identifier) {
+function memberMatchPath(identifier, memberName = "") {
   const value = encodeURIComponent(identifier || "");
-  return `members?or=(member_no.eq.${value},ic_no.eq.${value})`;
+  const name = encodeURIComponent(memberName || "");
+  if (!value && !name) return "members?member_no=eq.__missing__";
+  if (!value) return `members?member_name=eq.${name}`;
+  if (!name || identifier === memberName) return `members?or=(member_no.eq.${value},ic_no.eq.${value},member_name.eq.${value})`;
+  return `members?or=(member_no.eq.${value},ic_no.eq.${value},member_name.eq.${name})`;
 }
 
 async function deleteDependant(update, item) {

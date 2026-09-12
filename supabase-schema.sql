@@ -24,6 +24,12 @@ create table if not exists public.dependant_updates (
   phone text,
   update_action text not null,
   dependant_total integer,
+  new_phone text,
+  new_ic text,
+  new_address text,
+  location_latitude numeric(10, 7),
+  location_longitude numeric(10, 7),
+  location_url text,
   status text not null default 'pending' check (status in ('pending', 'reviewed', 'approved', 'rejected')),
   created_at timestamptz not null default now()
 );
@@ -64,6 +70,7 @@ create table if not exists public.members (
   member_name text,
   ic_no text,
   phone text,
+  home_phone text,
   email text,
   occupation text,
   address text,
@@ -182,6 +189,9 @@ alter table public.members
 add column if not exists left_kariah_note text;
 
 alter table public.members
+add column if not exists home_phone text;
+
+alter table public.members
 add column if not exists occupation text;
 
 alter table public.members
@@ -189,6 +199,24 @@ add column if not exists email text;
 
 alter table public.dependant_updates
 add column if not exists phone text;
+
+alter table public.dependant_updates
+add column if not exists new_phone text;
+
+alter table public.dependant_updates
+add column if not exists new_ic text;
+
+alter table public.dependant_updates
+add column if not exists new_address text;
+
+alter table public.dependant_updates
+add column if not exists location_latitude numeric(10, 7);
+
+alter table public.dependant_updates
+add column if not exists location_longitude numeric(10, 7);
+
+alter table public.dependant_updates
+add column if not exists location_url text;
 
 alter table public.member_yearly_payments
 add column if not exists source_submission_id uuid;
@@ -651,13 +679,13 @@ with check (kariah_confirmed = true);
 drop policy if exists "Public can submit dependant updates" on public.dependant_updates;
 create policy "Public can submit dependant updates"
 on public.dependant_updates for insert
-to anon
+to anon, authenticated
 with check (true);
 
 drop policy if exists "Public can submit dependant items" on public.dependant_update_items;
 create policy "Public can submit dependant items"
 on public.dependant_update_items for insert
-to anon
+to anon, authenticated
 with check (true);
 
 drop policy if exists "Public can submit payments" on public.payments;
@@ -888,6 +916,7 @@ select
   member_name as nama_ahli,
   ic_no as no_kad_pengenalan,
   phone as no_telefon,
+  home_phone as no_telefon_rumah,
   email,
   occupation as pekerjaan,
   address as alamat,
@@ -951,6 +980,12 @@ select
   member_identifier as no_ahli_atau_ic,
   update_action as tujuan_kemaskini,
   dependant_total as jumlah_tanggungan_selepas_kemaskini,
+  new_phone as no_telefon_baru,
+  new_ic as no_ic_baru,
+  new_address as alamat_baru,
+  location_latitude as lokasi_latitud,
+  location_longitude as lokasi_longitud,
+  location_url as link_lokasi_baru,
   status,
   created_at as tarikh_hantar
 from public.dependant_updates;

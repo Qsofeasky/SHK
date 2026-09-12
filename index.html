@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Khairat SHK | Surau Hj Kamaruddin</title>
     <meta name="description" content="Portal Khairat Kematian Surau Hj Kamaruddin untuk semakan ahli, kemaskini tanggungan, bayaran dan maklumat kariah.">
-    <link rel="stylesheet" href="styles.css?v=20260909-dependant-contact">
+    <link rel="stylesheet" href="styles.css?v=20260912-info-update">
   </head>
   <body>
     <header class="site-header">
@@ -30,7 +30,7 @@
         </button>
         <div class="nav-links" id="site-menu">
           <a href="#semakan">Semakan</a>
-          <a href="#tanggungan">Tanggungan</a>
+          <a href="#tanggungan">Kemaskini Maklumat</a>
           <a href="#bayaran">Bayaran</a>
           <a href="#sumbangan">Sumbangan</a>
           <a href="#contact">Contact</a>
@@ -77,8 +77,8 @@
         </a>
         <a class="action-card" href="#tanggungan">
           <span class="action-icon">02</span>
-          <strong>Tambah / Kurang Tanggungan</strong>
-          <small>Ahli sedia ada boleh kemaskini tanggungan lengkap dengan no. IC.</small>
+          <strong>Kemaskini Maklumat</strong>
+          <small>Ahli sedia ada boleh kemaskini telefon, IC, alamat/lokasi dan tanggungan.</small>
         </a>
         <a class="action-card" href="#bayaran">
           <span class="action-icon">03</span>
@@ -178,8 +178,22 @@
       <section class="section section--tint view-section" id="tanggungan">
         <div class="container section__header">
           <p class="eyebrow">Ahli sedia ada</p>
-          <h2>Tambah atau Kurangkan Tanggungan</h2>
-          <p>Tanggungan wajib mempunyai nama, hubungan dan no. IC / sijil lahir untuk kemaskini rekod.</p>
+          <h2>Kemaskini Maklumat Ahli</h2>
+          <p>Pilih tujuan kemaskini dahulu. Borang akan paparkan maklumat yang perlu diisi sahaja.</p>
+        </div>
+        <div class="container update-selector">
+          <div class="form-panel">
+            <label>Tujuan Kemaskini
+              <select id="dependantAction">
+                <option>Kemaskini no. telefon</option>
+                <option>Kemaskini IC</option>
+                <option>Kemaskini alamat / lokasi</option>
+                <option>Tambah tanggungan</option>
+                <option>Kurangkan tanggungan</option>
+                <option>Kemaskini maklumat tanggungan</option>
+              </select>
+            </label>
+          </div>
         </div>
         <div class="container form-shell">
           <form class="form-panel" id="dependantForm">
@@ -187,26 +201,20 @@
               <label>Nama Ahli
                 <input type="text" id="memberName" placeholder="Nama ahli sedia ada" required>
               </label>
-              <label>IC Ahli
+              <label id="memberIdField">IC Ahli
                 <input type="text" id="memberId" placeholder="Masukkan no. IC ahli" required>
               </label>
               <label id="memberPhoneField">No. Telefon
                 <input type="tel" id="memberPhone" placeholder="Contoh: 0194302665" required>
-              </label>
-              <label>Tujuan Kemaskini
-                <select id="dependantAction">
-                  <option>Tambah tanggungan</option>
-                  <option>Kurangkan tanggungan</option>
-                  <option>Kemaskini maklumat tanggungan</option>
-                  <option>Kemaskini no. telefon</option>
-                  <option>Kemaskini alamat / lokasi</option>
-                </select>
               </label>
               <label id="dependantTotalField">Jumlah Tanggungan Selepas Kemaskini
                 <input type="number" min="0" id="dependantTotal" placeholder="Contoh: 4">
               </label>
               <label id="dependantNewPhoneField" hidden>No. Telefon Baru
                 <input type="tel" id="dependantNewPhone" placeholder="Contoh: 0194302665">
+              </label>
+              <label id="dependantNewIcField" hidden>IC Baru
+                <input type="text" id="dependantNewIc" placeholder="Masukkan no. IC baru">
               </label>
               <label class="span-2" id="dependantAddressField" hidden>Alamat / Lokasi Baru
                 <textarea id="dependantNewAddress" rows="3" placeholder="Alamat rumah atau lokasi baru dalam kariah"></textarea>
@@ -254,12 +262,12 @@
           </form>
 
           <aside class="info-card">
-            <h3>Syarat Tanggungan</h3>
+            <h3>Panduan Kemaskini</h3>
             <ul>
-              <li>Isteri atau suami kepada ahli berdaftar.</li>
-              <li>Anak ahli yang masih belajar dan belum berkahwin, termasuk anak tiri atau anak angkat yang berdaftar.</li>
-              <li>Ibu, bapa atau mertua yang bermastautin bersama ahli.</li>
-              <li>Rekod akan diterima selepas disahkan oleh Setiausaha atau Bendahari.</li>
+              <li>Kemaskini telefon hanya perlukan nama ahli dan nombor telefon baru.</li>
+              <li>Kemaskini IC hanya perlukan nama ahli dan nombor IC baru.</li>
+              <li>Kemaskini alamat/lokasi boleh sertakan alamat baru dan lokasi semasa.</li>
+              <li>Tambah atau kurang tanggungan masih perlu isi IC ahli dan maklumat tanggungan.</li>
             </ul>
           </aside>
         </div>
@@ -392,7 +400,7 @@
       </div>
     </footer>
 
-    <script src="supabase-config.js?v=20260909-dependant-contact"></script>
-    <script src="script.js?v=20260909-dependant-contact"></script>
+    <script src="supabase-config.js?v=20260912-info-update"></script>
+    <script src="script.js?v=20260912-info-update"></script>
   </body>
 </html>

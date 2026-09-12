@@ -2,6 +2,9 @@ alter table public.dependant_updates
 add column if not exists new_phone text;
 
 alter table public.dependant_updates
+add column if not exists new_ic text;
+
+alter table public.dependant_updates
 add column if not exists new_address text;
 
 alter table public.dependant_updates

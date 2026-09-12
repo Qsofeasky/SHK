@@ -494,6 +494,10 @@ textarea {
   align-items: start;
 }
 
+.update-selector {
+  margin-bottom: 18px;
+}
+
 .form-panel,
 .info-card,
 .payment-card {
