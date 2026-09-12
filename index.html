@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Khairat SHK | Surau Hj Kamaruddin</title>
-    <meta name="description" content="Portal Khairat Kematian Surau Hj Kamaruddin untuk semakan ahli, kemaskini tanggungan, bayaran dan maklumat kariah.">
-    <link rel="stylesheet" href="styles.css?v=20260912-selfinfo-receipt">
+    <meta name="description" content="Portal Khairat Kematian Surau Hj Kamaruddin untuk semakan ahli, kemaskini maklumat diri, bayaran dan maklumat kariah.">
+    <link rel="stylesheet" href="styles.css?v=20260912-selfinfo-phone-lookup">
   </head>
   <body>
     <header class="site-header">
@@ -78,7 +78,7 @@
         <a class="action-card" href="#tanggungan">
           <span class="action-icon">02</span>
           <strong>Kemaskini Maklumat</strong>
-          <small>Ahli sedia ada boleh kemaskini telefon, IC, alamat/lokasi dan tanggungan.</small>
+          <small>Ahli sedia ada boleh kemaskini nama, telefon, IC dan alamat/lokasi.</small>
         </a>
         <a class="action-card" href="#bayaran">
           <span class="action-icon">03</span>
@@ -193,17 +193,11 @@
         <div class="container form-shell">
           <form class="form-panel" id="dependantForm">
             <div class="field-grid">
-              <label>Nama Ahli
-                <input type="text" id="memberName" placeholder="Nama ahli sedia ada" required>
+              <label>Nama Ahli Lama (jika ingat)
+                <input type="text" id="memberName" placeholder="Isi jika ingat nama lama">
               </label>
-              <label id="memberIdField" hidden>IC Ahli
-                <input type="text" id="memberId" placeholder="Masukkan no. IC ahli" required>
-              </label>
-              <label id="memberPhoneField" hidden>No. Telefon
-                <input type="tel" id="memberPhone" placeholder="Contoh: 0194302665" required>
-              </label>
-              <label id="dependantTotalField" hidden>Jumlah Tanggungan Selepas Kemaskini
-                <input type="number" min="0" id="dependantTotal" placeholder="Contoh: 4">
+              <label id="memberIdField">No. Telefon / IC Ahli
+                <input type="text" id="memberId" placeholder="Masukkan no. telefon atau IC ahli" required>
               </label>
               <label id="dependantNewNameField">Nama Baru
                 <input type="text" id="dependantNewName" placeholder="Isi jika mahu tukar nama">
@@ -225,35 +219,7 @@
                 <p class="form-message" id="dependantLocationMessage" aria-live="polite"></p>
               </div>
             </div>
-
-            <div class="dependant-table" id="dependantRows" hidden>
-              <div class="dependant-row dependant-row--head">
-                <span>Nama Tanggungan</span>
-                <span>No. IC / Sijil Lahir</span>
-                <span>Jantina</span>
-                <span>Umur</span>
-                <span>Hubungan</span>
-                <span>Status</span>
-              </div>
-              <div class="dependant-row">
-                <input type="text" placeholder="Nama penuh">
-                <input type="text" placeholder="No. IC / sijil lahir">
-                <select>
-                  <option></option>
-                  <option>Lelaki</option>
-                  <option>Perempuan</option>
-                </select>
-                <input type="number" min="0" placeholder="Umur">
-                <input type="text" placeholder="Isteri / Suami / Anak / Ibu / Bapa">
-                <select>
-                  <option>Tambah</option>
-                  <option>Kekal</option>
-                  <option>Buang</option>
-                </select>
-              </div>
-            </div>
             <div class="form-actions">
-              <button class="button button--secondary" id="addDependant" type="button" hidden>Tambah Baris</button>
               <button class="button button--primary" type="submit">Hantar Kemaskini</button>
             </div>
             <p class="form-message" id="dependantMessage" aria-live="polite"></p>
@@ -262,8 +228,8 @@
           <aside class="info-card">
             <h3>Panduan Kemaskini</h3>
             <ul>
-              <li>Kemaskini maklumat diri boleh isi nama baru, IC baru, no. telefon baru atau alamat baru.</li>
-              <li>Untuk alamat, boleh tekan Share Lokasi Semasa supaya admin boleh semak lokasi kariah.</li>
+              <li>Masukkan no. telefon atau IC ahli sebagai rujukan. Nama lama boleh dikosongkan jika tidak ingat.</li>
+              <li>Kemaskini maklumat diri boleh isi nama baru, IC baru, no. telefon baru atau alamat baru. Untuk alamat, boleh tekan Share Lokasi Semasa.</li>
             </ul>
           </aside>
         </div>
@@ -418,7 +384,7 @@
       </div>
     </footer>
 
-    <script src="supabase-config.js?v=20260912-selfinfo-receipt"></script>
-    <script src="script.js?v=20260912-selfinfo-receipt"></script>
+    <script src="supabase-config.js?v=20260912-selfinfo-phone-lookup"></script>
+    <script src="script.js?v=20260912-selfinfo-phone-lookup"></script>
   </body>
 </html>

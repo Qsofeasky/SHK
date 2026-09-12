@@ -283,12 +283,8 @@ document.querySelector("#detectLocation")?.addEventListener("click", () => {
   });
 });
 
-const rows = document.querySelector("#dependantRows");
-const addDependant = document.querySelector("#addDependant");
 const dependantAction = document.querySelector("#dependantAction");
-const dependantTotalField = document.querySelector("#dependantTotalField");
 const memberIdField = document.querySelector("#memberIdField");
-const memberPhoneField = document.querySelector("#memberPhoneField");
 const dependantNewNameField = document.querySelector("#dependantNewNameField");
 const dependantNewPhoneField = document.querySelector("#dependantNewPhoneField");
 const dependantNewIcField = document.querySelector("#dependantNewIcField");
@@ -296,81 +292,22 @@ const dependantAddressField = document.querySelector("#dependantAddressField");
 const dependantLocationField = document.querySelector("#dependantLocationField");
 let dependantDetectedLocation = null;
 
-function isDependantRowAction() {
-  return ["Tambah tanggungan", "Kurangkan tanggungan", "Kemaskini maklumat tanggungan"].includes(dependantAction?.value || "");
-}
-
 function syncDependantFields() {
-  if (!dependantAction) return;
+  const showSelfUpdate = dependantAction?.value === "Kemaskini Maklumat Diri";
+  if (memberIdField) memberIdField.hidden = !showSelfUpdate;
+  if (dependantNewNameField) dependantNewNameField.hidden = !showSelfUpdate;
+  if (dependantNewPhoneField) dependantNewPhoneField.hidden = !showSelfUpdate;
+  if (dependantNewIcField) dependantNewIcField.hidden = !showSelfUpdate;
+  if (dependantAddressField) dependantAddressField.hidden = !showSelfUpdate;
+  if (dependantLocationField) dependantLocationField.hidden = !showSelfUpdate;
 
-  const rowAction = isDependantRowAction();
-  const infoAction = dependantAction.value === "Kemaskini Maklumat Diri";
+  const memberIdentifier = document.querySelector("#memberId");
+  if (memberIdentifier) memberIdentifier.required = showSelfUpdate;
 
-  if (dependantTotalField) dependantTotalField.hidden = !rowAction;
-  if (memberIdField) memberIdField.hidden = !rowAction;
-  if (memberPhoneField) memberPhoneField.hidden = !rowAction;
-  if (rows) rows.hidden = !rowAction;
-  if (addDependant) addDependant.hidden = !rowAction;
-  if (dependantNewNameField) dependantNewNameField.hidden = !infoAction;
-  if (dependantNewPhoneField) dependantNewPhoneField.hidden = !infoAction;
-  if (dependantNewIcField) dependantNewIcField.hidden = !infoAction;
-  if (dependantAddressField) dependantAddressField.hidden = !infoAction;
-  if (dependantLocationField) dependantLocationField.hidden = !infoAction;
-
-  const memberIc = document.querySelector("#memberId");
-  const memberPhone = document.querySelector("#memberPhone");
-  const dependantTotal = document.querySelector("#dependantTotal");
-  const newName = document.querySelector("#dependantNewName");
-  const newPhone = document.querySelector("#dependantNewPhone");
-  const newIc = document.querySelector("#dependantNewIc");
-  const newAddress = document.querySelector("#dependantNewAddress");
-
-  if (memberIc) memberIc.required = rowAction;
-  if (memberPhone) memberPhone.required = rowAction;
-  if (dependantTotal) dependantTotal.required = rowAction;
-  if (newName) newName.required = false;
-  if (newPhone) newPhone.required = false;
-  if (newIc) newIc.required = false;
-  if (newAddress) newAddress.required = false;
-
-  if (!rowAction) {
-    if (memberIc) memberIc.value = "";
-    if (memberPhone) memberPhone.value = "";
-    if (dependantTotal) dependantTotal.value = "";
-  }
-  if (!infoAction && newName) newName.value = "";
-  if (!infoAction && newPhone) newPhone.value = "";
-  if (!infoAction && newIc) newIc.value = "";
-  if (!infoAction && newAddress) newAddress.value = "";
-
-  if (!infoAction) {
+  if (!showSelfUpdate) {
     dependantDetectedLocation = null;
     setMessage("#dependantLocationMessage", "", "neutral");
   }
-}
-
-if (rows && addDependant) {
-  addDependant.addEventListener("click", () => {
-    const row = document.createElement("div");
-    row.className = "dependant-row";
-    row.innerHTML = `
-      <input type="text" placeholder="Nama penuh">
-      <input type="text" placeholder="No. IC / sijil lahir">
-      <select>
-        <option></option>
-        <option>Lelaki</option>
-        <option>Perempuan</option>
-      </select>
-      <input type="number" min="0" placeholder="Umur">
-      <input type="text" placeholder="Isteri / Suami / Anak / Ibu / Bapa">
-      <select>
-        <option>Tambah</option>
-        <option>Kekal</option>
-        <option>Buang</option>
-      </select>
-    `;
-    rows.appendChild(row);
-  });
 }
 
 dependantAction?.addEventListener("change", () => {
@@ -387,73 +324,50 @@ if (dependantForm) {
     event.preventDefault();
     clearMessage("#dependantMessage");
 
-    const rowAction = isDependantRowAction();
-    const itemRows = rowAction ? [...document.querySelectorAll("#dependantRows .dependant-row:not(.dependant-row--head)")] : [];
-    const items = itemRows
-      .map((row) => {
-        const inputs = row.querySelectorAll("input");
-        const selects = row.querySelectorAll("select");
-        return {
-          dependant_name: inputs[0]?.value.trim() || null,
-          dependant_ic: inputs[1]?.value.trim() || null,
-          gender: selects[0]?.value || null,
-          age: Number(inputs[2]?.value) || null,
-          relationship: inputs[3]?.value.trim() || null,
-          item_status: selects[1]?.value || "Tambah"
-        };
-      })
-      .filter((item) => item.dependant_name || item.dependant_ic || item.relationship || item.gender || item.age);
-
     try {
       const memberName = document.querySelector("#memberName").value.trim();
-      const memberIc = document.querySelector("#memberId").value.trim();
-      const memberPhone = document.querySelector("#memberPhone").value.trim();
+      const memberIdentifier = document.querySelector("#memberId").value.trim();
       const action = document.querySelector("#dependantAction").value;
+
+      if (!memberIdentifier) {
+        throw new Error("Masukkan no. telefon atau IC ahli sebagai rujukan.");
+      }
+
       const updatePayload = {
-        member_name: memberName,
-        member_identifier: rowAction ? memberIc : memberName,
-        phone: memberPhone || null,
+        member_name: memberName || memberIdentifier,
+        member_identifier: memberIdentifier,
+        phone: memberIdentifier,
         update_action: action,
-        dependant_total: rowAction ? Number(document.querySelector("#dependantTotal").value) || null : null
+        dependant_total: null,
+        new_name: document.querySelector("#dependantNewName")?.value.trim() || null,
+        new_phone: document.querySelector("#dependantNewPhone")?.value.trim() || null,
+        new_ic: document.querySelector("#dependantNewIc")?.value.trim() || null,
+        new_address: document.querySelector("#dependantNewAddress")?.value.trim() || null
       };
 
-      if (action === "Kemaskini Maklumat Diri") {
-        updatePayload.new_name = document.querySelector("#dependantNewName")?.value.trim() || null;
-        updatePayload.new_phone = document.querySelector("#dependantNewPhone")?.value.trim() || null;
-        updatePayload.new_ic = document.querySelector("#dependantNewIc")?.value.trim() || null;
-        updatePayload.new_address = document.querySelector("#dependantNewAddress")?.value.trim() || null;
-
-        if (!updatePayload.new_name && !updatePayload.new_phone && !updatePayload.new_ic && !updatePayload.new_address && !dependantDetectedLocation) {
-          throw new Error("Isi sekurang-kurangnya satu maklumat baru untuk dikemaskini.");
-        }
-
-        if (dependantDetectedLocation) {
-          updatePayload.location_latitude = dependantDetectedLocation.latitude;
-          updatePayload.location_longitude = dependantDetectedLocation.longitude;
-          updatePayload.location_url = dependantDetectedLocation.url;
-        }
+      if (!updatePayload.new_name && !updatePayload.new_phone && !updatePayload.new_ic && !updatePayload.new_address && !dependantDetectedLocation) {
+        throw new Error("Isi sekurang-kurangnya satu maklumat baru untuk dikemaskini.");
       }
 
-      const [update] = await insertRow("dependant_updates", updatePayload, { returning: true });
-
-      if (items.length) {
-        await insertRow("dependant_update_items", items.map((item) => ({
-          ...item,
-          update_id: update.id
-        })));
+      if (dependantDetectedLocation) {
+        updatePayload.location_latitude = dependantDetectedLocation.latitude;
+        updatePayload.location_longitude = dependantDetectedLocation.longitude;
+        updatePayload.location_url = dependantDetectedLocation.url;
       }
-      await queueAdminReminder("Kemaskini maklumat baru", `Kemaskini maklumat diterima untuk ${memberName}.`);
+
+      await insertRow("dependant_updates", updatePayload);
+      await queueAdminReminder("Kemaskini maklumat baru", `Kemaskini maklumat diterima untuk ${memberName || memberIdentifier}.`);
 
       dependantForm.reset();
       dependantDetectedLocation = null;
       syncDependantFields();
       setMessage("#dependantLocationMessage", "", "neutral");
+      setMessage("#dependantMessage", "Kemaskini berjaya dihantar untuk admin approval.", "success");
     } catch (error) {
       setMessage("#dependantMessage", error.message, "error");
     }
   });
 }
-
 document.querySelector("#detectDependantLocation")?.addEventListener("click", () => {
   if (!navigator.geolocation) {
     setMessage("#dependantLocationMessage", "Browser ini tidak support location detection.", "error");

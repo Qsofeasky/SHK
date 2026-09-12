@@ -677,8 +677,8 @@ function memberMatchPath(identifier, memberName = "") {
   const name = encodeURIComponent(memberName || "");
   if (!value && !name) return "members?member_no=eq.__missing__";
   if (!value) return `members?member_name=eq.${name}`;
-  if (!name || identifier === memberName) return `members?or=(member_no.eq.${value},ic_no.eq.${value},member_name.eq.${value})`;
-  return `members?or=(member_no.eq.${value},ic_no.eq.${value},member_name.eq.${name})`;
+  if (!name || identifier === memberName) return `members?or=(member_no.eq.${value},ic_no.eq.${value},phone.eq.${value},member_name.eq.${value})`;
+  return `members?or=(member_no.eq.${value},ic_no.eq.${value},phone.eq.${value},member_name.eq.${name})`;
 }
 
 async function deleteDependant(update, item) {
