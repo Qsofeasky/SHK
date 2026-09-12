@@ -52,7 +52,10 @@ const supabase = {
 
 const paymentYearInput = document.querySelector("#paymentYear");
 if (paymentYearInput) {
-  paymentYearInput.value = new Date().getFullYear();
+  const currentYear = String(new Date().getFullYear());
+  if ([...paymentYearInput.options].some((option) => option.value === currentYear)) {
+    paymentYearInput.value = currentYear;
+  }
 }
 
 async function insertRow(table, payload, options = {}) {
@@ -503,7 +506,10 @@ if (paymentForm) {
 
       paymentForm.reset();
       if (paymentYearInput) {
-        paymentYearInput.value = new Date().getFullYear();
+        const currentYear = String(new Date().getFullYear());
+        if ([...paymentYearInput.options].some((option) => option.value === currentYear)) {
+          paymentYearInput.value = currentYear;
+        }
       }
       syncProofFields();
     } catch (error) {

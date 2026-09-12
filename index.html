@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Khairat SHK | Surau Hj Kamaruddin</title>
     <meta name="description" content="Portal Khairat Kematian Surau Hj Kamaruddin untuk semakan ahli, kemaskini tanggungan, bayaran dan maklumat kariah.">
-    <link rel="stylesheet" href="styles.css?v=20260912-info-update">
+    <link rel="stylesheet" href="styles.css?v=20260912-payment-qr">
   </head>
   <body>
     <header class="site-header">
@@ -283,10 +283,11 @@
               <span>Akaun Rasmi</span>
               <strong>RHB Bank: 26229600007784</strong>
               <small>Nama akaun: Surau Hj Kamaruddin</small>
+              <small>Jika bayar melalui bank transfer, letakkan reference bank: <strong>khairat kematian</strong>.</small>
             </div>
             <div class="qr-box">
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=190x190&data=RHB%20Bank%2026229600007784%20Surau%20Hj%20Kamaruddin" alt="QR bayaran Surau Hj Kamaruddin">
-              <span>QR bayaran akaun RHB Surau Hj Kamaruddin</span>
+              <img src="assets/duitnow-qr-surau-haji-kamaruddin.jpeg" alt="DuitNow QR bayaran Surau Haji Kamaruddin">
+              <span>DuitNow QR Surau Haji Kamaruddin</span>
             </div>
           </div>
           <form class="payment-card" id="paymentForm">
@@ -297,7 +298,18 @@
               <input id="payerIdentifier" type="tel" placeholder="Untuk padanan rekod ahli">
             </label>
             <label>Tahun Bayaran
-              <input id="paymentYear" type="number" min="2020" max="2035" value="2026">
+              <select id="paymentYear">
+                <option value="2026">2026</option>
+                <option value="2027">2027</option>
+                <option value="2028">2028</option>
+                <option value="2029">2029</option>
+                <option value="2030">2030</option>
+                <option value="2031">2031</option>
+                <option value="2032">2032</option>
+                <option value="2033">2033</option>
+                <option value="2034">2034</option>
+                <option value="2035">2035</option>
+              </select>
             </label>
             <label>Kaedah Bayaran
               <select id="paymentMethod">
@@ -315,7 +327,7 @@
               </select>
             </label>
             <label id="receiptNoField">No. Resit / Rujukan
-              <input id="receiptNo" type="text" placeholder="No. resit atau reference bank">
+              <input id="receiptNo" type="text" placeholder="No. resit atau reference bank, contoh: khairat kematian">
             </label>
             <label class="span-2" id="receiptUploadField" hidden>Upload Gambar Resit
               <input id="receiptProofFile" type="file" accept="image/*">
@@ -325,7 +337,7 @@
               Jika terlebih bayar, lebihan boleh dibawa ke tahun seterusnya selepas admin verify.
             </label>
             <label>Rujukan / Catatan
-              <textarea id="paymentNote" rows="3" placeholder="No. rujukan online atau nama AJK penerima cash"></textarea>
+              <textarea id="paymentNote" rows="3" placeholder="Untuk bank transfer, tulis reference: khairat kematian. Untuk cash, tulis nama AJK penerima."></textarea>
             </label>
             <button class="button button--primary" type="submit">Simpan Maklumat Bayaran</button>
             <p class="form-message" id="paymentMessage" aria-live="polite"></p>
@@ -400,7 +412,7 @@
       </div>
     </footer>
 
-    <script src="supabase-config.js?v=20260912-info-update"></script>
-    <script src="script.js?v=20260912-info-update"></script>
+    <script src="supabase-config.js?v=20260912-payment-qr"></script>
+    <script src="script.js?v=20260912-payment-qr"></script>
   </body>
 </html>

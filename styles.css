@@ -695,8 +695,10 @@ textarea:focus {
 
 .qr-box img {
   display: block;
-  width: 190px;
-  height: 190px;
+  width: min(280px, 72vw);
+  height: auto;
+  max-height: 440px;
+  object-fit: contain;
 }
 
 .qr-box span,
