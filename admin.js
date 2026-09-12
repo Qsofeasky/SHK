@@ -380,6 +380,9 @@ function renderDependantCard(record) {
       <p>Status: ${escapeHtml(record.status)}</p>
       <p>IC Ahli: ${escapeHtml(record.member_identifier)}</p>
       <p>No. Telefon: ${escapeHtml(record.phone || "-")}</p>
+      ${record.new_phone ? `<p>No. Telefon Baru: ${escapeHtml(record.new_phone)}</p>` : ""}
+      ${record.new_address ? `<p>Alamat / Lokasi Baru: ${escapeHtml(record.new_address)}</p>` : ""}
+      ${record.location_url ? `<p><a href="${escapeHtml(record.location_url)}" target="_blank" rel="noopener">Buka lokasi baru</a></p>` : ""}
       <p>Jumlah selepas kemaskini: ${escapeHtml(String(record.dependant_total || "-"))}</p>
       <ul>${items || "<li>Tiada item tanggungan.</li>"}</ul>
       <div class="form-actions">
@@ -542,7 +545,7 @@ async function approveDependant(id) {
   const items = await supabaseRequest(`dependant_update_items?update_id=eq.${id}&select=*`);
 
   for (const item of items) {
-    if (item.item_status === "Tambah" || item.item_status === "Kekal") {
+    if (item.item_status === "Tambah") {
       await supabaseRequest("member_dependants", {
         method: "POST",
         headers: { Prefer: "return=minimal" },
@@ -566,14 +569,31 @@ async function approveDependant(id) {
   }
 
   if (update.dependant_total !== null) {
-    await supabaseRequest(`members?member_no=eq.${encodeURIComponent(update.member_identifier)}`, {
+    await supabaseRequest(memberMatchPath(update.member_identifier), {
       method: "PATCH",
       headers: { Prefer: "return=minimal" },
       body: JSON.stringify({ dependant_count: update.dependant_total })
     });
   }
 
+  const memberPatch = {};
+  if (update.new_phone) memberPatch.phone = update.new_phone;
+  if (update.new_address) memberPatch.address = update.new_address;
+
+  if (Object.keys(memberPatch).length) {
+    await supabaseRequest(memberMatchPath(update.member_identifier), {
+      method: "PATCH",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify(memberPatch)
+    });
+  }
+
   await updateStatus("dependant_updates", id, "approved");
+}
+
+function memberMatchPath(identifier) {
+  const value = encodeURIComponent(identifier || "");
+  return `members?or=(member_no.eq.${value},ic_no.eq.${value})`;
 }
 
 async function deleteDependant(update, item) {

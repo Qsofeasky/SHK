@@ -190,7 +190,7 @@
               <label>IC Ahli
                 <input type="text" id="memberId" placeholder="Masukkan no. IC ahli" required>
               </label>
-              <label>No. Telefon
+              <label id="memberPhoneField">No. Telefon
                 <input type="tel" id="memberPhone" placeholder="Contoh: 0194302665" required>
               </label>
               <label>Tujuan Kemaskini
@@ -198,11 +198,26 @@
                   <option>Tambah tanggungan</option>
                   <option>Kurangkan tanggungan</option>
                   <option>Kemaskini maklumat tanggungan</option>
+                  <option>Kemaskini no. telefon</option>
+                  <option>Kemaskini alamat / lokasi</option>
                 </select>
               </label>
-              <label>Jumlah Tanggungan Selepas Kemaskini
+              <label id="dependantTotalField">Jumlah Tanggungan Selepas Kemaskini
                 <input type="number" min="0" id="dependantTotal" placeholder="Contoh: 4">
               </label>
+              <label id="dependantNewPhoneField" hidden>No. Telefon Baru
+                <input type="tel" id="dependantNewPhone" placeholder="Contoh: 0194302665">
+              </label>
+              <label class="span-2" id="dependantAddressField" hidden>Alamat / Lokasi Baru
+                <textarea id="dependantNewAddress" rows="3" placeholder="Alamat rumah atau lokasi baru dalam kariah"></textarea>
+              </label>
+              <div class="span-2 location-field" id="dependantLocationField" hidden>
+                <p class="location-note">
+                  Share lokasi hanya untuk kemaskini alamat/lokasi. Admin akan guna lokasi ini untuk semak kawasan kariah.
+                </p>
+                <button class="button button--secondary" id="detectDependantLocation" type="button">Share Lokasi Semasa</button>
+                <p class="form-message" id="dependantLocationMessage" aria-live="polite"></p>
+              </div>
             </div>
 
             <div class="dependant-table" id="dependantRows">

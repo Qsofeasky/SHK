@@ -282,6 +282,55 @@ document.querySelector("#detectLocation")?.addEventListener("click", () => {
 
 const rows = document.querySelector("#dependantRows");
 const addDependant = document.querySelector("#addDependant");
+const dependantAction = document.querySelector("#dependantAction");
+const dependantTotalField = document.querySelector("#dependantTotalField");
+const memberPhoneField = document.querySelector("#memberPhoneField");
+const dependantNewPhoneField = document.querySelector("#dependantNewPhoneField");
+const dependantAddressField = document.querySelector("#dependantAddressField");
+const dependantLocationField = document.querySelector("#dependantLocationField");
+let dependantDetectedLocation = null;
+
+function isDependantRowAction() {
+  return ["Tambah tanggungan", "Kurangkan tanggungan", "Kemaskini maklumat tanggungan"].includes(dependantAction?.value || "");
+}
+
+function syncDependantFields() {
+  if (!dependantAction) return;
+
+  const rowAction = isDependantRowAction();
+  const phoneAction = dependantAction.value === "Kemaskini no. telefon";
+  const locationAction = dependantAction.value === "Kemaskini alamat / lokasi";
+
+  if (dependantTotalField) dependantTotalField.hidden = !rowAction;
+  if (memberPhoneField) memberPhoneField.hidden = !rowAction;
+  if (rows) rows.hidden = !rowAction;
+  if (addDependant) addDependant.hidden = !rowAction;
+  if (dependantNewPhoneField) dependantNewPhoneField.hidden = !phoneAction;
+  if (dependantAddressField) dependantAddressField.hidden = !locationAction;
+  if (dependantLocationField) dependantLocationField.hidden = !locationAction;
+
+  const memberPhone = document.querySelector("#memberPhone");
+  const dependantTotal = document.querySelector("#dependantTotal");
+  const newPhone = document.querySelector("#dependantNewPhone");
+  const newAddress = document.querySelector("#dependantNewAddress");
+
+  if (memberPhone) memberPhone.required = rowAction;
+  if (dependantTotal) dependantTotal.required = rowAction;
+  if (newPhone) newPhone.required = phoneAction;
+  if (newAddress) newAddress.required = locationAction;
+
+  if (!rowAction) {
+    if (memberPhone) memberPhone.value = "";
+    if (dependantTotal) dependantTotal.value = "";
+  }
+  if (!phoneAction && newPhone) newPhone.value = "";
+  if (!locationAction && newAddress) newAddress.value = "";
+
+  if (!locationAction) {
+    dependantDetectedLocation = null;
+    setMessage("#dependantLocationMessage", "", "neutral");
+  }
+}
 
 if (rows && addDependant) {
   addDependant.addEventListener("click", () => {
@@ -307,6 +356,13 @@ if (rows && addDependant) {
   });
 }
 
+dependantAction?.addEventListener("change", () => {
+  syncDependantFields();
+  clearMessage("#dependantMessage");
+});
+
+syncDependantFields();
+
 const dependantForm = document.querySelector("#dependantForm");
 
 if (dependantForm) {
@@ -314,7 +370,8 @@ if (dependantForm) {
     event.preventDefault();
     clearMessage("#dependantMessage");
 
-    const itemRows = [...document.querySelectorAll("#dependantRows .dependant-row:not(.dependant-row--head)")];
+    const rowAction = isDependantRowAction();
+    const itemRows = rowAction ? [...document.querySelectorAll("#dependantRows .dependant-row:not(.dependant-row--head)")] : [];
     const items = itemRows
       .map((row) => {
         const inputs = row.querySelectorAll("input");
@@ -334,12 +391,18 @@ if (dependantForm) {
       const memberName = document.querySelector("#memberName").value.trim();
       const memberIc = document.querySelector("#memberId").value.trim();
       const memberPhone = document.querySelector("#memberPhone").value.trim();
+      const action = document.querySelector("#dependantAction").value;
       const [update] = await insertRow("dependant_updates", {
         member_name: memberName,
         member_identifier: memberIc,
         phone: memberPhone || null,
-        update_action: document.querySelector("#dependantAction").value,
-        dependant_total: Number(document.querySelector("#dependantTotal").value) || null
+        update_action: action,
+        dependant_total: rowAction ? Number(document.querySelector("#dependantTotal").value) || null : null,
+        new_phone: document.querySelector("#dependantNewPhone")?.value.trim() || null,
+        new_address: document.querySelector("#dependantNewAddress")?.value.trim() || null,
+        location_latitude: dependantDetectedLocation?.latitude || null,
+        location_longitude: dependantDetectedLocation?.longitude || null,
+        location_url: dependantDetectedLocation?.url || null
       }, { returning: true });
 
       if (items.length) {
@@ -351,11 +414,38 @@ if (dependantForm) {
       await queueAdminReminder("Kemaskini tanggungan baru", `Kemaskini tanggungan diterima untuk ${memberName}.`);
 
       dependantForm.reset();
+      dependantDetectedLocation = null;
+      syncDependantFields();
+      setMessage("#dependantLocationMessage", "", "neutral");
     } catch (error) {
       setMessage("#dependantMessage", error.message, "error");
     }
   });
 }
+
+document.querySelector("#detectDependantLocation")?.addEventListener("click", () => {
+  if (!navigator.geolocation) {
+    setMessage("#dependantLocationMessage", "Browser ini tidak support location detection.", "error");
+    return;
+  }
+
+  setMessage("#dependantLocationMessage", "Sedang ambil lokasi...", "neutral");
+  navigator.geolocation.getCurrentPosition((position) => {
+    const { latitude, longitude } = position.coords;
+    dependantDetectedLocation = {
+      latitude,
+      longitude,
+      url: `https://www.google.com/maps?q=${latitude},${longitude}`
+    };
+    setMessage("#dependantLocationMessage", "Lokasi baru berjaya disimpan bersama borang.", "success");
+  }, () => {
+    setMessage("#dependantLocationMessage", "Lokasi tidak dibenarkan. Borang masih boleh dihantar dengan alamat sahaja.", "error");
+  }, {
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 60000
+  });
+});
 
 const paymentForm = document.querySelector("#paymentForm");
 const proofType = document.querySelector("#proofType");
