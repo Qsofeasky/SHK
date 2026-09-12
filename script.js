@@ -311,7 +311,7 @@ function syncDependantFields() {
   const rowAction = isDependantRowAction();
 
   if (memberNameField) memberNameField.childNodes[0].textContent = rowAction ? "Nama Ahli" : "Nama Ahli Lama (jika ingat)";
-  if (memberIdField) memberIdField.hidden = !showSelfUpdate;
+  if (memberIdField) memberIdField.hidden = false;
   if (dependantNewNameField) dependantNewNameField.hidden = !showSelfUpdate;
   if (dependantNewPhoneField) dependantNewPhoneField.hidden = !showSelfUpdate;
   if (dependantNewIcField) dependantNewIcField.hidden = !showSelfUpdate;
@@ -328,7 +328,7 @@ function syncDependantFields() {
     memberName.required = rowAction;
     memberName.placeholder = rowAction ? "Nama ahli" : "Isi jika ingat nama lama";
   }
-  if (memberIdentifier) memberIdentifier.required = showSelfUpdate;
+  if (memberIdentifier) memberIdentifier.required = showSelfUpdate || rowAction;
   if (dependantTotal) dependantTotal.required = rowAction;
 
   document.querySelectorAll("#dependantRows .dependant-row:not(.dependant-row--head) select:last-child").forEach((select) => {
@@ -391,15 +391,15 @@ if (dependantForm) {
         throw new Error("Masukkan nama ahli.");
       }
 
-      if (!rowAction && !memberIdentifier) {
+      if (!memberIdentifier) {
         throw new Error("Masukkan no. telefon atau IC ahli sebagai rujukan.");
       }
 
       const updatePayload = {
         id: crypto.randomUUID(),
         member_name: memberName || memberIdentifier,
-        member_identifier: rowAction ? memberName : memberIdentifier,
-        phone: rowAction ? null : memberIdentifier,
+        member_identifier: memberIdentifier,
+        phone: memberIdentifier,
         update_action: action,
         dependant_total: rowAction ? Number(document.querySelector("#dependantTotal")?.value) || null : null
       };
