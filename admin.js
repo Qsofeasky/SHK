@@ -833,7 +833,7 @@ async function searchReceiptMemberByName() {
     const encoded = encodeURIComponent(`*${query}*`);
     const [payments, yearlyPayments, donations] = await Promise.all([
       supabaseRequest(`payments?payer_name=ilike.${encoded}&select=payer_name,payment_year,amount,receipt_no,status,created_at&order=created_at.desc&limit=20`),
-      supabaseRequest(`member_yearly_payments?member_name=ilike.${encoded}&select=member_name,payment_year,amount,receipt_no,created_at&order=created_at.desc&limit=20`),
+      supabaseRequest(`member_yearly_payments?member_name=ilike.${encoded}&select=member_name,payment_year,amount,receipt_no,imported_at&order=imported_at.desc&limit=20`),
       supabaseRequest(`non_member_donations?donor_name=ilike.${encoded}&select=donor_name,amount,receipt_no,status,created_at&order=created_at.desc&limit=20`)
     ]);
 
@@ -852,7 +852,7 @@ async function searchReceiptMemberByName() {
         year: record.payment_year,
         amount: record.amount,
         status: "verified",
-        created_at: record.created_at
+        created_at: record.imported_at
       })),
       ...donations.map((record) => ({
         name: record.donor_name,
