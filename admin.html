@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Admin Khairat SHK</title>
-    <link rel="stylesheet" href="styles.css?v=20260912-location-search">
+    <link rel="stylesheet" href="styles.css?v=20260912-receipt-update-info">
   </head>
   <body>
     <header class="site-header">
@@ -176,13 +176,18 @@
         <div class="container admin-tools" id="adminReceiptSection" hidden>
           <section class="payment-card admin-tool-wide">
             <h3>Resit Digital</h3>
-            <p class="form-message">Nombor resit rasmi dijana automatik selepas admin verify bayaran. Format resit: 4 digit, contoh 0001.</p>
+            <p class="form-message">Nombor resit rasmi dijana automatik selepas admin verify bayaran. Format resit: SHK - 0001/tahun semasa.</p>
             <div class="receipt-status">
               <span>Resit terakhir dijana</span>
               <strong id="lastReceiptNo">Belum ada</strong>
             </div>
+            <label>Cari Nama Ahli
+              <input id="adminReceiptMemberSearch" type="search" placeholder="Contoh: Farid Pouzan">
+            </label>
+            <button class="button button--secondary" id="adminReceiptMemberButton" type="button">Cari Nama / IC</button>
+            <div class="check-answer" id="adminReceiptMemberAnswer" hidden></div>
             <label>Cari No. Resit
-              <input id="adminReceiptSearch" type="text" inputmode="numeric" maxlength="4" placeholder="Contoh: 0001">
+              <input id="adminReceiptSearch" type="text" placeholder="Contoh: 0001 atau SHK - 0001/2026">
             </label>
             <button class="button button--secondary" id="adminReceiptButton" type="button">Cari Resit</button>
             <div class="check-answer" id="adminReceiptAnswer" hidden></div>
@@ -192,7 +197,7 @@
       </section>
     </main>
 
-    <script src="supabase-config.js?v=20260912-location-search"></script>
-    <script src="admin.js?v=20260912-location-search"></script>
+    <script src="supabase-config.js?v=20260912-receipt-update-info"></script>
+    <script src="admin.js?v=20260912-receipt-update-info"></script>
   </body>
 </html>

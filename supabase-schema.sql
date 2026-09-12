@@ -24,6 +24,7 @@ create table if not exists public.dependant_updates (
   phone text,
   update_action text not null,
   dependant_total integer,
+  new_name text,
   new_phone text,
   new_ic text,
   new_address text,
@@ -199,6 +200,9 @@ add column if not exists email text;
 
 alter table public.dependant_updates
 add column if not exists phone text;
+
+alter table public.dependant_updates
+add column if not exists new_name text;
 
 alter table public.dependant_updates
 add column if not exists new_phone text;
@@ -682,11 +686,20 @@ on public.dependant_updates for insert
 to anon, authenticated
 with check (true);
 
+drop policy if exists "Public can read dependant updates after insert" on public.dependant_updates;
+create policy "Public can read dependant updates after insert"
+on public.dependant_updates for select
+to anon, authenticated
+using (true);
+
 drop policy if exists "Public can submit dependant items" on public.dependant_update_items;
 create policy "Public can submit dependant items"
 on public.dependant_update_items for insert
 to anon, authenticated
 with check (true);
+
+grant insert, select on public.dependant_updates to anon, authenticated;
+grant insert on public.dependant_update_items to anon, authenticated;
 
 drop policy if exists "Public can submit payments" on public.payments;
 create policy "Public can submit payments"
@@ -980,6 +993,7 @@ select
   member_identifier as no_ahli_atau_ic,
   update_action as tujuan_kemaskini,
   dependant_total as jumlah_tanggungan_selepas_kemaskini,
+  new_name as nama_baru,
   new_phone as no_telefon_baru,
   new_ic as no_ic_baru,
   new_address as alamat_baru,

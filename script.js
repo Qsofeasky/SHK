@@ -289,6 +289,7 @@ const dependantAction = document.querySelector("#dependantAction");
 const dependantTotalField = document.querySelector("#dependantTotalField");
 const memberIdField = document.querySelector("#memberIdField");
 const memberPhoneField = document.querySelector("#memberPhoneField");
+const dependantNewNameField = document.querySelector("#dependantNewNameField");
 const dependantNewPhoneField = document.querySelector("#dependantNewPhoneField");
 const dependantNewIcField = document.querySelector("#dependantNewIcField");
 const dependantAddressField = document.querySelector("#dependantAddressField");
@@ -303,23 +304,23 @@ function syncDependantFields() {
   if (!dependantAction) return;
 
   const rowAction = isDependantRowAction();
-  const phoneAction = dependantAction.value === "Kemaskini no. telefon";
-  const icAction = dependantAction.value === "Kemaskini IC";
-  const locationAction = dependantAction.value === "Kemaskini alamat / lokasi";
+  const infoAction = dependantAction.value === "Kemaskini nama / IC / no. telefon / alamat";
 
   if (dependantTotalField) dependantTotalField.hidden = !rowAction;
   if (memberIdField) memberIdField.hidden = !rowAction;
   if (memberPhoneField) memberPhoneField.hidden = !rowAction;
   if (rows) rows.hidden = !rowAction;
   if (addDependant) addDependant.hidden = !rowAction;
-  if (dependantNewPhoneField) dependantNewPhoneField.hidden = !phoneAction;
-  if (dependantNewIcField) dependantNewIcField.hidden = !icAction;
-  if (dependantAddressField) dependantAddressField.hidden = !locationAction;
-  if (dependantLocationField) dependantLocationField.hidden = !locationAction;
+  if (dependantNewNameField) dependantNewNameField.hidden = !infoAction;
+  if (dependantNewPhoneField) dependantNewPhoneField.hidden = !infoAction;
+  if (dependantNewIcField) dependantNewIcField.hidden = !infoAction;
+  if (dependantAddressField) dependantAddressField.hidden = !infoAction;
+  if (dependantLocationField) dependantLocationField.hidden = !infoAction;
 
   const memberIc = document.querySelector("#memberId");
   const memberPhone = document.querySelector("#memberPhone");
   const dependantTotal = document.querySelector("#dependantTotal");
+  const newName = document.querySelector("#dependantNewName");
   const newPhone = document.querySelector("#dependantNewPhone");
   const newIc = document.querySelector("#dependantNewIc");
   const newAddress = document.querySelector("#dependantNewAddress");
@@ -327,20 +328,22 @@ function syncDependantFields() {
   if (memberIc) memberIc.required = rowAction;
   if (memberPhone) memberPhone.required = rowAction;
   if (dependantTotal) dependantTotal.required = rowAction;
-  if (newPhone) newPhone.required = phoneAction;
-  if (newIc) newIc.required = icAction;
-  if (newAddress) newAddress.required = locationAction;
+  if (newName) newName.required = false;
+  if (newPhone) newPhone.required = false;
+  if (newIc) newIc.required = false;
+  if (newAddress) newAddress.required = false;
 
   if (!rowAction) {
     if (memberIc) memberIc.value = "";
     if (memberPhone) memberPhone.value = "";
     if (dependantTotal) dependantTotal.value = "";
   }
-  if (!phoneAction && newPhone) newPhone.value = "";
-  if (!icAction && newIc) newIc.value = "";
-  if (!locationAction && newAddress) newAddress.value = "";
+  if (!infoAction && newName) newName.value = "";
+  if (!infoAction && newPhone) newPhone.value = "";
+  if (!infoAction && newIc) newIc.value = "";
+  if (!infoAction && newAddress) newAddress.value = "";
 
-  if (!locationAction) {
+  if (!infoAction) {
     dependantDetectedLocation = null;
     setMessage("#dependantLocationMessage", "", "neutral");
   }
@@ -406,19 +409,32 @@ if (dependantForm) {
       const memberIc = document.querySelector("#memberId").value.trim();
       const memberPhone = document.querySelector("#memberPhone").value.trim();
       const action = document.querySelector("#dependantAction").value;
-      const [update] = await insertRow("dependant_updates", {
+      const updatePayload = {
         member_name: memberName,
         member_identifier: rowAction ? memberIc : memberName,
         phone: memberPhone || null,
         update_action: action,
-        dependant_total: rowAction ? Number(document.querySelector("#dependantTotal").value) || null : null,
-        new_phone: document.querySelector("#dependantNewPhone")?.value.trim() || null,
-        new_ic: document.querySelector("#dependantNewIc")?.value.trim() || null,
-        new_address: document.querySelector("#dependantNewAddress")?.value.trim() || null,
-        location_latitude: dependantDetectedLocation?.latitude || null,
-        location_longitude: dependantDetectedLocation?.longitude || null,
-        location_url: dependantDetectedLocation?.url || null
-      }, { returning: true });
+        dependant_total: rowAction ? Number(document.querySelector("#dependantTotal").value) || null : null
+      };
+
+      if (action === "Kemaskini nama / IC / no. telefon / alamat") {
+        updatePayload.new_name = document.querySelector("#dependantNewName")?.value.trim() || null;
+        updatePayload.new_phone = document.querySelector("#dependantNewPhone")?.value.trim() || null;
+        updatePayload.new_ic = document.querySelector("#dependantNewIc")?.value.trim() || null;
+        updatePayload.new_address = document.querySelector("#dependantNewAddress")?.value.trim() || null;
+
+        if (!updatePayload.new_name && !updatePayload.new_phone && !updatePayload.new_ic && !updatePayload.new_address && !dependantDetectedLocation) {
+          throw new Error("Isi sekurang-kurangnya satu maklumat baru untuk dikemaskini.");
+        }
+
+        if (dependantDetectedLocation) {
+          updatePayload.location_latitude = dependantDetectedLocation.latitude;
+          updatePayload.location_longitude = dependantDetectedLocation.longitude;
+          updatePayload.location_url = dependantDetectedLocation.url;
+        }
+      }
+
+      const [update] = await insertRow("dependant_updates", updatePayload, { returning: true });
 
       if (items.length) {
         await insertRow("dependant_update_items", items.map((item) => ({

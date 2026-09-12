@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Khairat SHK | Surau Hj Kamaruddin</title>
     <meta name="description" content="Portal Khairat Kematian Surau Hj Kamaruddin untuk semakan ahli, kemaskini tanggungan, bayaran dan maklumat kariah.">
-    <link rel="stylesheet" href="styles.css?v=20260912-payment-cash-note">
+    <link rel="stylesheet" href="styles.css?v=20260912-receipt-update-info">
   </head>
   <body>
     <header class="site-header">
@@ -185,9 +185,7 @@
           <div class="form-panel">
             <label>Tujuan Kemaskini
               <select id="dependantAction">
-                <option>Kemaskini no. telefon</option>
-                <option>Kemaskini IC</option>
-                <option>Kemaskini alamat / lokasi</option>
+                <option>Kemaskini nama / IC / no. telefon / alamat</option>
                 <option>Tambah tanggungan</option>
                 <option>Kurangkan tanggungan</option>
                 <option>Kemaskini maklumat tanggungan</option>
@@ -209,6 +207,9 @@
               </label>
               <label id="dependantTotalField">Jumlah Tanggungan Selepas Kemaskini
                 <input type="number" min="0" id="dependantTotal" placeholder="Contoh: 4">
+              </label>
+              <label id="dependantNewNameField" hidden>Nama Baru
+                <input type="text" id="dependantNewName" placeholder="Isi jika mahu tukar nama">
               </label>
               <label id="dependantNewPhoneField" hidden>No. Telefon Baru
                 <input type="tel" id="dependantNewPhone" placeholder="Contoh: 0194302665">
@@ -264,9 +265,7 @@
           <aside class="info-card">
             <h3>Panduan Kemaskini</h3>
             <ul>
-              <li>Kemaskini telefon hanya perlukan nama ahli dan nombor telefon baru.</li>
-              <li>Kemaskini IC hanya perlukan nama ahli dan nombor IC baru.</li>
-              <li>Kemaskini alamat/lokasi boleh sertakan alamat baru dan lokasi semasa.</li>
+              <li>Kemaskini maklumat boleh isi nama baru, IC baru, no. telefon baru atau alamat baru dalam satu borang.</li>
               <li>Tambah atau kurang tanggungan masih perlu isi IC ahli dan maklumat tanggungan.</li>
             </ul>
           </aside>
@@ -350,7 +349,17 @@
           <div>
             <p class="eyebrow">Sumbangan</p>
             <h2>Sumbangan Bukan Ahli</h2>
-            <p>Orang ramai yang bukan ahli boleh merekodkan sumbangan untuk tabung khairat. Rekod ini akan masuk admin verification.</p>
+            <p>Orang ramai yang bukan ahli boleh merekodkan sumbangan untuk tabung khairat. Untuk bank transfer, tulis catatan <strong>khairat kematian</strong>.</p>
+            <div class="bank-box">
+              <span>Akaun Rasmi</span>
+              <strong>RHB Bank: 26229600007784</strong>
+              <small>Nama akaun: Surau Hj Kamaruddin</small>
+              <small>Jika guna bank transfer, tulis reference: <strong>khairat kematian</strong>.</small>
+            </div>
+            <div class="qr-box">
+              <img src="assets/duitnow-qr-surau-haji-kamaruddin.jpeg" alt="DuitNow QR sumbangan Surau Haji Kamaruddin">
+              <span>DuitNow QR Surau Haji Kamaruddin</span>
+            </div>
           </div>
           <form class="payment-card" id="donationForm">
             <label>Nama Penyumbang
@@ -369,7 +378,7 @@
               <input id="donationAmount" type="number" min="0" placeholder="RM">
             </label>
             <label class="span-2">Catatan
-              <textarea id="donationNote" rows="3"></textarea>
+              <textarea id="donationNote" rows="3" placeholder="Jika bank transfer, tulis: khairat kematian. Jika cash, tulis nama AJK penerima."></textarea>
             </label>
             <button class="button button--primary" type="submit">Hantar Sumbangan</button>
             <p class="form-message" id="donationMessage" aria-live="polite"></p>
@@ -412,7 +421,7 @@
       </div>
     </footer>
 
-    <script src="supabase-config.js?v=20260912-payment-cash-note"></script>
-    <script src="script.js?v=20260912-payment-cash-note"></script>
+    <script src="supabase-config.js?v=20260912-receipt-update-info"></script>
+    <script src="script.js?v=20260912-receipt-update-info"></script>
   </body>
 </html>

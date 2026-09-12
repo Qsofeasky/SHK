@@ -77,6 +77,7 @@ document.querySelector("#logoutAdmin")?.addEventListener("click", () => {
   location.reload();
 });
 document.querySelector("#adminReceiptButton")?.addEventListener("click", checkAdminReceipt);
+document.querySelector("#adminReceiptMemberButton")?.addEventListener("click", searchReceiptMemberByName);
 document.querySelector("#adminExitButton")?.addEventListener("click", moveMemberToInactive);
 document.querySelectorAll("[data-admin-view]").forEach((button) => {
   button.addEventListener("click", () => showAdminView(button.dataset.adminView));
@@ -282,23 +283,43 @@ async function nextReceiptNo() {
 }
 
 async function receiptSources() {
-  const [payments, yearlyPayments] = await Promise.all([
+  const [payments, yearlyPayments, donations] = await Promise.all([
     supabaseRequest("payments?select=receipt_no&receipt_no=not.is.null&limit=1000"),
-    supabaseRequest("member_yearly_payments?select=receipt_no&receipt_no=not.is.null&limit=1000")
+    supabaseRequest("member_yearly_payments?select=receipt_no&receipt_no=not.is.null&limit=1000"),
+    supabaseRequest("non_member_donations?select=receipt_no&receipt_no=not.is.null&limit=1000")
   ]);
-  return [...payments, ...yearlyPayments].map((record) => record.receipt_no);
+  return [...payments, ...yearlyPayments, ...donations].map((record) => record.receipt_no);
 }
 
 function highestReceiptNo(receipts) {
+  const year = new Date().getFullYear();
   return receipts.reduce((highest, receipt) => {
-    const text = String(receipt || "").trim();
-    if (!/^\d{4}$/.test(text)) return highest;
-    return Math.max(highest, Number(text));
+    const parsed = parseReceiptNo(receipt);
+    if (!parsed || parsed.year !== year) return highest;
+    return Math.max(highest, parsed.number);
   }, 0);
 }
 
 function formatReceiptNo(number) {
-  return String(number || 1).padStart(4, "0");
+  return `SHK - ${String(number || 1).padStart(4, "0")}/${new Date().getFullYear()}`;
+}
+
+function parseReceiptNo(receipt) {
+  const text = String(receipt || "").trim();
+  const full = text.match(/^SHK\s*-\s*(\d{4})\/(\d{4})$/i);
+  if (full) return { number: Number(full[1]), year: Number(full[2]) };
+  if (/^\d{4}$/.test(text)) return { number: Number(text), year: new Date().getFullYear() };
+  return null;
+}
+
+function normalizeReceiptSearch(input) {
+  const text = String(input || "").trim();
+  if (/^\d{1,4}$/.test(text)) return formatReceiptNo(Number(text));
+  if (/^SHK\s*-\s*\d{1,4}\/\d{4}$/i.test(text)) {
+    const [, number, year] = text.match(/^SHK\s*-\s*(\d{1,4})\/(\d{4})$/i);
+    return `SHK - ${number.padStart(4, "0")}/${year}`;
+  }
+  return text;
 }
 
 function filteredPaidRecords() {
@@ -425,6 +446,7 @@ function renderDependantCard(record) {
       <p>Status: ${escapeHtml(record.status)}</p>
       <p>Rujukan Ahli: ${escapeHtml(record.member_identifier)}</p>
       <p>No. Telefon: ${escapeHtml(record.phone || "-")}</p>
+      ${record.new_name ? `<p>Nama Baru: ${escapeHtml(record.new_name)}</p>` : ""}
       ${record.new_phone ? `<p>No. Telefon Baru: ${escapeHtml(record.new_phone)}</p>` : ""}
       ${record.new_ic ? `<p>IC Baru: ${escapeHtml(record.new_ic)}</p>` : ""}
       ${record.new_address ? `<p>Alamat / Lokasi Baru: ${escapeHtml(record.new_address)}</p>` : ""}
@@ -548,7 +570,7 @@ async function handleAdminAction(event) {
     if (action === "reject-dependant") await updateStatus("dependant_updates", id, "rejected");
     if (action === "approve-payment") await approvePayment(id);
     if (action === "reject-payment") await updateStatus("payments", id, "rejected");
-    if (action === "approve-donation") await updateStatus("non_member_donations", id, "verified");
+    if (action === "approve-donation") await approveDonation(id);
     if (action === "reject-donation") await updateStatus("non_member_donations", id, "rejected");
     if (action === "approve-exit") await approveExit(id);
     if (action === "reject-exit") await updateStatus("kariah_exit_requests", id, "rejected");
@@ -623,6 +645,7 @@ async function approveDependant(id) {
   }
 
   const memberPatch = {};
+  if (update.new_name) memberPatch.member_name = update.new_name;
   if (update.new_phone) memberPatch.phone = update.new_phone;
   if (update.new_ic) memberPatch.ic_no = update.new_ic;
   if (update.new_address) memberPatch.address = update.new_address;
@@ -664,8 +687,8 @@ async function deleteDependant(update, item) {
 async function approvePayment(id) {
   const [record] = await supabaseRequest(`payments?id=eq.${id}&select=*`);
   const bankStatementRef = prompt("Masukkan rujukan bank statement / catatan tally:", record.bank_statement_ref || record.receipt_no || "") || record.bank_statement_ref || null;
-  const officialReceiptNo = /^\d{4}$/.test(String(record.receipt_no || "").trim())
-    ? String(record.receipt_no).trim()
+  const officialReceiptNo = parseReceiptNo(record.receipt_no)
+    ? normalizeReceiptSearch(record.receipt_no)
     : await nextReceiptNo();
   const year = record.payment_year || new Date().getFullYear();
   const amount = Number(record.amount || 0);
@@ -712,6 +735,22 @@ async function approvePayment(id) {
   await loadLastReceiptNo();
 }
 
+async function approveDonation(id) {
+  const [record] = await supabaseRequest(`non_member_donations?id=eq.${id}&select=*`);
+  const officialReceiptNo = parseReceiptNo(record.receipt_no)
+    ? normalizeReceiptSearch(record.receipt_no)
+    : await nextReceiptNo();
+
+  await supabaseRequest(`non_member_donations?id=eq.${id}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({ status: "verified", receipt_no: officialReceiptNo })
+  });
+
+  alert(`Resit digital dijana: ${officialReceiptNo}`);
+  await loadLastReceiptNo();
+}
+
 async function approveExit(id) {
   const [record] = await supabaseRequest(`kariah_exit_requests?id=eq.${id}&select=*`);
   const identifier = encodeURIComponent(record.member_identifier || "");
@@ -754,13 +793,59 @@ async function updateStatus(table, id, status) {
 async function checkAdminReceipt() {
   const answer = document.querySelector("#adminReceiptAnswer");
   const receiptInput = document.querySelector("#adminReceiptSearch")?.value.trim();
-  const receipt = /^\d{1,4}$/.test(receiptInput || "") ? formatReceiptNo(Number(receiptInput)) : receiptInput;
+  const receipt = normalizeReceiptSearch(receiptInput);
   if (!answer || !receipt) return;
 
   try {
-    const [result] = await supabaseRpc("check_receipt_status", { receipt_search: receipt });
+    let [result] = await supabaseRpc("check_receipt_status", { receipt_search: receipt });
+    if (!result?.found && receiptInput && receiptInput !== receipt) {
+      [result] = await supabaseRpc("check_receipt_status", { receipt_search: receiptInput });
+    }
     answer.hidden = false;
     answer.innerHTML = renderOfficialReceipt(result);
+  } catch (error) {
+    answer.hidden = false;
+    answer.innerHTML = `<p>${escapeHtml(error.message)}</p>`;
+  }
+}
+
+async function searchReceiptMemberByName() {
+  const answer = document.querySelector("#adminReceiptMemberAnswer");
+  const query = document.querySelector("#adminReceiptMemberSearch")?.value.trim();
+  if (!answer || !query) return;
+
+  try {
+    const encoded = encodeURIComponent(`*${query}*`);
+    const records = await supabaseRequest(`members?member_name=ilike.${encoded}&select=member_name,ic_no,member_no,phone&order=member_name.asc&limit=10`);
+    answer.hidden = false;
+
+    if (!records.length) {
+      answer.innerHTML = `<p>Nama ahli tidak dijumpai.</p>`;
+      return;
+    }
+
+    answer.innerHTML = `
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Nama Ahli</th>
+            <th>No. IC</th>
+            <th>No. Ahli</th>
+            <th>No. Telefon</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${records.map((record) => `
+            <tr>
+              <td>${escapeHtml(record.member_name || "-")}</td>
+              <td>${escapeHtml(record.ic_no || "-")}</td>
+              <td>${escapeHtml(record.member_no || "-")}</td>
+              <td>${escapeHtml(record.phone || "-")}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
   } catch (error) {
     answer.hidden = false;
     answer.innerHTML = `<p>${escapeHtml(error.message)}</p>`;

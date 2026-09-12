@@ -1,4 +1,7 @@
 alter table public.dependant_updates
+add column if not exists new_name text;
+
+alter table public.dependant_updates
 add column if not exists new_phone text;
 
 alter table public.dependant_updates
@@ -23,9 +26,22 @@ on public.dependant_updates for insert
 to anon, authenticated
 with check (true);
 
+drop policy if exists "Public can read dependant updates after insert" on public.dependant_updates;
+
+create policy "Public can read dependant updates after insert"
+on public.dependant_updates for select
+to anon, authenticated
+using (true);
+
+grant insert, select on public.dependant_updates to anon, authenticated;
+
 drop policy if exists "Public can submit dependant items" on public.dependant_update_items;
 
 create policy "Public can submit dependant items"
 on public.dependant_update_items for insert
 to anon, authenticated
 with check (true);
+
+grant insert on public.dependant_update_items to anon, authenticated;
+
+select pg_notify('pgrst', 'reload schema');
