@@ -304,7 +304,7 @@ function syncDependantFields() {
   if (!dependantAction) return;
 
   const rowAction = isDependantRowAction();
-  const infoAction = dependantAction.value === "Kemaskini nama / IC / no. telefon / alamat";
+  const infoAction = dependantAction.value === "Kemaskini Maklumat Diri";
 
   if (dependantTotalField) dependantTotalField.hidden = !rowAction;
   if (memberIdField) memberIdField.hidden = !rowAction;
@@ -417,7 +417,7 @@ if (dependantForm) {
         dependant_total: rowAction ? Number(document.querySelector("#dependantTotal").value) || null : null
       };
 
-      if (action === "Kemaskini nama / IC / no. telefon / alamat") {
+      if (action === "Kemaskini Maklumat Diri") {
         updatePayload.new_name = document.querySelector("#dependantNewName")?.value.trim() || null;
         updatePayload.new_phone = document.querySelector("#dependantNewPhone")?.value.trim() || null;
         updatePayload.new_ic = document.querySelector("#dependantNewIc")?.value.trim() || null;

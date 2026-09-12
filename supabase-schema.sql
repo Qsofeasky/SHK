@@ -528,7 +528,7 @@ security definer
 set search_path = public
 as $$
   with query as (
-    select lower(trim(coalesce(receipt_search, ''))) as q
+    select replace(lower(trim(coalesce(receipt_search, ''))), ' ', '') as q
   ),
   receipt_match as (
     select *
@@ -544,7 +544,7 @@ as $$
         1 as priority
       from public.payments p, query
       where query.q <> ''
-        and lower(coalesce(p.receipt_no, '')) = query.q
+        and replace(lower(coalesce(p.receipt_no, '')), ' ', '') = query.q
       union all
       select
         d.donor_name as payer_name,
@@ -557,7 +557,7 @@ as $$
         2 as priority
       from public.non_member_donations d, query
       where query.q <> ''
-        and lower(coalesce(d.receipt_no, '')) = query.q
+        and replace(lower(coalesce(d.receipt_no, '')), ' ', '') = query.q
     ) matched_receipts
     order by priority, created_at desc
     limit 1

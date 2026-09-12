@@ -301,25 +301,36 @@ function highestReceiptNo(receipts) {
 }
 
 function formatReceiptNo(number) {
-  return `SHK - ${String(number || 1).padStart(4, "0")}/${new Date().getFullYear()}`;
+  return `SHK-${String(number || 1).padStart(4, "0")}/${new Date().getFullYear()}`;
 }
 
 function parseReceiptNo(receipt) {
   const text = String(receipt || "").trim();
-  const full = text.match(/^SHK\s*-\s*(\d{4})\/(\d{4})$/i);
+  const full = text.match(/^SHK\s*-\s*(\d{1,4})\/(\d{4})$/i);
   if (full) return { number: Number(full[1]), year: Number(full[2]) };
-  if (/^\d{4}$/.test(text)) return { number: Number(text), year: new Date().getFullYear() };
+  if (/^\d{1,4}$/.test(text)) return { number: Number(text), year: new Date().getFullYear() };
   return null;
 }
 
 function normalizeReceiptSearch(input) {
   const text = String(input || "").trim();
-  if (/^\d{1,4}$/.test(text)) return formatReceiptNo(Number(text));
-  if (/^SHK\s*-\s*\d{1,4}\/\d{4}$/i.test(text)) {
-    const [, number, year] = text.match(/^SHK\s*-\s*(\d{1,4})\/(\d{4})$/i);
-    return `SHK - ${number.padStart(4, "0")}/${year}`;
-  }
+  const parsed = parseReceiptNo(text);
+  if (parsed) return `SHK-${String(parsed.number || 1).padStart(4, "0")}/${parsed.year}`;
   return text;
+}
+
+function receiptSearchCandidates(input) {
+  const raw = String(input || "").trim();
+  const normalized = normalizeReceiptSearch(raw);
+  const parsed = parseReceiptNo(raw);
+  const candidates = [normalized, raw];
+
+  if (parsed) {
+    const number = String(parsed.number || 1).padStart(4, "0");
+    candidates.push(`SHK - ${number}/${parsed.year}`, number);
+  }
+
+  return [...new Set(candidates.filter(Boolean))];
 }
 
 function filteredPaidRecords() {
@@ -793,14 +804,18 @@ async function updateStatus(table, id, status) {
 async function checkAdminReceipt() {
   const answer = document.querySelector("#adminReceiptAnswer");
   const receiptInput = document.querySelector("#adminReceiptSearch")?.value.trim();
-  const receipt = normalizeReceiptSearch(receiptInput);
-  if (!answer || !receipt) return;
+  const candidates = receiptSearchCandidates(receiptInput);
+  if (!answer || !candidates.length) return;
 
   try {
-    let [result] = await supabaseRpc("check_receipt_status", { receipt_search: receipt });
-    if (!result?.found && receiptInput && receiptInput !== receipt) {
-      [result] = await supabaseRpc("check_receipt_status", { receipt_search: receiptInput });
+    let result = null;
+
+    for (const candidate of candidates) {
+      const [candidateResult] = await supabaseRpc("check_receipt_status", { receipt_search: candidate });
+      result = candidateResult;
+      if (candidateResult?.found) break;
     }
+
     answer.hidden = false;
     answer.innerHTML = renderOfficialReceipt(result);
   } catch (error) {
@@ -816,11 +831,43 @@ async function searchReceiptMemberByName() {
 
   try {
     const encoded = encodeURIComponent(`*${query}*`);
-    const records = await supabaseRequest(`members?member_name=ilike.${encoded}&select=member_name,ic_no,member_no,phone&order=member_name.asc&limit=10`);
+    const [payments, yearlyPayments, donations] = await Promise.all([
+      supabaseRequest(`payments?payer_name=ilike.${encoded}&select=payer_name,payment_year,amount,receipt_no,status,created_at&order=created_at.desc&limit=20`),
+      supabaseRequest(`member_yearly_payments?member_name=ilike.${encoded}&select=member_name,payment_year,amount,receipt_no,created_at&order=created_at.desc&limit=20`),
+      supabaseRequest(`non_member_donations?donor_name=ilike.${encoded}&select=donor_name,amount,receipt_no,status,created_at&order=created_at.desc&limit=20`)
+    ]);
+
+    const records = [
+      ...payments.map((record) => ({
+        name: record.payer_name,
+        receipt_no: record.receipt_no,
+        year: record.payment_year,
+        amount: record.amount,
+        status: record.status,
+        created_at: record.created_at
+      })),
+      ...yearlyPayments.map((record) => ({
+        name: record.member_name,
+        receipt_no: record.receipt_no,
+        year: record.payment_year,
+        amount: record.amount,
+        status: "verified",
+        created_at: record.created_at
+      })),
+      ...donations.map((record) => ({
+        name: record.donor_name,
+        receipt_no: record.receipt_no,
+        year: null,
+        amount: record.amount,
+        status: record.status,
+        created_at: record.created_at
+      }))
+    ].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
     answer.hidden = false;
 
     if (!records.length) {
-      answer.innerHTML = `<p>Nama ahli tidak dijumpai.</p>`;
+      answer.innerHTML = `<p>Tiada resit dijumpai untuk nama ini.</p>`;
       return;
     }
 
@@ -829,18 +876,20 @@ async function searchReceiptMemberByName() {
         <thead>
           <tr>
             <th>Nama Ahli</th>
-            <th>No. IC</th>
-            <th>No. Ahli</th>
-            <th>No. Telefon</th>
+            <th>No. Resit</th>
+            <th>Tahun</th>
+            <th>Jumlah</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
           ${records.map((record) => `
             <tr>
-              <td>${escapeHtml(record.member_name || "-")}</td>
-              <td>${escapeHtml(record.ic_no || "-")}</td>
-              <td>${escapeHtml(record.member_no || "-")}</td>
-              <td>${escapeHtml(record.phone || "-")}</td>
+              <td>${escapeHtml(record.name || "-")}</td>
+              <td>${escapeHtml(record.receipt_no ? normalizeReceiptSearch(record.receipt_no) : "Belum dijana")}</td>
+              <td>${escapeHtml(record.year || "-")}</td>
+              <td>RM${escapeHtml(String(record.amount || "0"))}</td>
+              <td>${escapeHtml(record.status || "-")}</td>
             </tr>
           `).join("")}
         </tbody>
@@ -851,7 +900,6 @@ async function searchReceiptMemberByName() {
     answer.innerHTML = `<p>${escapeHtml(error.message)}</p>`;
   }
 }
-
 function renderOfficialReceipt(result) {
   if (!result.found) {
     return `
@@ -868,7 +916,7 @@ function renderOfficialReceipt(result) {
           <h3>Surau Haji Kamaruddin</h3>
           <p>Batu 7 1/2 Jalan Meru Tambahan, Meru</p>
         </div>
-        <strong>${escapeHtml(result.receipt_no || "-")}</strong>
+        <strong>${escapeHtml(normalizeReceiptSearch(result.receipt_no) || "-")}</strong>
       </div>
       <div class="receipt-meta">
         <p><span>Status</span><strong>${escapeHtml(result.status || "-")}</strong></p>
