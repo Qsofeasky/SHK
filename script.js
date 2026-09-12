@@ -290,25 +290,75 @@ const dependantNewPhoneField = document.querySelector("#dependantNewPhoneField")
 const dependantNewIcField = document.querySelector("#dependantNewIcField");
 const dependantAddressField = document.querySelector("#dependantAddressField");
 const dependantLocationField = document.querySelector("#dependantLocationField");
+const dependantTotalField = document.querySelector("#dependantTotalField");
+const rows = document.querySelector("#dependantRows");
+const addDependant = document.querySelector("#addDependant");
 let dependantDetectedLocation = null;
+
+function isDependantRowAction() {
+  return ["Tambah Tanggungan", "Kurangkan Tanggungan", "Kemaskini Maklumat Tanggungan"].includes(dependantAction?.value || "");
+}
+
+function dependantDefaultStatus() {
+  if (dependantAction?.value === "Kurangkan Tanggungan") return "Buang";
+  if (dependantAction?.value === "Kemaskini Maklumat Tanggungan") return "Kemaskini";
+  return "Tambah";
+}
 
 function syncDependantFields() {
   const showSelfUpdate = dependantAction?.value === "Kemaskini Maklumat Diri";
-  if (memberIdField) memberIdField.hidden = !showSelfUpdate;
+  const rowAction = isDependantRowAction();
+
+  if (memberIdField) memberIdField.hidden = !(showSelfUpdate || rowAction);
   if (dependantNewNameField) dependantNewNameField.hidden = !showSelfUpdate;
   if (dependantNewPhoneField) dependantNewPhoneField.hidden = !showSelfUpdate;
   if (dependantNewIcField) dependantNewIcField.hidden = !showSelfUpdate;
   if (dependantAddressField) dependantAddressField.hidden = !showSelfUpdate;
   if (dependantLocationField) dependantLocationField.hidden = !showSelfUpdate;
+  if (dependantTotalField) dependantTotalField.hidden = !rowAction;
+  if (rows) rows.hidden = !rowAction;
+  if (addDependant) addDependant.hidden = !rowAction;
 
   const memberIdentifier = document.querySelector("#memberId");
-  if (memberIdentifier) memberIdentifier.required = showSelfUpdate;
+  const dependantTotal = document.querySelector("#dependantTotal");
+  if (memberIdentifier) memberIdentifier.required = showSelfUpdate || rowAction;
+  if (dependantTotal) dependantTotal.required = rowAction;
+
+  document.querySelectorAll("#dependantRows .dependant-row:not(.dependant-row--head) select:last-child").forEach((select) => {
+    select.value = dependantDefaultStatus();
+  });
 
   if (!showSelfUpdate) {
     dependantDetectedLocation = null;
     setMessage("#dependantLocationMessage", "", "neutral");
   }
 }
+
+function addDependantRow() {
+  if (!rows) return;
+  const row = document.createElement("div");
+  row.className = "dependant-row";
+  row.innerHTML = `
+    <input type="text" placeholder="Nama penuh">
+    <input type="text" placeholder="No. IC / sijil lahir">
+    <select>
+      <option></option>
+      <option>Lelaki</option>
+      <option>Perempuan</option>
+    </select>
+    <input type="number" min="0" placeholder="Umur">
+    <input type="text" placeholder="Isteri / Suami / Anak / Ibu / Bapa">
+    <select>
+      <option>Tambah</option>
+      <option>Buang</option>
+      <option>Kemaskini</option>
+    </select>
+  `;
+  rows.appendChild(row);
+  row.querySelector("select:last-child").value = dependantDefaultStatus();
+}
+
+addDependant?.addEventListener("click", addDependantRow);
 
 dependantAction?.addEventListener("change", () => {
   syncDependantFields();
@@ -328,34 +378,62 @@ if (dependantForm) {
       const memberName = document.querySelector("#memberName").value.trim();
       const memberIdentifier = document.querySelector("#memberId").value.trim();
       const action = document.querySelector("#dependantAction").value;
+      const rowAction = isDependantRowAction();
 
       if (!memberIdentifier) {
         throw new Error("Masukkan no. telefon atau IC ahli sebagai rujukan.");
       }
 
       const updatePayload = {
+        id: crypto.randomUUID(),
         member_name: memberName || memberIdentifier,
         member_identifier: memberIdentifier,
         phone: memberIdentifier,
         update_action: action,
-        dependant_total: null,
-        new_name: document.querySelector("#dependantNewName")?.value.trim() || null,
-        new_phone: document.querySelector("#dependantNewPhone")?.value.trim() || null,
-        new_ic: document.querySelector("#dependantNewIc")?.value.trim() || null,
-        new_address: document.querySelector("#dependantNewAddress")?.value.trim() || null
+        dependant_total: rowAction ? Number(document.querySelector("#dependantTotal")?.value) || null : null
       };
 
-      if (!updatePayload.new_name && !updatePayload.new_phone && !updatePayload.new_ic && !updatePayload.new_address && !dependantDetectedLocation) {
-        throw new Error("Isi sekurang-kurangnya satu maklumat baru untuk dikemaskini.");
-      }
+      let items = [];
 
-      if (dependantDetectedLocation) {
-        updatePayload.location_latitude = dependantDetectedLocation.latitude;
-        updatePayload.location_longitude = dependantDetectedLocation.longitude;
-        updatePayload.location_url = dependantDetectedLocation.url;
+      if (rowAction) {
+        items = [...document.querySelectorAll("#dependantRows .dependant-row:not(.dependant-row--head)")]
+          .map((row) => {
+            const inputs = row.querySelectorAll("input");
+            const selects = row.querySelectorAll("select");
+            return {
+              update_id: updatePayload.id,
+              dependant_name: inputs[0]?.value.trim() || null,
+              dependant_ic: inputs[1]?.value.trim() || null,
+              gender: selects[0]?.value || null,
+              age: Number(inputs[2]?.value) || null,
+              relationship: inputs[3]?.value.trim() || null,
+              item_status: selects[1]?.value || dependantDefaultStatus()
+            };
+          })
+          .filter((item) => item.dependant_name || item.dependant_ic || item.relationship || item.gender || item.age);
+
+        if (!items.length) {
+          throw new Error("Isi sekurang-kurangnya satu maklumat tanggungan.");
+        }
+      } else {
+        updatePayload.new_name = document.querySelector("#dependantNewName")?.value.trim() || null;
+        updatePayload.new_phone = document.querySelector("#dependantNewPhone")?.value.trim() || null;
+        updatePayload.new_ic = document.querySelector("#dependantNewIc")?.value.trim() || null;
+        updatePayload.new_address = document.querySelector("#dependantNewAddress")?.value.trim() || null;
+
+        if (!updatePayload.new_name && !updatePayload.new_phone && !updatePayload.new_ic && !updatePayload.new_address && !dependantDetectedLocation) {
+          throw new Error("Isi sekurang-kurangnya satu maklumat baru untuk dikemaskini.");
+        }
+
+        if (dependantDetectedLocation) {
+          updatePayload.location_latitude = dependantDetectedLocation.latitude;
+          updatePayload.location_longitude = dependantDetectedLocation.longitude;
+          updatePayload.location_url = dependantDetectedLocation.url;
+        }
       }
 
       await insertRow("dependant_updates", updatePayload);
+      if (items.length) await insertRow("dependant_update_items", items);
       await queueAdminReminder("Kemaskini maklumat baru", `Kemaskini maklumat diterima untuk ${memberName || memberIdentifier}.`);
 
       dependantForm.reset();

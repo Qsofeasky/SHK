@@ -645,6 +645,10 @@ async function approveDependant(id) {
     if (item.item_status === "Buang") {
       await deleteDependant(update, item);
     }
+
+    if (item.item_status === "Kemaskini") {
+      await updateDependant(update, item);
+    }
   }
 
   if (update.dependant_total !== null) {
@@ -692,6 +696,28 @@ async function deleteDependant(update, item) {
   await supabaseRequest(path, {
     method: "DELETE",
     headers: { Prefer: "return=minimal" }
+  });
+}
+async function updateDependant(update, item) {
+  if (!item.dependant_ic && !item.dependant_name) return;
+
+  let path = "member_dependants?";
+  if (item.dependant_ic) {
+    path += `dependant_ic=eq.${encodeURIComponent(item.dependant_ic)}`;
+  } else {
+    path += `member_name=eq.${encodeURIComponent(update.member_name)}&dependant_name=eq.${encodeURIComponent(item.dependant_name || "")}`;
+  }
+
+  await supabaseRequest(path, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({
+      dependant_name: item.dependant_name || null,
+      dependant_ic: item.dependant_ic || null,
+      gender: item.gender || null,
+      age: item.age || null,
+      relationship: item.relationship || null
+    })
   });
 }
 

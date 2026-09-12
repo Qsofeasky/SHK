@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Khairat SHK | Surau Hj Kamaruddin</title>
     <meta name="description" content="Portal Khairat Kematian Surau Hj Kamaruddin untuk semakan ahli, kemaskini maklumat diri, bayaran dan maklumat kariah.">
-    <link rel="stylesheet" href="styles.css?v=20260912-selfinfo-phone-lookup">
+    <link rel="stylesheet" href="styles.css?v=20260912-update-dependent-tabs">
   </head>
   <body>
     <header class="site-header">
@@ -186,6 +186,9 @@
             <label>Tujuan Kemaskini
               <select id="dependantAction">
                 <option>Kemaskini Maklumat Diri</option>
+                <option>Tambah Tanggungan</option>
+                <option>Kurangkan Tanggungan</option>
+                <option>Kemaskini Maklumat Tanggungan</option>
               </select>
             </label>
           </div>
@@ -219,7 +222,39 @@
                 <p class="form-message" id="dependantLocationMessage" aria-live="polite"></p>
               </div>
             </div>
+
+            <label id="dependantTotalField" hidden>Jumlah Tanggungan Selepas Kemaskini
+              <input type="number" min="0" id="dependantTotal" placeholder="Contoh: 4">
+            </label>
+
+            <div class="dependant-table" id="dependantRows" hidden>
+              <div class="dependant-row dependant-row--head">
+                <span>Nama Tanggungan</span>
+                <span>No. IC / Sijil Lahir</span>
+                <span>Jantina</span>
+                <span>Umur</span>
+                <span>Hubungan</span>
+                <span>Status</span>
+              </div>
+              <div class="dependant-row">
+                <input type="text" placeholder="Nama penuh">
+                <input type="text" placeholder="No. IC / sijil lahir">
+                <select>
+                  <option></option>
+                  <option>Lelaki</option>
+                  <option>Perempuan</option>
+                </select>
+                <input type="number" min="0" placeholder="Umur">
+                <input type="text" placeholder="Isteri / Suami / Anak / Ibu / Bapa">
+                <select>
+                  <option>Tambah</option>
+                  <option>Buang</option>
+                  <option>Kemaskini</option>
+                </select>
+              </div>
+            </div>
             <div class="form-actions">
+              <button class="button button--secondary" id="addDependant" type="button" hidden>Tambah Baris</button>
               <button class="button button--primary" type="submit">Hantar Kemaskini</button>
             </div>
             <p class="form-message" id="dependantMessage" aria-live="polite"></p>
@@ -229,7 +264,7 @@
             <h3>Panduan Kemaskini</h3>
             <ul>
               <li>Masukkan no. telefon atau IC ahli sebagai rujukan. Nama lama boleh dikosongkan jika tidak ingat.</li>
-              <li>Kemaskini maklumat diri boleh isi nama baru, IC baru, no. telefon baru atau alamat baru. Untuk alamat, boleh tekan Share Lokasi Semasa.</li>
+              <li>Kemaskini maklumat diri hanya paparkan field diri. Pilihan tanggungan hanya paparkan maklumat tanggungan.</li>
             </ul>
           </aside>
         </div>
@@ -384,7 +419,7 @@
       </div>
     </footer>
 
-    <script src="supabase-config.js?v=20260912-selfinfo-phone-lookup"></script>
-    <script src="script.js?v=20260912-selfinfo-phone-lookup"></script>
+    <script src="supabase-config.js?v=20260912-update-dependent-tabs"></script>
+    <script src="script.js?v=20260912-update-dependent-tabs"></script>
   </body>
 </html>
