@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Khairat SHK | Surau Hj Kamaruddin</title>
     <meta name="description" content="Portal Khairat Kematian Surau Hj Kamaruddin untuk semakan ahli, kemaskini maklumat diri, bayaran dan maklumat kariah.">
-    <link rel="stylesheet" href="styles.css?v=20260912-phone-ic-format-rules">
+    <link rel="stylesheet" href="styles.css?v=20260912-ic-dash-format">
   </head>
   <body>
     <header class="site-header">
@@ -142,7 +142,7 @@
                 <input id="checkName" type="text" placeholder="Contoh: Farid Pouzan">
               </label>
               <label id="checkIdField">No. Telefon
-                <input id="checkId" type="tel" placeholder="Contoh: 019-4302665" title="No. telefon mesti format 01X-XXXXXX. No. IC jangan letak dash.">
+                <input id="checkId" type="tel" placeholder="Contoh: 019-4302665" title="No. telefon mesti format 01X-XXXXXX. No. IC mesti format XXXXXX-XX-XXXX.">
               </label>
               <label id="phoneField">No. Telefon
                 <input id="checkPhone" type="tel" placeholder="Contoh: 019-4302665" title="No. telefon mesti format 01X-XXXXXX.">
@@ -200,7 +200,7 @@
                 <input type="text" id="memberName" placeholder="Isi jika ingat nama lama">
               </label>
               <label id="memberIdField">No. Telefon / IC Ahli
-                <input type="text" id="memberId" placeholder="Telefon: 019-4302665 atau IC tanpa dash: 710513106035" title="Telefon mesti format 01X-XXXXXX. IC jangan letak dash." required>
+                <input type="text" id="memberId" placeholder="Telefon: 019-4302665 atau IC: 710513-10-6035" title="Telefon mesti format 01X-XXXXXX. IC mesti format XXXXXX-XX-XXXX." required>
               </label>
               <label id="dependantNewNameField">Nama Baru
                 <input type="text" id="dependantNewName" placeholder="Isi jika mahu tukar nama">
@@ -209,7 +209,7 @@
                 <input type="tel" id="dependantNewPhone" placeholder="Contoh: 019-4302665" title="No. telefon mesti format 01X-XXXXXX.">
               </label>
               <label id="dependantNewIcField">IC Baru
-                <input type="text" id="dependantNewIc" placeholder="Masukkan no. IC tanpa dash, contoh: 710513106035" title="No. IC jangan letak dash.">
+                <input type="text" id="dependantNewIc" placeholder="Masukkan no. IC format XXXXXX-XX-XXXX, contoh: 710513-10-6035" title="No. IC mesti format XXXXXX-XX-XXXX.">
               </label>
               <label class="span-2" id="dependantAddressField">Alamat / Lokasi Baru
                 <textarea id="dependantNewAddress" rows="3" placeholder="Alamat rumah atau lokasi baru dalam kariah"></textarea>
@@ -238,7 +238,7 @@
               </div>
               <div class="dependant-row">
                 <input type="text" placeholder="Nama penuh">
-                <input type="text" placeholder="No. IC tanpa dash / sijil lahir">
+                <input type="text" placeholder="No. IC format XXXXXX-XX-XXXX / sijil lahir">
                 <select>
                   <option></option>
                   <option>Lelaki</option>
@@ -419,7 +419,7 @@
       </div>
     </footer>
 
-    <script src="supabase-config.js?v=20260912-phone-ic-format-rules"></script>
-    <script src="script.js?v=20260912-phone-ic-format-rules"></script>
+    <script src="supabase-config.js?v=20260912-ic-dash-format"></script>
+    <script src="script.js?v=20260912-ic-dash-format"></script>
   </body>
 </html>

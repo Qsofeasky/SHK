@@ -143,10 +143,10 @@ function requirePhoneFormat(value, label) {
   }
 }
 
-function requireIcNoDash(value, label) {
+function requireIcDashFormat(value, label) {
   const text = String(value || "").trim();
-  if (text && hasDash(text)) {
-    throw new Error(`${label} jangan letak dash (-). Contoh: 710513106035.`);
+  if (text && !/^\d{6}-\d{2}-\d{4}$/.test(text)) {
+    throw new Error(`${label} mesti format XXXXXX-XX-XXXX, contoh 710513-10-6035.`);
   }
 }
 
@@ -156,7 +156,7 @@ function requirePhoneOrIcFormat(value, label) {
   if (text.startsWith("01")) {
     requirePhoneFormat(text, label);
   } else {
-    requireIcNoDash(text, label);
+    requireIcDashFormat(text, label);
   }
 }
 function showCheckAnswer(html) {
@@ -203,8 +203,8 @@ function syncDaftarFields() {
   if (id) {
     id.required = true;
     id.type = show ? "text" : "tel";
-    id.placeholder = show ? "IC tanpa dash, contoh: 710513106035" : "Contoh: 019-4302665";
-    id.title = show ? "No. IC jangan letak dash." : "No. telefon mesti format 01X-XXXXXX.";
+    id.placeholder = show ? "IC format XXXXXX-XX-XXXX, contoh: 710513-10-6035" : "Contoh: 019-4302665";
+    id.title = show ? "No. IC mesti format XXXXXX-XX-XXXX." : "No. telefon mesti format 01X-XXXXXX.";
   }
   if (checkIdField) {
     checkIdField.childNodes[0].textContent = show ? "No. IC" : "No. Telefon";
@@ -241,7 +241,7 @@ if (checkForm) {
 
 
       if (typeInput.value === "daftar") {
-        requireIcNoDash(searchText, "No. IC");
+        requireIcDashFormat(searchText, "No. IC");
         requirePhoneFormat(document.querySelector("#checkPhone").value.trim(), "No. telefon");
       } else {
         requirePhoneFormat(searchText, "No. telefon");
@@ -464,7 +464,7 @@ if (dependantForm) {
           })
           .filter((item) => item.dependant_name || item.dependant_ic || item.relationship || item.gender || item.age);
 
-        items.forEach((item) => requireIcNoDash(item.dependant_ic, "No. IC tanggungan"));
+        items.forEach((item) => requireIcDashFormat(item.dependant_ic, "No. IC tanggungan"));
 
         if (!items.length) {
           throw new Error("Isi sekurang-kurangnya satu maklumat tanggungan.");
@@ -476,7 +476,7 @@ if (dependantForm) {
         updatePayload.new_address = document.querySelector("#dependantNewAddress")?.value.trim() || null;
 
         requirePhoneFormat(updatePayload.new_phone, "No. telefon baru");
-        requireIcNoDash(updatePayload.new_ic, "IC baru");
+        requireIcDashFormat(updatePayload.new_ic, "IC baru");
 
         if (!updatePayload.new_name && !updatePayload.new_phone && !updatePayload.new_ic && !updatePayload.new_address && !dependantDetectedLocation) {
           throw new Error("Isi sekurang-kurangnya satu maklumat baru untuk dikemaskini.");

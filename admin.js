@@ -979,7 +979,7 @@ async function moveMemberToInactive() {
   }
 
   try {
-    requireIcNoDash(icNo, "No. IC");
+    requireIcDashFormat(icNo, "No. IC");
   } catch (error) {
     alert(error.message);
     return;
@@ -1027,14 +1027,14 @@ function normalKey(value) {
   return String(value || "").trim().toLowerCase();
 }
 
-function hasDash(value) {
-  return String(value || "").includes("-");
+function isIcDashFormat(value) {
+  return /^\d{6}-\d{2}-\d{4}$/.test(String(value || "").trim());
 }
 
-function requireIcNoDash(value, label) {
+function requireIcDashFormat(value, label) {
   const text = String(value || "").trim();
-  if (text && hasDash(text)) {
-    throw new Error(`${label} jangan letak dash (-). Contoh: 710513106035.`);
+  if (text && !isIcDashFormat(text)) {
+    throw new Error(`${label} mesti format XXXXXX-XX-XXXX, contoh 710513-10-6035.`);
   }
 }
 
