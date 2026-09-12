@@ -13,6 +13,7 @@ const adminPanel = document.querySelector("#adminPanel");
 const adminToggle = document.querySelector("#adminNavToggle");
 const adminMenu = document.querySelector("#admin-menu");
 let paidOverviewRecords = [];
+let locationRecords = [];
 
 if (adminState.accessToken) {
   showAdmin();
@@ -66,6 +67,9 @@ document.querySelector("#statusFilter")?.addEventListener("change", () => {
 });
 document.querySelector("#paidSearch")?.addEventListener("input", () => {
   renderPaidTable(filteredPaidRecords());
+});
+document.querySelector("#locationSearch")?.addEventListener("input", () => {
+  renderLocationTable(filteredLocationRecords());
 });
 document.querySelector("#logoutAdmin")?.addEventListener("click", () => {
   sessionStorage.removeItem("shkAdminToken");
@@ -171,6 +175,7 @@ function showAdminError(error) {
   renderCards("#membershipList", [], renderMembershipCard);
   renderCards("#dependantList", [], renderDependantCard);
   renderCards("#paymentList", [], renderPaymentCard);
+  locationRecords = [];
   renderLocationTable([]);
   renderCards("#donationList", [], renderDonationCard);
   renderCards("#exitList", [], renderExitCard);
@@ -221,7 +226,8 @@ async function loadMembershipChecks() {
 
 async function loadSharedLocations() {
   const records = await supabaseRequest("membership_checks?status=eq.approved&location_url=not.is.null&select=member_name,phone,address,location_url,created_at&order=created_at.desc&limit=100");
-  renderLocationTable(records);
+  locationRecords = records;
+  renderLocationTable(filteredLocationRecords());
 }
 
 async function loadDependantUpdates() {
@@ -303,6 +309,12 @@ function filteredPaidRecords() {
       || normalKey(record.member_no).includes(query)
       || normalKey(record.email).includes(query);
   });
+}
+
+function filteredLocationRecords() {
+  const query = normalKey(document.querySelector("#locationSearch")?.value || "");
+  if (!query) return locationRecords;
+  return locationRecords.filter((record) => normalKey(record.member_name).includes(query));
 }
 
 function renderCards(selector, records, renderer) {
