@@ -218,7 +218,7 @@ async function loadMembershipChecks() {
 }
 
 async function loadSharedLocations() {
-  const records = await supabaseRequest("membership_checks?location_url=not.is.null&select=member_name,phone,address,check_type,status,location_latitude,location_longitude,location_url,created_at&order=created_at.desc&limit=100");
+  const records = await supabaseRequest("membership_checks?status=eq.approved&location_url=not.is.null&select=member_name,phone,address,location_url,created_at&order=created_at.desc&limit=100");
   renderLocationTable(records);
 }
 
@@ -335,7 +335,7 @@ function renderLocationTable(records) {
   if (!container) return;
 
   if (!records.length) {
-    container.innerHTML = `<p class="empty-state">Belum ada pemohon yang share lokasi.</p>`;
+    container.innerHTML = `<p class="empty-state">Belum ada ahli approved yang share lokasi.</p>`;
     return;
   }
 
@@ -345,10 +345,7 @@ function renderLocationTable(records) {
         <tr>
           <th>Nama Ahli</th>
           <th>No. Telefon</th>
-          <th>Jenis</th>
-          <th>Status</th>
           <th>Alamat</th>
-          <th>Koordinat</th>
           <th>Lokasi</th>
         </tr>
       </thead>
@@ -357,10 +354,7 @@ function renderLocationTable(records) {
           <tr>
             <td>${escapeHtml(record.member_name || "-")}</td>
             <td>${escapeHtml(record.phone || "-")}</td>
-            <td>${escapeHtml(record.check_type || "-")}</td>
-            <td>${escapeHtml(record.status || "-")}</td>
             <td>${escapeHtml(record.address || "-")}</td>
-            <td>${escapeHtml(formatCoordinates(record.location_latitude, record.location_longitude))}</td>
             <td><a href="${escapeHtml(record.location_url)}" target="_blank" rel="noopener">Buka Maps</a></td>
           </tr>
         `).join("")}
