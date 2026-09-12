@@ -122,6 +122,7 @@ async function loadAdminData() {
   await checkAdminAccess();
   await Promise.all([
     loadMembershipChecks(),
+    loadSharedLocations(),
     loadDependantUpdates(),
     loadPayments(),
     loadDonations(),
@@ -168,6 +169,7 @@ function showAdminError(error) {
   renderCards("#membershipList", [], renderMembershipCard);
   renderCards("#dependantList", [], renderDependantCard);
   renderCards("#paymentList", [], renderPaymentCard);
+  renderLocationTable([]);
   renderCards("#donationList", [], renderDonationCard);
   renderCards("#exitList", [], renderExitCard);
   renderPaidTable([]);
@@ -212,6 +214,11 @@ async function supabaseRequest(path, options = {}) {
 async function loadMembershipChecks() {
   const records = await supabaseRequest(statusQuery("membership_checks"));
   renderCards("#membershipList", records, renderMembershipCard);
+}
+
+async function loadSharedLocations() {
+  const records = await supabaseRequest("membership_checks?location_url=not.is.null&select=member_name,phone,address,check_type,status,location_latitude,location_longitude,location_url,created_at&order=created_at.desc&limit=100");
+  renderLocationTable(records);
 }
 
 async function loadDependantUpdates() {
@@ -310,13 +317,60 @@ function renderMembershipCard(record) {
       <p>Email: ${escapeHtml(record.email || "-")}</p>
       <p>Pekerjaan: ${escapeHtml(record.occupation || "-")}</p>
       <p>Alamat: ${escapeHtml(record.address || "-")}</p>
-      ${record.location_url ? `<p><a href="${escapeHtml(record.location_url)}" target="_blank" rel="noopener">Buka lokasi pemohon</a></p>` : ""}
+      ${record.location_url ? `
+        <p>Lokasi: ${escapeHtml(formatCoordinates(record.location_latitude, record.location_longitude))}</p>
+        <p><a href="${escapeHtml(record.location_url)}" target="_blank" rel="noopener">Buka lokasi pemohon</a></p>
+      ` : ""}
       <div class="form-actions">
         ${record.status === "pending" ? `<button class="button button--primary" data-action="approve-membership" data-id="${record.id}" type="button">Approve</button>` : ""}
         <button class="button button--secondary" data-action="reject-membership" data-id="${record.id}" type="button">Reject</button>
       </div>
     </article>
   `;
+}
+
+function renderLocationTable(records) {
+  const container = document.querySelector("#locationList");
+  if (!container) return;
+
+  if (!records.length) {
+    container.innerHTML = `<p class="empty-state">Belum ada pemohon yang share lokasi.</p>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <table class="admin-table admin-table--locations">
+      <thead>
+        <tr>
+          <th>Nama Ahli</th>
+          <th>No. Telefon</th>
+          <th>Jenis</th>
+          <th>Status</th>
+          <th>Alamat</th>
+          <th>Koordinat</th>
+          <th>Lokasi</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${records.map((record) => `
+          <tr>
+            <td>${escapeHtml(record.member_name || "-")}</td>
+            <td>${escapeHtml(record.phone || "-")}</td>
+            <td>${escapeHtml(record.check_type || "-")}</td>
+            <td>${escapeHtml(record.status || "-")}</td>
+            <td>${escapeHtml(record.address || "-")}</td>
+            <td>${escapeHtml(formatCoordinates(record.location_latitude, record.location_longitude))}</td>
+            <td><a href="${escapeHtml(record.location_url)}" target="_blank" rel="noopener">Buka Maps</a></td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function formatCoordinates(latitude, longitude) {
+  if (!latitude || !longitude) return "-";
+  return `${Number(latitude).toFixed(6)}, ${Number(longitude).toFixed(6)}`;
 }
 
 function renderDependantCard(record) {

@@ -538,6 +538,16 @@ textarea:focus {
   grid-column: span 2;
 }
 
+.location-note {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  color: var(--green-950);
+  background: var(--mint-50);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-weight: 700;
+}
+
 .checkline {
   display: flex;
   align-items: flex-start;
@@ -876,6 +886,10 @@ textarea:focus {
   width: 100%;
   min-width: 820px;
   border-collapse: collapse;
+}
+
+.admin-table--locations {
+  min-width: 1040px;
 }
 
 .admin-table th,
