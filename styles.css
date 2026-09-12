@@ -733,6 +733,83 @@ textarea:focus {
   font-size: 1.7rem;
 }
 
+.official-receipt {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid var(--green-850);
+  border-radius: 8px;
+}
+
+.receipt-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.receipt-head span,
+.receipt-meta span,
+.receipt-lines dt {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.receipt-head h3 {
+  margin: 4px 0;
+  color: var(--green-950);
+}
+
+.receipt-head p {
+  margin: 0;
+}
+
+.receipt-head > strong {
+  color: var(--green-950);
+  font-size: 2rem;
+}
+
+.receipt-meta,
+.receipt-lines {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 18px;
+}
+
+.receipt-meta p,
+.receipt-lines div {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 12px;
+  background: var(--mint-50);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.receipt-lines {
+  margin: 0;
+}
+
+.receipt-lines dd {
+  margin: 0;
+  color: var(--green-950);
+  font-weight: 900;
+}
+
+.receipt-note {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.receipt-print-button {
+  margin-top: 14px;
+}
+
 .section--contact {
   color: #fff;
   background:
@@ -1020,5 +1097,28 @@ textarea:focus {
   .info-card,
   .payment-card {
     padding: 18px;
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #officialReceipt,
+  #officialReceipt * {
+    visibility: visible;
+  }
+
+  #officialReceipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    box-shadow: none;
+  }
+
+  .receipt-print-button {
+    display: none;
   }
 }

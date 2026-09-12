@@ -748,17 +748,54 @@ async function checkAdminReceipt() {
   try {
     const [result] = await supabaseRpc("check_receipt_status", { receipt_search: receipt });
     answer.hidden = false;
-    answer.innerHTML = `
-      <span class="status-pill ${result.found ? "status-pill--success" : ""}">${escapeHtml(result.status)}</span>
-      ${result.payer_name ? `<h3>${escapeHtml(result.payer_name)}</h3>` : ""}
-      ${result.receipt_no ? `<p>No. resit: ${escapeHtml(result.receipt_no)}</p>` : ""}
-      ${result.payment_year ? `<p>Tahun: ${escapeHtml(result.payment_year)}</p>` : ""}
-      ${result.amount ? `<p>Jumlah: RM${escapeHtml(result.amount)}</p>` : ""}
-    `;
+    answer.innerHTML = renderOfficialReceipt(result);
   } catch (error) {
     answer.hidden = false;
     answer.innerHTML = `<p>${escapeHtml(error.message)}</p>`;
   }
+}
+
+function renderOfficialReceipt(result) {
+  if (!result.found) {
+    return `
+      <span class="status-pill">${escapeHtml(result.status)}</span>
+      <p>Semak nombor resit dan cuba semula.</p>
+    `;
+  }
+
+  return `
+    <article class="official-receipt" id="officialReceipt">
+      <div class="receipt-head">
+        <div>
+          <span>Resit Rasmi</span>
+          <h3>Surau Haji Kamaruddin</h3>
+          <p>Batu 7 1/2 Jalan Meru Tambahan, Meru</p>
+        </div>
+        <strong>${escapeHtml(result.receipt_no || "-")}</strong>
+      </div>
+      <div class="receipt-meta">
+        <p><span>Status</span><strong>${escapeHtml(result.status || "-")}</strong></p>
+        <p><span>Tarikh</span><strong>${escapeHtml(formatReceiptDate(result.created_at))}</strong></p>
+      </div>
+      <dl class="receipt-lines">
+        <div><dt>Nama Pembayar</dt><dd>${escapeHtml(result.payer_name || "-")}</dd></div>
+        <div><dt>Kaedah Bayaran</dt><dd>${escapeHtml(result.payment_method || "-")}</dd></div>
+        <div><dt>Tahun Bayaran</dt><dd>${escapeHtml(result.payment_year || "-")}</dd></div>
+        <div><dt>Jumlah</dt><dd>RM${escapeHtml(String(result.amount || "0"))}</dd></div>
+      </dl>
+      <p class="receipt-note">Resit ini dijana oleh sistem Khairat Surau Haji Kamaruddin selepas bayaran disahkan oleh admin.</p>
+    </article>
+    <button class="button button--primary receipt-print-button" type="button" onclick="window.print()">Print Resit</button>
+  `;
+}
+
+function formatReceiptDate(value) {
+  if (!value) return "-";
+  return new Date(value).toLocaleDateString("ms-MY", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  });
 }
 
 async function moveMemberToInactive() {
