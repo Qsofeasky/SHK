@@ -128,6 +128,37 @@ function clearMessage(selector) {
   setMessage(selector, "", "neutral");
 }
 
+function isPhoneFormat(value) {
+  return /^01\d-\d{6,8}$/.test(String(value || "").trim());
+}
+
+function hasDash(value) {
+  return String(value || "").includes("-");
+}
+
+function requirePhoneFormat(value, label) {
+  const text = String(value || "").trim();
+  if (text && !isPhoneFormat(text)) {
+    throw new Error(`${label} mesti format 01X-XXXXXX, contoh 019-4302665.`);
+  }
+}
+
+function requireIcNoDash(value, label) {
+  const text = String(value || "").trim();
+  if (text && hasDash(text)) {
+    throw new Error(`${label} jangan letak dash (-). Contoh: 710513106035.`);
+  }
+}
+
+function requirePhoneOrIcFormat(value, label) {
+  const text = String(value || "").trim();
+  if (!text) return;
+  if (text.startsWith("01")) {
+    requirePhoneFormat(text, label);
+  } else {
+    requireIcNoDash(text, label);
+  }
+}
 function showCheckAnswer(html) {
   const node = document.querySelector("#checkAnswer");
   if (!node) return;
@@ -172,7 +203,8 @@ function syncDaftarFields() {
   if (id) {
     id.required = true;
     id.type = show ? "text" : "tel";
-    id.placeholder = show ? "No. IC ahli baru" : "Masukkan no. telefon sahaja";
+    id.placeholder = show ? "IC tanpa dash, contoh: 710513106035" : "Contoh: 019-4302665";
+    id.title = show ? "No. IC jangan letak dash." : "No. telefon mesti format 01X-XXXXXX.";
   }
   if (checkIdField) {
     checkIdField.childNodes[0].textContent = show ? "No. IC" : "No. Telefon";
@@ -205,6 +237,14 @@ if (checkForm) {
       const searchText = id;
       if (!name || !searchText) {
         throw new Error(typeInput.value === "daftar" ? "Masukkan nama dan no. IC ahli baru." : "Masukkan nama dan no. telefon untuk carian.");
+      }
+
+
+      if (typeInput.value === "daftar") {
+        requireIcNoDash(searchText, "No. IC");
+        requirePhoneFormat(document.querySelector("#checkPhone").value.trim(), "No. telefon");
+      } else {
+        requirePhoneFormat(searchText, "No. telefon");
       }
 
       if (typeInput.value === "status") {
@@ -394,6 +434,7 @@ if (dependantForm) {
       if (!memberIdentifier) {
         throw new Error("Masukkan no. telefon atau IC ahli sebagai rujukan.");
       }
+      requirePhoneOrIcFormat(memberIdentifier, "No. telefon / IC ahli");
 
       const updatePayload = {
         id: crypto.randomUUID(),
@@ -423,6 +464,8 @@ if (dependantForm) {
           })
           .filter((item) => item.dependant_name || item.dependant_ic || item.relationship || item.gender || item.age);
 
+        items.forEach((item) => requireIcNoDash(item.dependant_ic, "No. IC tanggungan"));
+
         if (!items.length) {
           throw new Error("Isi sekurang-kurangnya satu maklumat tanggungan.");
         }
@@ -431,6 +474,9 @@ if (dependantForm) {
         updatePayload.new_phone = document.querySelector("#dependantNewPhone")?.value.trim() || null;
         updatePayload.new_ic = document.querySelector("#dependantNewIc")?.value.trim() || null;
         updatePayload.new_address = document.querySelector("#dependantNewAddress")?.value.trim() || null;
+
+        requirePhoneFormat(updatePayload.new_phone, "No. telefon baru");
+        requireIcNoDash(updatePayload.new_ic, "IC baru");
 
         if (!updatePayload.new_name && !updatePayload.new_phone && !updatePayload.new_ic && !updatePayload.new_address && !dependantDetectedLocation) {
           throw new Error("Isi sekurang-kurangnya satu maklumat baru untuk dikemaskini.");
@@ -508,7 +554,9 @@ if (paymentForm) {
       const proofFile = document.querySelector("#receiptProofFile")?.files?.[0] || null;
       const proofData = proofFile ? await readReceiptFile(proofFile) : null;
 
-      await insertRow("payments", {
+      
+      requirePhoneFormat(document.querySelector("#payerIdentifier").value.trim(), "No. telefon");
+await insertRow("payments", {
         payer_name: document.querySelector("#payerName").value.trim(),
         payer_identifier: document.querySelector("#payerIdentifier").value.trim() || null,
         payment_method: document.querySelector("#paymentMethod").value,
@@ -560,8 +608,9 @@ if (donationForm) {
 
     try {
       await insertRow("non_member_donations", {
+        phone: (() => { const value = document.querySelector("#donorPhone").value.trim(); requirePhoneFormat(value, "No. telefon"); return value || null; })(),
         donor_name: document.querySelector("#donorName").value.trim(),
-        phone: document.querySelector("#donorPhone").value.trim() || null,
+
         payment_method: document.querySelector("#donationMethod").value,
         amount: Number(document.querySelector("#donationAmount").value) || null,
         receipt_no: null,

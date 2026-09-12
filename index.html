@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Khairat SHK | Surau Hj Kamaruddin</title>
     <meta name="description" content="Portal Khairat Kematian Surau Hj Kamaruddin untuk semakan ahli, kemaskini maklumat diri, bayaran dan maklumat kariah.">
-    <link rel="stylesheet" href="styles.css?v=20260912-keep-member-id">
+    <link rel="stylesheet" href="styles.css?v=20260912-phone-ic-format-rules">
   </head>
   <body>
     <header class="site-header">
@@ -142,10 +142,10 @@
                 <input id="checkName" type="text" placeholder="Contoh: Farid Pouzan">
               </label>
               <label id="checkIdField">No. Telefon
-                <input id="checkId" type="tel" placeholder="Contoh: 0194302665">
+                <input id="checkId" type="tel" placeholder="Contoh: 019-4302665" title="No. telefon mesti format 01X-XXXXXX. No. IC jangan letak dash.">
               </label>
               <label id="phoneField">No. Telefon
-                <input id="checkPhone" type="tel" placeholder="Contoh: 0194302665">
+                <input id="checkPhone" type="tel" placeholder="Contoh: 019-4302665" title="No. telefon mesti format 01X-XXXXXX.">
               </label>
               <label id="emailField" hidden>Email
                 <input id="checkEmail" type="email" placeholder="nama@email.com">
@@ -200,16 +200,16 @@
                 <input type="text" id="memberName" placeholder="Isi jika ingat nama lama">
               </label>
               <label id="memberIdField">No. Telefon / IC Ahli
-                <input type="text" id="memberId" placeholder="Masukkan no. telefon atau IC ahli" required>
+                <input type="text" id="memberId" placeholder="Telefon: 019-4302665 atau IC tanpa dash: 710513106035" title="Telefon mesti format 01X-XXXXXX. IC jangan letak dash." required>
               </label>
               <label id="dependantNewNameField">Nama Baru
                 <input type="text" id="dependantNewName" placeholder="Isi jika mahu tukar nama">
               </label>
               <label id="dependantNewPhoneField">No. Telefon Baru
-                <input type="tel" id="dependantNewPhone" placeholder="Contoh: 0194302665">
+                <input type="tel" id="dependantNewPhone" placeholder="Contoh: 019-4302665" title="No. telefon mesti format 01X-XXXXXX.">
               </label>
               <label id="dependantNewIcField">IC Baru
-                <input type="text" id="dependantNewIc" placeholder="Masukkan no. IC baru">
+                <input type="text" id="dependantNewIc" placeholder="Masukkan no. IC tanpa dash, contoh: 710513106035" title="No. IC jangan letak dash.">
               </label>
               <label class="span-2" id="dependantAddressField">Alamat / Lokasi Baru
                 <textarea id="dependantNewAddress" rows="3" placeholder="Alamat rumah atau lokasi baru dalam kariah"></textarea>
@@ -238,7 +238,7 @@
               </div>
               <div class="dependant-row">
                 <input type="text" placeholder="Nama penuh">
-                <input type="text" placeholder="No. IC / sijil lahir">
+                <input type="text" placeholder="No. IC tanpa dash / sijil lahir">
                 <select>
                   <option></option>
                   <option>Lelaki</option>
@@ -292,7 +292,7 @@
               <input id="payerName" type="text" placeholder="Nama ahli / waris" required>
             </label>
             <label>No. Telefon
-              <input id="payerIdentifier" type="tel" placeholder="Untuk padanan rekod ahli">
+              <input id="payerIdentifier" type="tel" placeholder="Contoh: 019-4302665" title="No. telefon mesti format 01X-XXXXXX.">
             </label>
             <label>Tahun Bayaran
               <select id="paymentYear">
@@ -364,7 +364,7 @@
               <input id="donorName" type="text" required>
             </label>
             <label>No. Telefon
-              <input id="donorPhone" type="tel">
+              <input id="donorPhone" type="tel" placeholder="Contoh: 019-4302665" title="No. telefon mesti format 01X-XXXXXX.">
             </label>
             <label>Kaedah Bayaran
               <select id="donationMethod">
@@ -419,7 +419,7 @@
       </div>
     </footer>
 
-    <script src="supabase-config.js?v=20260912-keep-member-id"></script>
-    <script src="script.js?v=20260912-keep-member-id"></script>
+    <script src="supabase-config.js?v=20260912-phone-ic-format-rules"></script>
+    <script src="script.js?v=20260912-phone-ic-format-rules"></script>
   </body>
 </html>

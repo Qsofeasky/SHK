@@ -978,6 +978,13 @@ async function moveMemberToInactive() {
     return;
   }
 
+  try {
+    requireIcNoDash(icNo, "No. IC");
+  } catch (error) {
+    alert(error.message);
+    return;
+  }
+
   const encodedIc = encodeURIComponent(icNo);
   await supabaseRequest(`members?or=(ic_no.eq.${encodedIc},member_no.eq.${encodedIc})`, {
     method: "PATCH",
@@ -1018,6 +1025,17 @@ async function moveMemberToInactive() {
 
 function normalKey(value) {
   return String(value || "").trim().toLowerCase();
+}
+
+function hasDash(value) {
+  return String(value || "").includes("-");
+}
+
+function requireIcNoDash(value, label) {
+  const text = String(value || "").trim();
+  if (text && hasDash(text)) {
+    throw new Error(`${label} jangan letak dash (-). Contoh: 710513106035.`);
+  }
 }
 
 function setAdminMessage(selector, text, type = "neutral") {
