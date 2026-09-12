@@ -456,7 +456,7 @@ function renderDependantCard(record) {
       <h4>${escapeHtml(record.member_name)}</h4>
       <p>Status: ${escapeHtml(record.status)}</p>
       <p>Rujukan Ahli: ${escapeHtml(record.member_identifier)}</p>
-      <p>No. Telefon: ${escapeHtml(record.phone || "-")}</p>
+      <p>No. Telefon / IC: ${escapeHtml(record.phone || record.member_identifier || "-")}</p>
       ${record.new_name ? `<p>Nama Baru: ${escapeHtml(record.new_name)}</p>` : ""}
       ${record.new_phone ? `<p>No. Telefon Baru: ${escapeHtml(record.new_phone)}</p>` : ""}
       ${record.new_ic ? `<p>IC Baru: ${escapeHtml(record.new_ic)}</p>` : ""}
