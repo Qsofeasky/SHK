@@ -15,6 +15,14 @@ const adminMenu = document.querySelector("#admin-menu");
 let paidOverviewRecords = [];
 let locationRecords = [];
 
+const paidYearFilter = document.querySelector("#paidYearFilter");
+if (paidYearFilter) {
+  const currentYear = String(new Date().getFullYear());
+  if ([...paidYearFilter.options].some((option) => option.value === currentYear)) {
+    paidYearFilter.value = currentYear;
+  }
+}
+
 if (adminState.accessToken) {
   showAdmin();
   loadAdminData().catch(showAdminError);
@@ -43,7 +51,7 @@ loginForm?.addEventListener("submit", async (event) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(readSupabaseError(errorText) || "Login gagal. Semak email/password Supabase Auth.");
+      throw new Error(readSupabaseError(errorText) || "Log masuk gagal. Semak email/kata laluan Supabase Auth.");
     }
 
     const session = await response.json();
@@ -53,7 +61,7 @@ loginForm?.addEventListener("submit", async (event) => {
     sessionStorage.setItem("shkAdminEmail", adminState.userEmail);
     showAdmin();
     await loadAdminData();
-    setAdminMessage("#loginMessage", "Login berjaya.", "success");
+    setAdminMessage("#loginMessage", "Log masuk berjaya.", "success");
   } catch (error) {
     setAdminMessage("#loginMessage", error.message, "error");
   }
@@ -67,6 +75,11 @@ document.querySelector("#statusFilter")?.addEventListener("change", () => {
 });
 document.querySelector("#paidSearch")?.addEventListener("input", () => {
   renderPaidTable(filteredPaidRecords());
+});
+paidYearFilter?.addEventListener("change", () => {
+  loadPaidOverview()
+    .then(() => updateAdminSummary(paidOverviewRecords))
+    .catch(showAdminError);
 });
 document.querySelector("#locationSearch")?.addEventListener("input", () => {
   renderLocationTable(filteredLocationRecords());
@@ -145,10 +158,10 @@ async function checkAdminAccess() {
   const email = adminState.userEmail || "admin";
 
   if (!isAdmin) {
-    throw new Error(`Login berjaya sebagai ${email}, tetapi email ini belum ada dalam table admin_users.`);
+    throw new Error(`Log masuk berjaya sebagai ${email}, tetapi email ini belum ada dalam table admin_users.`);
   }
 
-  setAdminMessage("#adminStatus", `Login admin aktif: ${email}`, "success");
+  setAdminMessage("#adminStatus", `Log masuk admin aktif: ${email}`, "success");
 }
 
 async function supabaseRpc(functionName, payload = {}) {
@@ -259,7 +272,7 @@ async function loadExitRequests() {
 }
 
 async function loadPaidOverview() {
-  const year = new Date().getFullYear();
+  const year = Number(paidYearFilter?.value) || new Date().getFullYear();
   const members = await supabaseRequest("members?select=member_no,member_name,phone,email&membership_status=eq.aktif&order=member_name.asc&limit=1000");
   const payments = await supabaseRequest(`member_yearly_payments?payment_year=eq.${year}&select=member_no,member_name,amount&limit=1000`);
   const paidKeys = new Set(payments.map((payment) => normalKey(payment.member_no || payment.member_name)));
@@ -384,12 +397,31 @@ async function countPending(table) {
   return records.length;
 }
 
+function displayStatus(status) {
+  const labels = {
+    pending: "Menunggu",
+    reviewed: "Telah Disemak",
+    approved: "Diluluskan",
+    verified: "Disahkan",
+    rejected: "Ditolak"
+  };
+  return labels[status] || status || "-";
+}
+
+function displayPaymentMethod(method) {
+  const labels = {
+    online: "Pindahan bank / dalam talian",
+    cash: "Tunai kepada AJK"
+  };
+  return labels[method] || method || "-";
+}
+
 function renderMembershipCard(record) {
   return `
     <article class="admin-card">
       <span class="status-pill">${escapeHtml(record.check_type)}</span>
       <h4>${escapeHtml(record.member_name)}</h4>
-      <p>Status: ${escapeHtml(record.status)}</p>
+      <p>Status: ${escapeHtml(displayStatus(record.status))}</p>
       <p>ID/IC: ${escapeHtml(record.member_identifier || "-")}</p>
       <p>Telefon: ${escapeHtml(record.phone || "-")}</p>
       <p>Email: ${escapeHtml(record.email || "-")}</p>
@@ -414,7 +446,7 @@ function renderLocationTable(records) {
   if (!container) return;
 
   if (!records.length) {
-    container.innerHTML = `<p class="empty-state">Belum ada ahli approved yang share lokasi.</p>`;
+    container.innerHTML = `<p class="empty-state">Belum ada ahli diluluskan yang kongsi lokasi.</p>`;
     return;
   }
 
@@ -456,13 +488,14 @@ function renderDependantCard(record) {
     <article class="admin-card">
       <span class="status-pill">${escapeHtml(record.update_action)}</span>
       <h4>${escapeHtml(record.member_name)}</h4>
-      <p>Status: ${escapeHtml(record.status)}</p>
+      <p>Status: ${escapeHtml(displayStatus(record.status))}</p>
       <p>Rujukan Ahli: ${escapeHtml(record.member_identifier)}</p>
       <p>No. Telefon / IC: ${escapeHtml(record.phone || record.member_identifier || "-")}</p>
       ${record.new_name ? `<p>Nama Baru: ${escapeHtml(record.new_name)}</p>` : ""}
       ${record.new_phone ? `<p>No. Telefon Baru: ${escapeHtml(record.new_phone)}</p>` : ""}
       ${record.new_ic ? `<p>IC Baru: ${escapeHtml(record.new_ic)}</p>` : ""}
-      ${record.new_address ? `<p>Alamat / Lokasi Baru: ${escapeHtml(record.new_address)}</p>` : ""}
+      ${record.new_address ? `<p>Alamat Rumah Sekarang: ${escapeHtml(record.new_address)}</p>` : ""}
+      ${record.new_residence_type ? `<p>Status Alamat Rumah: ${escapeHtml(record.new_residence_type)}</p>` : ""}
       ${record.location_url ? `<p><a href="${escapeHtml(record.location_url)}" target="_blank" rel="noopener">Buka lokasi baru</a></p>` : ""}
       ${record.dependant_total !== null ? `<p>Jumlah selepas kemaskini: ${escapeHtml(String(record.dependant_total))}</p>` : ""}
       ${items ? `<ul>${items}</ul>` : ""}
@@ -477,9 +510,9 @@ function renderDependantCard(record) {
 function renderPaymentCard(record) {
   return `
     <article class="admin-card">
-      <span class="status-pill">${escapeHtml(record.payment_method)}</span>
+      <span class="status-pill">${escapeHtml(displayPaymentMethod(record.payment_method))}</span>
       <h4>${escapeHtml(record.payer_name)}</h4>
-      <p>Status: ${escapeHtml(record.status)}</p>
+      <p>Status: ${escapeHtml(displayStatus(record.status))}</p>
       <p>No. Telefon: ${escapeHtml(record.payer_identifier || "-")}</p>
       <p>Tahun: ${escapeHtml(record.payment_year || "-")}</p>
       <p>Jumlah: RM${escapeHtml(String(record.amount || "0"))}</p>
@@ -498,9 +531,9 @@ function renderPaymentCard(record) {
 function renderDonationCard(record) {
   return `
     <article class="admin-card">
-      <span class="status-pill">${escapeHtml(record.payment_method)}</span>
+      <span class="status-pill">${escapeHtml(displayPaymentMethod(record.payment_method))}</span>
       <h4>${escapeHtml(record.donor_name)}</h4>
-      <p>Status: ${escapeHtml(record.status)}</p>
+      <p>Status: ${escapeHtml(displayStatus(record.status))}</p>
       <p>Telefon: ${escapeHtml(record.phone || "-")}</p>
       <p>Jumlah: RM${escapeHtml(String(record.amount || "0"))}</p>
       <div class="form-actions">
@@ -514,7 +547,7 @@ function renderDonationCard(record) {
 function renderExitCard(record) {
   return `
     <article class="admin-card">
-      <span class="status-pill">${escapeHtml(record.status)}</span>
+      <span class="status-pill">${escapeHtml(displayStatus(record.status))}</span>
       <h4>${escapeHtml(record.member_name)}</h4>
       <p>ID/IC/Tel: ${escapeHtml(record.member_identifier || "-")}</p>
       <p>Telefon: ${escapeHtml(record.phone || "-")}</p>
@@ -554,7 +587,7 @@ function renderPaidTable(records) {
             <td>${escapeHtml(record.member_name || "-")}</td>
             <td>${escapeHtml(record.member_no || "-")}</td>
             <td>${escapeHtml(String(record.payment_year))}</td>
-            <td><span class="status-pill ${record.paid ? "status-pill--success" : ""}">${record.paid ? "Paid" : "Not paid"}</span></td>
+            <td><span class="status-pill ${record.paid ? "status-pill--success" : ""}">${record.paid ? "Sudah Bayar" : "Belum Bayar"}</span></td>
             <td>${escapeHtml(record.email || "-")}</td>
           </tr>
         `).join("")}
@@ -571,7 +604,7 @@ async function handleAdminAction(event) {
   const button = event.currentTarget;
   const card = button.closest(".admin-card");
   button.disabled = true;
-  button.textContent = "Processing...";
+  button.textContent = "Sedang proses...";
 
   try {
     const action = button.dataset.action;
@@ -725,7 +758,7 @@ async function updateDependant(update, item) {
 
 async function approvePayment(id) {
   const [record] = await supabaseRequest(`payments?id=eq.${id}&select=*`);
-  const bankStatementRef = prompt("Masukkan rujukan bank statement / catatan tally:", record.bank_statement_ref || record.receipt_no || "") || record.bank_statement_ref || null;
+  const bankStatementRef = prompt("Masukkan rujukan bank / catatan semakan:", record.bank_statement_ref || record.receipt_no || "") || record.bank_statement_ref || null;
   const officialReceiptNo = parseReceiptNo(record.receipt_no)
     ? normalizeReceiptSearch(record.receipt_no)
     : await nextReceiptNo();
@@ -917,7 +950,7 @@ async function searchReceiptMemberByName() {
               <td>${escapeHtml(record.receipt_no ? normalizeReceiptSearch(record.receipt_no) : "Belum dijana")}</td>
               <td>${escapeHtml(record.year || "-")}</td>
               <td>RM${escapeHtml(String(record.amount || "0"))}</td>
-              <td>${escapeHtml(record.status || "-")}</td>
+              <td>${escapeHtml(displayStatus(record.status))}</td>
             </tr>
           `).join("")}
         </tbody>
@@ -947,18 +980,18 @@ function renderOfficialReceipt(result) {
         <strong>${escapeHtml(normalizeReceiptSearch(result.receipt_no) || "-")}</strong>
       </div>
       <div class="receipt-meta">
-        <p><span>Status</span><strong>${escapeHtml(result.status || "-")}</strong></p>
+      <p><span>Status</span><strong>${escapeHtml(displayStatus(result.status))}</strong></p>
         <p><span>Tarikh</span><strong>${escapeHtml(formatReceiptDate(result.created_at))}</strong></p>
       </div>
       <dl class="receipt-lines">
         <div><dt>Nama Pembayar</dt><dd>${escapeHtml(result.payer_name || "-")}</dd></div>
-        <div><dt>Kaedah Bayaran</dt><dd>${escapeHtml(result.payment_method || "-")}</dd></div>
+        <div><dt>Kaedah Bayaran</dt><dd>${escapeHtml(displayPaymentMethod(result.payment_method))}</dd></div>
         <div><dt>Tahun Bayaran</dt><dd>${escapeHtml(result.payment_year || "-")}</dd></div>
         <div><dt>Jumlah</dt><dd>RM${escapeHtml(String(result.amount || "0"))}</dd></div>
       </dl>
       <p class="receipt-note">Resit ini dijana oleh sistem Khairat Surau Haji Kamaruddin selepas bayaran disahkan oleh admin.</p>
     </article>
-    <button class="button button--primary receipt-print-button" type="button" onclick="window.print()">Print Resit</button>
+    <button class="button button--primary receipt-print-button" type="button" onclick="window.print()">Cetak Resit</button>
   `;
 }
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Khairat SHK | Surau Hj Kamaruddin</title>
     <meta name="description" content="Portal Khairat Kematian Surau Hj Kamaruddin untuk semakan ahli, kemaskini maklumat diri, bayaran dan maklumat kariah.">
-    <link rel="stylesheet" href="styles.css?v=20260921-registration-receipt-improvements">
+    <link rel="stylesheet" href="styles.css?v=20260921-auto-receipt-paid-year-address">
   </head>
   <body>
     <header class="site-header">
@@ -56,15 +56,15 @@
                 <dd>271</dd>
               </div>
               <div>
-                <dt>Yuran 2026 Paid</dt>
+                <dt>Yuran 2026 Sudah Bayar</dt>
                 <dd>182</dd>
               </div>
               <div>
-                <dt>Yuran Not Paid</dt>
+                <dt>Yuran Belum Bayar</dt>
                 <dd>89</dd>
               </div>
             </dl>
-            <p>Rekod baru daripada website akan disimpan dahulu untuk semakan dan approval AJK.</p>
+            <p>Rekod baru daripada laman web akan disimpan dahulu untuk semakan dan kelulusan AJK.</p>
           </aside>
         </div>
       </section>
@@ -225,12 +225,19 @@
               <label id="dependantNewIcField">IC Baru
                 <input type="text" id="dependantNewIc" placeholder="Masukkan no. IC format XXXXXX-XX-XXXX, contoh: XXXXXX-XX-XXXX" title="No. IC mesti format XXXXXX-XX-XXXX.">
               </label>
-              <label class="span-2" id="dependantAddressField">Alamat / Lokasi Baru
-                <textarea id="dependantNewAddress" rows="3" placeholder="Alamat rumah atau lokasi baru dalam kariah"></textarea>
+              <label class="span-2" id="dependantAddressField">Alamat Rumah Sekarang
+                <textarea id="dependantNewAddress" rows="3" placeholder="Alamat rumah sekarang dalam kariah Surau Haji Kamaruddin"></textarea>
+              </label>
+              <label id="dependantResidenceTypeField">Status Alamat Rumah
+                <select id="dependantResidenceType">
+                  <option value="">Pilih status rumah</option>
+                  <option>Rumah sendiri</option>
+                  <option>Penyewa</option>
+                </select>
               </label>
               <div class="span-2 location-field" id="dependantLocationField">
                 <p class="location-note">
-                  Kongsi lokasi hanya untuk kemaskini alamat/lokasi. Admin akan guna lokasi ini untuk semak kawasan kariah.
+                  Sila tekan Kongsi Lokasi Semasa. Lokasi Kediaman Sekarang digunakan oleh admin untuk semak kawasan kariah. Jika lokasi telefon tidak dibenarkan, sistem akan simpan pautan lokasi berdasarkan alamat rumah yang dimasukkan.
                 </p>
                 <button class="button button--secondary" id="detectDependantLocation" type="button">Kongsi Lokasi Semasa</button>
                 <p class="form-message" id="dependantLocationMessage" aria-live="polite"></p>
@@ -289,7 +296,7 @@
           <div>
             <p class="eyebrow">Bayaran khairat</p>
             <h2>Bayaran Tunai atau Online</h2>
-            <p>Ahli boleh memilih bayaran tunai kepada AJK atau pindahan online ke akaun rasmi surau. Resit digital akan dijana selepas admin sahkan bayaran.</p>
+            <p>Ahli boleh memilih bayaran tunai kepada AJK atau pindahan dalam talian ke akaun rasmi surau. Resit digital akan dijana selepas admin sahkan bayaran.</p>
             <div class="bank-box">
               <span>Akaun Rasmi</span>
               <strong>RHB Bank: 26229600007784</strong>
@@ -324,7 +331,7 @@
             </label>
             <label>Kaedah Bayaran
               <select id="paymentMethod">
-                <option value="online">Pindahan bank / online</option>
+                <option value="online">Pindahan bank / dalam talian</option>
                 <option value="cash">Tunai kepada AJK</option>
               </select>
             </label>
@@ -384,7 +391,7 @@
             </label>
             <label>Kaedah Bayaran
               <select id="donationMethod">
-                <option value="online">Pindahan bank / online</option>
+                <option value="online">Pindahan bank / dalam talian</option>
                 <option value="cash">Tunai kepada AJK</option>
               </select>
             </label>
@@ -438,7 +445,7 @@
       </div>
     </footer>
 
-    <script src="supabase-config.js?v=20260921-registration-receipt-improvements"></script>
-    <script src="script.js?v=20260921-registration-receipt-improvements"></script>
+    <script src="supabase-config.js?v=20260921-auto-receipt-paid-year-address"></script>
+    <script src="script.js?v=20260921-auto-receipt-paid-year-address"></script>
   </body>
 </html>

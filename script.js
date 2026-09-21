@@ -401,6 +401,7 @@ const dependantNewNameField = document.querySelector("#dependantNewNameField");
 const dependantNewPhoneField = document.querySelector("#dependantNewPhoneField");
 const dependantNewIcField = document.querySelector("#dependantNewIcField");
 const dependantAddressField = document.querySelector("#dependantAddressField");
+const dependantResidenceTypeField = document.querySelector("#dependantResidenceTypeField");
 const dependantLocationField = document.querySelector("#dependantLocationField");
 const dependantTotalField = document.querySelector("#dependantTotalField");
 const rows = document.querySelector("#dependantRows");
@@ -427,6 +428,7 @@ function syncDependantFields() {
   if (dependantNewPhoneField) dependantNewPhoneField.hidden = !showSelfUpdate;
   if (dependantNewIcField) dependantNewIcField.hidden = !showSelfUpdate;
   if (dependantAddressField) dependantAddressField.hidden = !showSelfUpdate;
+  if (dependantResidenceTypeField) dependantResidenceTypeField.hidden = !showSelfUpdate;
   if (dependantLocationField) dependantLocationField.hidden = !showSelfUpdate;
   if (dependantTotalField) dependantTotalField.hidden = !rowAction;
   if (rows) rows.hidden = !rowAction;
@@ -545,11 +547,12 @@ if (dependantForm) {
         updatePayload.new_phone = document.querySelector("#dependantNewPhone")?.value.trim() || null;
         updatePayload.new_ic = document.querySelector("#dependantNewIc")?.value.trim() || null;
         updatePayload.new_address = document.querySelector("#dependantNewAddress")?.value.trim() || null;
+        updatePayload.new_residence_type = document.querySelector("#dependantResidenceType")?.value || null;
 
         requirePhoneFormat(updatePayload.new_phone, "No. telefon baru");
         requireIcDashFormat(updatePayload.new_ic, "IC baru");
 
-        if (!updatePayload.new_name && !updatePayload.new_phone && !updatePayload.new_ic && !updatePayload.new_address && !dependantDetectedLocation) {
+        if (!updatePayload.new_name && !updatePayload.new_phone && !updatePayload.new_ic && !updatePayload.new_address && !updatePayload.new_residence_type && !dependantDetectedLocation) {
           throw new Error("Isi sekurang-kurangnya satu maklumat baru untuk dikemaskini.");
         }
 
@@ -614,21 +617,17 @@ if (paymentForm) {
       const note = [remark, bank ? `Bank: ${bank}` : ""].filter(Boolean).join(" | ");
       requirePhoneFormat(payerPhone, "No. telefon");
 
-      await insertRow("payments", {
-        payer_name: document.querySelector("#payerName").value.trim(),
-        payer_identifier: payerPhone || null,
-        payment_method: document.querySelector("#paymentMethod").value,
-        payment_year: Number(document.querySelector("#paymentYear").value) || new Date().getFullYear(),
-        amount: Number(document.querySelector("#paymentAmount").value) || null,
-        receipt_no: null,
-        receipt_proof_url: null,
-        receipt_proof_data: null,
-        receipt_proof_name: null,
-        bank_statement_ref: bank || null,
-        apply_excess_to_next_year: document.querySelector("#applyExcess").checked,
-        note: note || document.querySelector("#paymentNote")?.value.trim() || null
+      const [receipt] = await callRpc("submit_payment_with_receipt", {
+        p_payer_name: document.querySelector("#payerName").value.trim(),
+        p_payer_identifier: payerPhone || null,
+        p_payment_method: document.querySelector("#paymentMethod").value,
+        p_payment_year: Number(document.querySelector("#paymentYear").value) || new Date().getFullYear(),
+        p_amount: Number(document.querySelector("#paymentAmount").value) || null,
+        p_bank_statement_ref: bank || null,
+        p_apply_excess_to_next_year: document.querySelector("#applyExcess").checked,
+        p_note: note || document.querySelector("#paymentNote")?.value.trim() || null
       });
-      await queueAdminReminder("Bayaran perlu verification", `Bayaran ${document.querySelector("#payerName").value.trim()} perlu disemak dengan bank statement.`);
+      await queueAdminReminder("Bayaran perlu pengesahan", `Bayaran ${document.querySelector("#payerName").value.trim()} perlu disemak dengan rekod bank.`);
 
       paymentForm.reset();
       if (paymentYearInput) {
@@ -636,6 +635,13 @@ if (paymentForm) {
         if ([...paymentYearInput.options].some((option) => option.value === currentYear)) {
           paymentYearInput.value = currentYear;
         }
+      }
+      setMessage("#paymentMessage", `Maklumat bayaran disimpan. Resit dijana: ${normalizeReceiptSearch(receipt?.receipt_no)}.`, "success");
+      const receiptAnswer = document.querySelector("#publicReceiptAnswer");
+      if (receiptAnswer && receipt) {
+        receiptAnswer.hidden = false;
+        receiptAnswer.innerHTML = renderOfficialReceipt(receipt);
+        document.querySelector("#publicReceiptSearch").value = normalizeReceiptSearch(receipt.receipt_no);
       }
     } catch (error) {
       setMessage("#paymentMessage", error.message, "error");
@@ -671,6 +677,23 @@ function normalizeReceiptSearch(input) {
   return `SHK-${String(parsed.number || 1).padStart(4, "0")}/${parsed.year}`;
 }
 
+function displayStatus(status) {
+  const labels = {
+    pending: "Menunggu Pengesahan",
+    verified: "Disahkan",
+    rejected: "Ditolak"
+  };
+  return labels[status] || status || "-";
+}
+
+function displayPaymentMethod(method) {
+  const labels = {
+    online: "Pindahan bank / dalam talian",
+    cash: "Tunai kepada AJK"
+  };
+  return labels[method] || method || "-";
+}
+
 document.querySelector("#publicReceiptButton")?.addEventListener("click", async () => {
   const answer = document.querySelector("#publicReceiptAnswer");
   const receiptSearch = normalizeReceiptSearch(document.querySelector("#publicReceiptSearch")?.value || "");
@@ -686,7 +709,14 @@ document.querySelector("#publicReceiptButton")?.addEventListener("click", async 
       return;
     }
 
-    answer.innerHTML = `
+    answer.innerHTML = renderOfficialReceipt(result);
+  } catch (error) {
+    answer.innerHTML = `<p>${escapeHtml(error.message)}</p>`;
+  }
+});
+
+function renderOfficialReceipt(result) {
+  return `
       <article class="official-receipt">
         <div class="receipt-head">
           <div>
@@ -697,23 +727,20 @@ document.querySelector("#publicReceiptButton")?.addEventListener("click", async 
           <strong>${escapeHtml(normalizeReceiptSearch(result.receipt_no) || "-")}</strong>
         </div>
         <div class="receipt-meta">
-          <p><span>Status</span><strong>${escapeHtml(result.status || "-")}</strong></p>
+          <p><span>Status</span><strong>${escapeHtml(displayStatus(result.status))}</strong></p>
           <p><span>Tarikh</span><strong>${escapeHtml(formatReceiptDate(result.created_at))}</strong></p>
         </div>
         <dl class="receipt-lines">
           <div><dt>Nama Pembayar</dt><dd>${escapeHtml(result.payer_name || "-")}</dd></div>
-          <div><dt>Kaedah Bayaran</dt><dd>${escapeHtml(result.payment_method || "-")}</dd></div>
+          <div><dt>Kaedah Bayaran</dt><dd>${escapeHtml(displayPaymentMethod(result.payment_method))}</dd></div>
           ${result.payment_year ? `<div><dt>Tahun Bayaran</dt><dd>${escapeHtml(String(result.payment_year))}</dd></div>` : ""}
           <div><dt>Jumlah</dt><dd>RM${escapeHtml(String(result.amount || 0))}</dd></div>
         </dl>
-        <p class="receipt-note">Resit ini dijana oleh sistem Khairat Surau Haji Kamaruddin selepas bayaran disahkan oleh admin.</p>
+        <p class="receipt-note">Resit ini dijana oleh sistem Khairat Surau Haji Kamaruddin. Status bayaran akan disahkan oleh admin.</p>
       </article>
       <button class="button button--primary receipt-print-button" type="button" onclick="window.print()">Cetak Resit</button>
     `;
-  } catch (error) {
-    answer.innerHTML = `<p>${escapeHtml(error.message)}</p>`;
-  }
-});
+}
 
 function formatReceiptDate(value) {
   if (!value) return "-";
@@ -741,7 +768,7 @@ if (donationForm) {
         receipt_proof_url: null,
         note: note || null
       });
-      await queueAdminReminder("Sumbangan bukan ahli", `Sumbangan daripada ${document.querySelector("#donorName").value.trim()} perlu verification.`);
+      await queueAdminReminder("Sumbangan bukan ahli", `Sumbangan daripada ${document.querySelector("#donorName").value.trim()} perlu pengesahan.`);
 
       donationForm.reset();
     } catch (error) {

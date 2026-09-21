@@ -4,21 +4,21 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Admin Khairat SHK</title>
-    <link rel="stylesheet" href="styles.css?v=20260921-registration-receipt-improvements">
+    <link rel="stylesheet" href="styles.css?v=20260921-auto-receipt-paid-year-address">
   </head>
   <body>
     <header class="site-header">
       <div class="topbar">
         <div class="container topbar__inner">
           <span>Admin AJK Khairat SHK</span>
-          <a href="index.html">Kembali ke Website</a>
+          <a href="index.html">Kembali ke Laman Web</a>
         </div>
       </div>
       <nav class="container nav" aria-label="Navigasi admin">
         <a class="brand" href="admin.html">
           <span class="brand__mark">SHK</span>
           <span>
-            <strong>Admin Approval</strong>
+            <strong>Kelulusan Admin</strong>
             <small>Semak dan sahkan data baru</small>
           </span>
         </a>
@@ -28,12 +28,12 @@
           <span></span>
         </button>
         <div class="nav-links admin-nav" id="admin-menu" hidden>
-          <button type="button" data-admin-view="dashboard">Dashboard</button>
-          <button type="button" data-admin-view="approval">Approval</button>
+          <button type="button" data-admin-view="dashboard">Papan Pemuka</button>
+          <button type="button" data-admin-view="approval">Kelulusan</button>
           <button type="button" data-admin-view="locations">Lokasi Ahli</button>
           <button type="button" data-admin-view="donations">Sumbangan</button>
           <button type="button" data-admin-view="transfers">Pindahan Ahli</button>
-          <button type="button" data-admin-view="paid">Paid / Not Paid</button>
+          <button type="button" data-admin-view="paid">Bayaran Ahli</button>
           <button type="button" data-admin-view="receipt">Resit</button>
         </div>
       </nav>
@@ -43,16 +43,16 @@
       <section class="section admin-hero">
         <div class="container admin-grid">
           <form class="form-panel" id="loginForm">
-            <p class="eyebrow">Login AJK</p>
+            <p class="eyebrow">Log Masuk AJK</p>
             <h1>Masuk Admin</h1>
             <label>Email
               <input id="adminEmail" type="email" placeholder="Email Supabase Auth" required>
             </label>
-            <label>Password
-              <input id="adminPassword" type="password" placeholder="Password" required>
+            <label>Kata Laluan
+              <input id="adminPassword" type="password" placeholder="Kata laluan" required>
             </label>
-            <button class="button button--primary" type="submit">Login</button>
-            <a class="helper-link" href="reset-password.html">Lupa password admin?</a>
+            <button class="button button--primary" type="submit">Log Masuk</button>
+            <a class="helper-link" href="reset-password.html">Lupa kata laluan admin?</a>
             <p class="form-message" id="loginMessage" aria-live="polite"></p>
           </form>
         </div>
@@ -61,7 +61,7 @@
       <section class="section section--tint admin-panel" id="adminPanel" hidden>
         <div class="container admin-toolbar">
           <div>
-            <p class="eyebrow">Admin dashboard</p>
+            <p class="eyebrow">Papan pemuka admin</p>
             <h2>Pengurusan Khairat SHK</h2>
             <p class="form-message" id="adminStatus" aria-live="polite"></p>
           </div>
@@ -73,17 +73,17 @@
 
         <div class="container admin-dashboard" id="adminDashboard">
           <article class="price-card">
-            <span>Pending Approval</span>
+            <span>Menunggu Kelulusan</span>
             <strong id="pendingCount">0</strong>
             <small>Rekod baru yang perlu disemak.</small>
           </article>
           <article class="price-card">
-            <span>Paid Tahun Ini</span>
+            <span>Sudah Bayar Tahun Ini</span>
             <strong id="paidCount">0</strong>
             <small>Ahli aktif yang sudah ada rekod bayaran.</small>
           </article>
           <article class="price-card">
-            <span>Not Paid</span>
+            <span>Belum Bayar</span>
             <strong id="notPaidCount">0</strong>
             <small>Ahli aktif yang belum ada rekod bayaran.</small>
           </article>
@@ -93,15 +93,15 @@
           <section class="admin-list admin-list--wide">
             <div class="section-bar">
               <div>
-                <p class="eyebrow">Approval</p>
+                <p class="eyebrow">Kelulusan</p>
                 <h3>Semak Status Rekod</h3>
               </div>
               <label class="admin-filter">Status
                 <select id="statusFilter">
-                  <option value="pending">Pending</option>
+                  <option value="pending">Menunggu</option>
                   <option value="approved">Diluluskan / Disahkan</option>
                   <option value="rejected">Ditolak</option>
-                  <option value="all">All</option>
+                  <option value="all">Semua</option>
                 </select>
               </label>
             </div>
@@ -164,7 +164,21 @@
         <div class="container admin-sections" id="adminPaidSection" hidden>
           <section class="admin-list admin-list--wide">
             <div class="section-bar">
-              <h3>Paid / Not Paid</h3>
+              <h3>Bayaran Ahli</h3>
+              <label class="admin-filter">Tahun Bayaran
+                <select id="paidYearFilter">
+                  <option value="2026">2026</option>
+                  <option value="2027">2027</option>
+                  <option value="2028">2028</option>
+                  <option value="2029">2029</option>
+                  <option value="2030">2030</option>
+                  <option value="2031">2031</option>
+                  <option value="2032">2032</option>
+                  <option value="2033">2033</option>
+                  <option value="2034">2034</option>
+                  <option value="2035">2035</option>
+                </select>
+              </label>
               <label class="admin-filter">Cari Ahli
                 <input id="paidSearch" type="search" placeholder="Nama atau no. ahli">
               </label>
@@ -197,7 +211,7 @@
       </section>
     </main>
 
-    <script src="supabase-config.js?v=20260921-registration-receipt-improvements"></script>
-    <script src="admin.js?v=20260921-registration-receipt-improvements"></script>
+    <script src="supabase-config.js?v=20260921-auto-receipt-paid-year-address"></script>
+    <script src="admin.js?v=20260921-auto-receipt-paid-year-address"></script>
   </body>
 </html>
