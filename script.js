@@ -182,7 +182,15 @@ const occupationField = document.querySelector("#occupationField");
 const addressField = document.querySelector("#addressField");
 const emailField = document.querySelector("#emailField");
 const locationField = document.querySelector("#locationField");
+const residenceTypeField = document.querySelector("#residenceTypeField");
+const icProofField = document.querySelector("#icProofField");
 let detectedLocation = null;
+let pendingRegistrationPayload = null;
+
+function locationUrlFromAddress(address) {
+  const text = String(address || "").trim();
+  return text ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(text)}` : null;
+}
 
 function syncDaftarFields() {
   if (!checkType) return;
@@ -193,16 +201,21 @@ function syncDaftarFields() {
   if (addressField) addressField.hidden = !show;
   if (emailField) emailField.hidden = !show;
   if (locationField) locationField.hidden = !show;
+  if (residenceTypeField) residenceTypeField.hidden = !show;
+  if (icProofField) icProofField.hidden = !show;
   const name = document.querySelector("#checkName");
   const id = document.querySelector("#checkId");
   const phone = document.querySelector("#checkPhone");
   const email = document.querySelector("#checkEmail");
   const occupation = document.querySelector("#checkOccupation");
   const address = document.querySelector("#checkAddress");
+  const residenceType = document.querySelector("#residenceType");
+  const icProof = document.querySelector("#icProofFile");
   if (name) name.required = true;
   if (id) {
     id.required = true;
-    id.type = show ? "text" : "tel";
+    id.type = "text";
+    id.inputMode = show ? "text" : "tel";
     id.placeholder = show ? "IC format XXXXXX-XX-XXXX, contoh: XXXXXX-XX-XXXX" : "Contoh: 01X-XXXXXX";
     id.title = show ? "No. IC mesti format XXXXXX-XX-XXXX." : "No. telefon mesti format 01X-XXXXXX.";
   }
@@ -213,6 +226,14 @@ function syncDaftarFields() {
   if (email) email.required = show;
   if (occupation) occupation.required = show;
   if (address) address.required = show;
+  if (residenceType) residenceType.required = show;
+  if (icProof) icProof.required = show;
+
+  if (!show) {
+    detectedLocation = null;
+    pendingRegistrationPayload = null;
+    setMessage("#locationMessage", "", "neutral");
+  }
 }
 
 checkType?.addEventListener("change", () => {
@@ -249,11 +270,25 @@ if (checkForm) {
 
       if (typeInput.value === "status") {
         const [result] = await callRpc("check_member_status", { search_text: searchText });
+        let dependantList = "";
+
+        if (result.found) {
+          try {
+            const dependants = await callRpc("check_member_dependants", { search_text: searchText });
+            dependantList = dependants.length
+              ? `<h4>Senarai ahli tanggungan</h4><ul class="payment-history">${dependants.map((item) => `<li><span>${escapeHtml(item.dependant_name || "-")}</span><strong>${escapeHtml(item.relationship || "-")}</strong></li>`).join("")}</ul>`
+              : `<p>Tiada rekod ahli tanggungan.</p>`;
+          } catch {
+            dependantList = "";
+          }
+        }
+
         showCheckAnswer(`
           <span class="status-pill ${result.found ? "status-pill--success" : ""}">${escapeHtml(result.status)}</span>
           ${result.member_name ? `<h3>${escapeHtml(result.member_name)}</h3>` : ""}
           ${result.member_no ? `<p>No. Ahli: ${escapeHtml(result.member_no)}</p>` : ""}
           ${result.dependant_count !== null && result.dependant_count !== undefined ? `<p>Jumlah tanggungan: ${escapeHtml(String(result.dependant_count))}</p>` : ""}
+          ${dependantList}
         `);
         return;
       }
@@ -274,30 +309,66 @@ if (checkForm) {
         return;
       }
 
-      await insertRow("membership_checks", {
+      const addressValue = document.querySelector("#checkAddress").value.trim();
+      const icProofFile = document.querySelector("#icProofFile")?.files?.[0] || null;
+      const icProofData = icProofFile ? await readImageFile(icProofFile, "Gambar IC") : null;
+      pendingRegistrationPayload = {
         check_type: typeInput.value,
         member_name: name,
         member_identifier: id || null,
         phone: document.querySelector("#checkPhone").value.trim() || null,
         email: document.querySelector("#checkEmail").value.trim() || null,
         occupation: document.querySelector("#checkOccupation").value.trim() || null,
-        address: document.querySelector("#checkAddress").value.trim() || null,
+        address: addressValue || null,
+        residence_type: document.querySelector("#residenceType")?.value || null,
         location_latitude: detectedLocation?.latitude || null,
         location_longitude: detectedLocation?.longitude || null,
-        location_url: detectedLocation?.url || null,
+        location_url: detectedLocation?.url || locationUrlFromAddress(addressValue),
+        ic_proof_data: icProofData,
+        ic_proof_name: icProofFile?.name || null,
         kariah_confirmed: true
-      });
-      await queueAdminReminder("Semakan/daftar ahli baru", `Permohonan ${typeInput.value} diterima untuk ${name}.`);
+      };
 
-      checkForm.reset();
-      detectedLocation = null;
-      setMessage("#locationMessage", "", "neutral");
-      syncDaftarFields();
+      showCheckAnswer(`
+        <h3>Semak Maklumat Sebelum Hantar</h3>
+        <p><strong>Jenis semakan:</strong> Daftar ahli baru</p>
+        <p><strong>Nama:</strong> ${escapeHtml(name)}</p>
+        <p><strong>No. IC:</strong> ${escapeHtml(id)}</p>
+        <p><strong>No. Telefon:</strong> ${escapeHtml(pendingRegistrationPayload.phone || "-")}</p>
+        <p><strong>Email:</strong> ${escapeHtml(pendingRegistrationPayload.email || "-")}</p>
+        <p><strong>Pekerjaan:</strong> ${escapeHtml(pendingRegistrationPayload.occupation || "-")}</p>
+        <p><strong>Alamat Rumah Sekarang:</strong> ${escapeHtml(addressValue || "-")}</p>
+        <p><strong>Status Alamat Rumah:</strong> ${escapeHtml(pendingRegistrationPayload.residence_type || "-")}</p>
+        <p><strong>Lokasi Kediaman Sekarang:</strong> ${detectedLocation ? "Lokasi semasa telefon digunakan." : "Pautan lokasi dijana daripada alamat rumah."}</p>
+        <p><strong>Gambar IC:</strong> ${escapeHtml(pendingRegistrationPayload.ic_proof_name || "-")}</p>
+        <button class="button button--primary" id="confirmRegistration" type="button">Sahkan dan Hantar Daftar Ahli Baru</button>
+      `);
+      setMessage("#checkMessage", "Sila semak maklumat. Tekan butang pengesahan jika semuanya betul.", "neutral");
     } catch (error) {
       setMessage("#checkMessage", error.message, "error");
     }
   });
 }
+
+document.querySelector("#checkAnswer")?.addEventListener("click", async (event) => {
+  if (!(event.target instanceof HTMLElement) || event.target.id !== "confirmRegistration") return;
+  if (!pendingRegistrationPayload) return;
+
+  clearMessage("#checkMessage");
+  try {
+    await insertRow("membership_checks", pendingRegistrationPayload);
+    await queueAdminReminder("Semakan/daftar ahli baru", `Permohonan daftar ahli baru diterima untuk ${pendingRegistrationPayload.member_name}.`);
+    checkForm?.reset();
+    detectedLocation = null;
+    pendingRegistrationPayload = null;
+    setMessage("#locationMessage", "", "neutral");
+    syncDaftarFields();
+    showCheckAnswer(`<span class="status-pill status-pill--success">Permohonan berjaya dihantar.</span><p>Admin akan semak gambar IC dan maklumat pendaftaran.</p>`);
+    setMessage("#checkMessage", "", "neutral");
+  } catch (error) {
+    setMessage("#checkMessage", error.message, "error");
+  }
+});
 
 document.querySelector("#detectLocation")?.addEventListener("click", () => {
   if (!navigator.geolocation) {
@@ -486,6 +557,8 @@ if (dependantForm) {
           updatePayload.location_latitude = dependantDetectedLocation.latitude;
           updatePayload.location_longitude = dependantDetectedLocation.longitude;
           updatePayload.location_url = dependantDetectedLocation.url;
+        } else if (updatePayload.new_address) {
+          updatePayload.location_url = locationUrlFromAddress(updatePayload.new_address);
         }
       }
 
@@ -528,22 +601,6 @@ document.querySelector("#detectDependantLocation")?.addEventListener("click", ()
 });
 
 const paymentForm = document.querySelector("#paymentForm");
-const proofType = document.querySelector("#proofType");
-const receiptNoField = document.querySelector("#receiptNoField");
-const receiptUploadField = document.querySelector("#receiptUploadField");
-
-function syncProofFields() {
-  const upload = proofType?.value === "upload";
-  if (receiptNoField) receiptNoField.hidden = upload;
-  if (receiptUploadField) receiptUploadField.hidden = !upload;
-  const receiptNo = document.querySelector("#receiptNo");
-  const receiptFile = document.querySelector("#receiptProofFile");
-  if (receiptNo) receiptNo.required = !upload;
-  if (receiptFile) receiptFile.required = upload;
-}
-
-proofType?.addEventListener("change", syncProofFields);
-syncProofFields();
 
 if (paymentForm) {
   paymentForm.addEventListener("submit", async (event) => {
@@ -551,25 +608,27 @@ if (paymentForm) {
     clearMessage("#paymentMessage");
 
     try {
-      const proofFile = document.querySelector("#receiptProofFile")?.files?.[0] || null;
-      const proofData = proofFile ? await readReceiptFile(proofFile) : null;
+      const payerPhone = document.querySelector("#payerIdentifier").value.trim();
+      const bank = document.querySelector("#paymentBank")?.value.trim() || "";
+      const remark = document.querySelector("#paymentRemark")?.value.trim() || "";
+      const note = [remark, bank ? `Bank: ${bank}` : ""].filter(Boolean).join(" | ");
+      requirePhoneFormat(payerPhone, "No. telefon");
 
-      
-      requirePhoneFormat(document.querySelector("#payerIdentifier").value.trim(), "No. telefon");
-await insertRow("payments", {
+      await insertRow("payments", {
         payer_name: document.querySelector("#payerName").value.trim(),
-        payer_identifier: document.querySelector("#payerIdentifier").value.trim() || null,
+        payer_identifier: payerPhone || null,
         payment_method: document.querySelector("#paymentMethod").value,
         payment_year: Number(document.querySelector("#paymentYear").value) || new Date().getFullYear(),
         amount: Number(document.querySelector("#paymentAmount").value) || null,
-        receipt_no: document.querySelector("#receiptNo").value.trim() || null,
+        receipt_no: null,
         receipt_proof_url: null,
-        receipt_proof_data: proofData,
-        receipt_proof_name: proofFile?.name || null,
+        receipt_proof_data: null,
+        receipt_proof_name: null,
+        bank_statement_ref: bank || null,
         apply_excess_to_next_year: document.querySelector("#applyExcess").checked,
-        note: document.querySelector("#paymentNote")?.value.trim() || null
+        note: note || document.querySelector("#paymentNote")?.value.trim() || null
       });
-      await queueAdminReminder("Bayaran perlu verification", `Bayaran ${document.querySelector("#payerName").value.trim()} perlu disemak dengan resit/bank statement.`);
+      await queueAdminReminder("Bayaran perlu verification", `Bayaran ${document.querySelector("#payerName").value.trim()} perlu disemak dengan bank statement.`);
 
       paymentForm.reset();
       if (paymentYearInput) {
@@ -578,25 +637,87 @@ await insertRow("payments", {
           paymentYearInput.value = currentYear;
         }
       }
-      syncProofFields();
     } catch (error) {
       setMessage("#paymentMessage", error.message, "error");
     }
   });
 }
 
-function readReceiptFile(file) {
+function readImageFile(file, label = "Gambar") {
   return new Promise((resolve, reject) => {
     if (file.size > 1500000) {
-      reject(new Error("Saiz gambar resit maksimum 1.5MB. Sila compress gambar dahulu."));
+      reject(new Error(`Saiz ${label.toLowerCase()} maksimum 1.5MB. Sila compress gambar dahulu.`));
       return;
     }
 
     const reader = new FileReader();
     reader.addEventListener("load", () => resolve(reader.result));
-    reader.addEventListener("error", () => reject(new Error("Gambar resit gagal dibaca.")));
+    reader.addEventListener("error", () => reject(new Error(`${label} gagal dibaca.`)));
     reader.readAsDataURL(file);
   });
+}
+
+function parseReceiptNo(receipt) {
+  const text = String(receipt || "").trim();
+  const full = text.match(/^SHK\s*-\s*(\d{1,4})\/(\d{4})$/i);
+  if (full) return { number: Number(full[1]), year: Number(full[2]) };
+  if (/^\d{1,4}$/.test(text)) return { number: Number(text), year: new Date().getFullYear() };
+  return null;
+}
+
+function normalizeReceiptSearch(input) {
+  const parsed = parseReceiptNo(input);
+  if (!parsed) return String(input || "").trim();
+  return `SHK-${String(parsed.number || 1).padStart(4, "0")}/${parsed.year}`;
+}
+
+document.querySelector("#publicReceiptButton")?.addEventListener("click", async () => {
+  const answer = document.querySelector("#publicReceiptAnswer");
+  const receiptSearch = normalizeReceiptSearch(document.querySelector("#publicReceiptSearch")?.value || "");
+  if (!answer) return;
+
+  answer.hidden = false;
+  answer.innerHTML = "Sedang mencari resit...";
+
+  try {
+    const [result] = await callRpc("check_receipt_status", { receipt_search: receiptSearch });
+    if (!result?.found) {
+      answer.innerHTML = `<span class="status-pill">Resit tidak dijumpai</span>`;
+      return;
+    }
+
+    answer.innerHTML = `
+      <article class="official-receipt">
+        <div class="receipt-head">
+          <div>
+            <span>Resit Rasmi</span>
+            <h3>Surau Haji Kamaruddin</h3>
+            <p>Batu 7 1/2 Jalan Meru Tambahan, Meru</p>
+          </div>
+          <strong>${escapeHtml(normalizeReceiptSearch(result.receipt_no) || "-")}</strong>
+        </div>
+        <div class="receipt-meta">
+          <p><span>Status</span><strong>${escapeHtml(result.status || "-")}</strong></p>
+          <p><span>Tarikh</span><strong>${escapeHtml(formatReceiptDate(result.created_at))}</strong></p>
+        </div>
+        <dl class="receipt-lines">
+          <div><dt>Nama Pembayar</dt><dd>${escapeHtml(result.payer_name || "-")}</dd></div>
+          <div><dt>Kaedah Bayaran</dt><dd>${escapeHtml(result.payment_method || "-")}</dd></div>
+          ${result.payment_year ? `<div><dt>Tahun Bayaran</dt><dd>${escapeHtml(String(result.payment_year))}</dd></div>` : ""}
+          <div><dt>Jumlah</dt><dd>RM${escapeHtml(String(result.amount || 0))}</dd></div>
+        </dl>
+        <p class="receipt-note">Resit ini dijana oleh sistem Khairat Surau Haji Kamaruddin selepas bayaran disahkan oleh admin.</p>
+      </article>
+      <button class="button button--primary receipt-print-button" type="button" onclick="window.print()">Cetak Resit</button>
+    `;
+  } catch (error) {
+    answer.innerHTML = `<p>${escapeHtml(error.message)}</p>`;
+  }
+});
+
+function formatReceiptDate(value) {
+  if (!value) return "-";
+  return new Date(value).toLocaleDateString("ms-MY");
 }
 
 const donationForm = document.querySelector("#donationForm");
@@ -607,6 +728,9 @@ if (donationForm) {
     clearMessage("#donationMessage");
 
     try {
+      const donationBank = document.querySelector("#donationBank")?.value.trim() || "";
+      const donationNote = document.querySelector("#donationNote").value.trim();
+      const note = [donationNote, donationBank ? `Bank: ${donationBank}` : ""].filter(Boolean).join(" | ");
       await insertRow("non_member_donations", {
         phone: (() => { const value = document.querySelector("#donorPhone").value.trim(); requirePhoneFormat(value, "No. telefon"); return value || null; })(),
         donor_name: document.querySelector("#donorName").value.trim(),
@@ -615,7 +739,7 @@ if (donationForm) {
         amount: Number(document.querySelector("#donationAmount").value) || null,
         receipt_no: null,
         receipt_proof_url: null,
-        note: document.querySelector("#donationNote").value.trim() || null
+        note: note || null
       });
       await queueAdminReminder("Sumbangan bukan ahli", `Sumbangan daripada ${document.querySelector("#donorName").value.trim()} perlu verification.`);
 

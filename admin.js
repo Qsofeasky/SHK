@@ -394,14 +394,16 @@ function renderMembershipCard(record) {
       <p>Telefon: ${escapeHtml(record.phone || "-")}</p>
       <p>Email: ${escapeHtml(record.email || "-")}</p>
       <p>Pekerjaan: ${escapeHtml(record.occupation || "-")}</p>
-      <p>Alamat: ${escapeHtml(record.address || "-")}</p>
+      <p>Alamat Rumah Sekarang: ${escapeHtml(record.address || "-")}</p>
+      <p>Status Alamat Rumah: ${escapeHtml(record.residence_type || "-")}</p>
+      ${record.ic_proof_data ? `<p><a href="${escapeHtml(record.ic_proof_data)}" download="${escapeHtml(record.ic_proof_name || "gambar-ic.png")}">Muat turun gambar IC</a></p>` : ""}
       ${record.location_url ? `
-        <p>Lokasi: ${escapeHtml(formatCoordinates(record.location_latitude, record.location_longitude))}</p>
+        <p>Lokasi Kediaman Sekarang: ${escapeHtml(formatCoordinates(record.location_latitude, record.location_longitude))}</p>
         <p><a href="${escapeHtml(record.location_url)}" target="_blank" rel="noopener">Buka lokasi pemohon</a></p>
       ` : ""}
       <div class="form-actions">
-        ${record.status === "pending" ? `<button class="button button--primary" data-action="approve-membership" data-id="${record.id}" type="button">Approve</button>` : ""}
-        <button class="button button--secondary" data-action="reject-membership" data-id="${record.id}" type="button">Reject</button>
+        ${record.status === "pending" ? `<button class="button button--primary" data-action="approve-membership" data-id="${record.id}" type="button">Luluskan</button>` : ""}
+        <button class="button button--secondary" data-action="reject-membership" data-id="${record.id}" type="button">Tolak</button>
       </div>
     </article>
   `;
@@ -465,8 +467,8 @@ function renderDependantCard(record) {
       ${record.dependant_total !== null ? `<p>Jumlah selepas kemaskini: ${escapeHtml(String(record.dependant_total))}</p>` : ""}
       ${items ? `<ul>${items}</ul>` : ""}
       <div class="form-actions">
-        ${record.status === "pending" ? `<button class="button button--primary" data-action="approve-dependant" data-id="${record.id}" type="button">Approve</button>` : ""}
-        <button class="button button--secondary" data-action="reject-dependant" data-id="${record.id}" type="button">Reject</button>
+        ${record.status === "pending" ? `<button class="button button--primary" data-action="approve-dependant" data-id="${record.id}" type="button">Luluskan</button>` : ""}
+        <button class="button button--secondary" data-action="reject-dependant" data-id="${record.id}" type="button">Tolak</button>
       </div>
     </article>
   `;
@@ -483,11 +485,11 @@ function renderPaymentCard(record) {
       <p>Jumlah: RM${escapeHtml(String(record.amount || "0"))}</p>
       <p>No. Resit: ${escapeHtml(record.receipt_no || "-")}</p>
       ${record.receipt_proof_url ? `<p><a href="${escapeHtml(record.receipt_proof_url)}" target="_blank" rel="noopener">Buka bukti bayaran</a></p>` : ""}
-      ${record.receipt_proof_data ? `<p><a href="${escapeHtml(record.receipt_proof_data)}" download="${escapeHtml(record.receipt_proof_name || "resit-bayaran.png")}">Download gambar resit</a></p>` : ""}
+      ${record.receipt_proof_data ? `<p><a href="${escapeHtml(record.receipt_proof_data)}" download="${escapeHtml(record.receipt_proof_name || "resit-bayaran.png")}">Muat turun gambar resit</a></p>` : ""}
       <p>Catatan: ${escapeHtml(record.note || "-")}</p>
       <div class="form-actions">
-        ${record.status === "pending" ? `<button class="button button--primary" data-action="approve-payment" data-id="${record.id}" type="button">Verify</button>` : ""}
-        <button class="button button--secondary" data-action="reject-payment" data-id="${record.id}" type="button">Reject</button>
+        ${record.status === "pending" ? `<button class="button button--primary" data-action="approve-payment" data-id="${record.id}" type="button">Sahkan</button>` : ""}
+        <button class="button button--secondary" data-action="reject-payment" data-id="${record.id}" type="button">Tolak</button>
       </div>
     </article>
   `;
@@ -502,8 +504,8 @@ function renderDonationCard(record) {
       <p>Telefon: ${escapeHtml(record.phone || "-")}</p>
       <p>Jumlah: RM${escapeHtml(String(record.amount || "0"))}</p>
       <div class="form-actions">
-        ${record.status === "pending" ? `<button class="button button--primary" data-action="approve-donation" data-id="${record.id}" type="button">Verify</button>` : ""}
-        <button class="button button--secondary" data-action="reject-donation" data-id="${record.id}" type="button">Reject</button>
+        ${record.status === "pending" ? `<button class="button button--primary" data-action="approve-donation" data-id="${record.id}" type="button">Sahkan</button>` : ""}
+        <button class="button button--secondary" data-action="reject-donation" data-id="${record.id}" type="button">Tolak</button>
       </div>
     </article>
   `;
@@ -519,8 +521,8 @@ function renderExitCard(record) {
       <p>Alamat baru: ${escapeHtml(record.new_address || "-")}</p>
       <p>Sebab: ${escapeHtml(record.reason || "-")}</p>
       <div class="form-actions">
-        ${record.status === "pending" ? `<button class="button button--primary" data-action="approve-exit" data-id="${record.id}" type="button">Approve</button>` : ""}
-        <button class="button button--secondary" data-action="reject-exit" data-id="${record.id}" type="button">Reject</button>
+        ${record.status === "pending" ? `<button class="button button--primary" data-action="approve-exit" data-id="${record.id}" type="button">Luluskan</button>` : ""}
+        <button class="button button--secondary" data-action="reject-exit" data-id="${record.id}" type="button">Tolak</button>
       </div>
     </article>
   `;

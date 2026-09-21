@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Khairat SHK | Surau Hj Kamaruddin</title>
     <meta name="description" content="Portal Khairat Kematian Surau Hj Kamaruddin untuk semakan ahli, kemaskini maklumat diri, bayaran dan maklumat kariah.">
-    <link rel="stylesheet" href="styles.css?v=20260912-neutral-format-examples">
+    <link rel="stylesheet" href="styles.css?v=20260921-registration-receipt-improvements">
   </head>
   <body>
     <header class="site-header">
@@ -33,7 +33,7 @@
           <a href="#tanggungan">Kemaskini Maklumat</a>
           <a href="#bayaran">Bayaran</a>
           <a href="#sumbangan">Sumbangan</a>
-          <a href="#contact">Contact</a>
+          <a href="#contact">Hubungi</a>
           <a href="admin.html">Admin</a>
         </div>
       </nav>
@@ -82,7 +82,7 @@
         </a>
         <a class="action-card" href="#bayaran">
           <span class="action-icon">03</span>
-          <strong>Bayaran Cash / Online</strong>
+          <strong>Bayaran Tunai / Online</strong>
           <small>Pilih tahun bayaran, masukkan resit dan rujuk QR rasmi surau.</small>
         </a>
       </section>
@@ -128,24 +128,28 @@
           <h2>Letak Nama dan Isi Maklumat Semakan</h2>
           <p>Gunakan borang ini untuk semakan keahlian, bayaran tahunan atau status ahli dalam kariah Surau Haji Kamaruddin sahaja.</p>
         </div>
+        <div class="container update-selector">
+          <div class="form-panel">
+            <label>Jenis Semakan
+              <select id="checkType" required>
+                <option value="status">Status keahlian</option>
+                <option value="bayaran">Status bayaran tahunan</option>
+                <option value="daftar">Daftar ahli baru</option>
+              </select>
+            </label>
+          </div>
+        </div>
         <div class="container form-shell">
           <form class="form-panel" id="checkForm">
             <div class="field-grid">
-              <label>Jenis Semakan
-                <select id="checkType" required>
-                  <option value="status">Status keahlian</option>
-                  <option value="bayaran">Status bayaran tahunan</option>
-                  <option value="daftar">Daftar ahli baru</option>
-                </select>
-              </label>
               <label id="nameField">Nama Ahli
                 <input id="checkName" type="text" placeholder="Contoh: Farid Pouzan">
               </label>
               <label id="checkIdField">No. Telefon
-                <input id="checkId" type="tel" placeholder="Contoh: 01X-XXXXXX" title="No. telefon mesti format 01X-XXXXXX. No. IC mesti format XXXXXX-XX-XXXX.">
+                <input id="checkId" type="text" inputmode="tel" placeholder="Contoh: 01X-XXXXXX" title="No. telefon mesti format 01X-XXXXXX. No. IC mesti format XXXXXX-XX-XXXX.">
               </label>
               <label id="phoneField">No. Telefon
-                <input id="checkPhone" type="tel" placeholder="Contoh: 01X-XXXXXX" title="No. telefon mesti format 01X-XXXXXX.">
+                <input id="checkPhone" type="text" inputmode="tel" placeholder="Contoh: 01X-XXXXXX" title="No. telefon mesti format 01X-XXXXXX.">
               </label>
               <label id="emailField" hidden>Email
                 <input id="checkEmail" type="email" placeholder="nama@email.com">
@@ -153,14 +157,24 @@
               <label id="occupationField" hidden>Pekerjaan
                 <input id="checkOccupation" type="text" placeholder="Contoh: Guru / Berniaga / Kerja sendiri">
               </label>
-              <label class="span-2" id="addressField" hidden>Alamat Rumah
-                <textarea id="checkAddress" rows="3" placeholder="Alamat dalam kariah Surau Haji Kamaruddin"></textarea>
+              <label class="span-2" id="addressField" hidden>Alamat Rumah Sekarang
+                <textarea id="checkAddress" rows="3" placeholder="Alamat rumah sekarang dalam kariah Surau Haji Kamaruddin"></textarea>
+              </label>
+              <label id="residenceTypeField" hidden>Status Alamat Rumah
+                <select id="residenceType">
+                  <option value="">Pilih status rumah</option>
+                  <option>Rumah sendiri</option>
+                  <option>Penyewa</option>
+                </select>
+              </label>
+              <label class="span-2" id="icProofField" hidden>Gambar IC untuk pengesahan
+                <input id="icProofFile" type="file" accept="image/*">
               </label>
               <div class="span-2 location-field" id="locationField" hidden>
                 <p class="location-note">
-                  Lokasi digunakan oleh admin untuk semak sama ada alamat pemohon berada dalam kawasan kariah Surau Haji Kamaruddin. Lokasi hanya dihantar jika anda tekan butang ini dan benarkan akses lokasi.
+                  Sila tekan Kongsi Lokasi Semasa. Lokasi Kediaman Sekarang digunakan oleh admin untuk semak kawasan kariah. Jika lokasi telefon tidak dibenarkan, sistem akan simpan pautan lokasi berdasarkan alamat rumah yang dimasukkan.
                 </p>
-                <button class="button button--secondary" id="detectLocation" type="button">Share Lokasi Semasa</button>
+                <button class="button button--secondary" id="detectLocation" type="button">Kongsi Lokasi Semasa</button>
                 <p class="form-message" id="locationMessage" aria-live="polite"></p>
               </div>
             </div>
@@ -206,7 +220,7 @@
                 <input type="text" id="dependantNewName" placeholder="Isi jika mahu tukar nama">
               </label>
               <label id="dependantNewPhoneField">No. Telefon Baru
-                <input type="tel" id="dependantNewPhone" placeholder="Contoh: 01X-XXXXXX" title="No. telefon mesti format 01X-XXXXXX.">
+                <input type="text" inputmode="tel" id="dependantNewPhone" placeholder="Contoh: 01X-XXXXXX" title="No. telefon mesti format 01X-XXXXXX.">
               </label>
               <label id="dependantNewIcField">IC Baru
                 <input type="text" id="dependantNewIc" placeholder="Masukkan no. IC format XXXXXX-XX-XXXX, contoh: XXXXXX-XX-XXXX" title="No. IC mesti format XXXXXX-XX-XXXX.">
@@ -216,9 +230,9 @@
               </label>
               <div class="span-2 location-field" id="dependantLocationField">
                 <p class="location-note">
-                  Share lokasi hanya untuk kemaskini alamat/lokasi. Admin akan guna lokasi ini untuk semak kawasan kariah.
+                  Kongsi lokasi hanya untuk kemaskini alamat/lokasi. Admin akan guna lokasi ini untuk semak kawasan kariah.
                 </p>
-                <button class="button button--secondary" id="detectDependantLocation" type="button">Share Lokasi Semasa</button>
+                <button class="button button--secondary" id="detectDependantLocation" type="button">Kongsi Lokasi Semasa</button>
                 <p class="form-message" id="dependantLocationMessage" aria-live="polite"></p>
               </div>
             </div>
@@ -274,8 +288,8 @@
         <div class="container payment-grid">
           <div>
             <p class="eyebrow">Bayaran khairat</p>
-            <h2>Bayaran Cash atau Online</h2>
-            <p>Ahli boleh memilih bayaran tunai kepada AJK atau pindahan online ke akaun rasmi surau. Masukkan nombor resit dan link bukti pembayaran untuk pengesahan.</p>
+            <h2>Bayaran Tunai atau Online</h2>
+            <p>Ahli boleh memilih bayaran tunai kepada AJK atau pindahan online ke akaun rasmi surau. Resit digital akan dijana selepas admin sahkan bayaran.</p>
             <div class="bank-box">
               <span>Akaun Rasmi</span>
               <strong>RHB Bank: 26229600007784</strong>
@@ -292,7 +306,7 @@
               <input id="payerName" type="text" placeholder="Nama ahli / waris" required>
             </label>
             <label>No. Telefon
-              <input id="payerIdentifier" type="tel" placeholder="Contoh: 01X-XXXXXX" title="No. telefon mesti format 01X-XXXXXX.">
+              <input id="payerIdentifier" type="text" inputmode="tel" placeholder="Contoh: 01X-XXXXXX" title="No. telefon mesti format 01X-XXXXXX.">
             </label>
             <label>Tahun Bayaran
               <select id="paymentYear">
@@ -310,35 +324,37 @@
             </label>
             <label>Kaedah Bayaran
               <select id="paymentMethod">
-                <option value="online">Online transfer</option>
-                <option value="cash">Cash kepada AJK</option>
+                <option value="online">Pindahan bank / online</option>
+                <option value="cash">Tunai kepada AJK</option>
               </select>
             </label>
             <label>Jumlah Bayaran
               <input id="paymentAmount" type="number" min="0" placeholder="RM">
             </label>
-            <label>No. Resit / Rujukan
-              <select id="proofType">
-                <option value="receipt">Masukkan no. resit / reference</option>
-                <option value="upload">Upload gambar resit</option>
-              </select>
+            <label>Bank Yang Digunakan
+              <input id="paymentBank" type="text" placeholder="Contoh: Maybank / CIMB / RHB / Tunai">
             </label>
-            <label id="receiptNoField">No. Resit / Rujukan
-              <input id="receiptNo" type="text" placeholder="No. resit atau reference bank, contoh: khairat kematian">
-            </label>
-            <label class="span-2" id="receiptUploadField" hidden>Upload Gambar Resit
-              <input id="receiptProofFile" type="file" accept="image/*">
+            <label>Catatan / Remark Bayaran
+              <input id="paymentRemark" type="text" placeholder="Khairat kematian sumbangan atau yuran">
             </label>
             <label class="checkline">
               <input id="applyExcess" type="checkbox">
-              Jika terlebih bayar, lebihan boleh dibawa ke tahun seterusnya selepas admin verify.
+              Jika terlebih bayar, lebihan boleh dibawa ke tahun seterusnya selepas admin sahkan.
             </label>
             <label>Rujukan / Catatan
-              <textarea id="paymentNote" rows="3" placeholder="Jika guna cash, sila tulis nama AJK penerima"></textarea>
+              <textarea id="paymentNote" rows="3" placeholder="Jika guna tunai, sila tulis nama AJK penerima. Jika bank, tulis bank yang digunakan."></textarea>
             </label>
             <button class="button button--primary" type="submit">Simpan Maklumat Bayaran</button>
             <p class="form-message" id="paymentMessage" aria-live="polite"></p>
           </form>
+          <section class="payment-card receipt-lookup-card">
+            <h3>Semak Resit</h3>
+            <label>Cari No. Resit
+              <input id="publicReceiptSearch" type="text" placeholder="Contoh: SHK-XXXX/2026">
+            </label>
+            <button class="button button--secondary" id="publicReceiptButton" type="button">Cari Resit</button>
+            <div class="check-answer" id="publicReceiptAnswer" hidden></div>
+          </section>
         </div>
       </section>
 
@@ -347,12 +363,12 @@
           <div>
             <p class="eyebrow">Sumbangan</p>
             <h2>Sumbangan Bukan Ahli</h2>
-            <p>Orang ramai yang bukan ahli boleh merekodkan sumbangan untuk tabung khairat. Untuk bank transfer, tulis catatan <strong>khairat kematian</strong>.</p>
+            <p>Orang ramai yang bukan ahli boleh merekodkan sumbangan untuk tabung khairat. Untuk pindahan bank, tulis catatan <strong>khairat kematian</strong>.</p>
             <div class="bank-box">
               <span>Akaun Rasmi</span>
               <strong>RHB Bank: 26229600007784</strong>
               <small>Nama akaun: Surau Hj Kamaruddin</small>
-              <small>Jika guna bank transfer, tulis reference: <strong>khairat kematian</strong>.</small>
+              <small>Jika guna pindahan bank, tulis rujukan: <strong>khairat kematian</strong>.</small>
             </div>
             <div class="qr-box">
               <img src="assets/duitnow-qr-surau-haji-kamaruddin.jpeg" alt="DuitNow QR sumbangan Surau Haji Kamaruddin">
@@ -364,19 +380,22 @@
               <input id="donorName" type="text" required>
             </label>
             <label>No. Telefon
-              <input id="donorPhone" type="tel" placeholder="Contoh: 01X-XXXXXX" title="No. telefon mesti format 01X-XXXXXX.">
+              <input id="donorPhone" type="text" inputmode="tel" placeholder="Contoh: 01X-XXXXXX" title="No. telefon mesti format 01X-XXXXXX.">
             </label>
             <label>Kaedah Bayaran
               <select id="donationMethod">
-                <option value="online">Online transfer</option>
-                <option value="cash">Cash kepada AJK</option>
+                <option value="online">Pindahan bank / online</option>
+                <option value="cash">Tunai kepada AJK</option>
               </select>
+            </label>
+            <label>Bank Yang Digunakan
+              <input id="donationBank" type="text" placeholder="Contoh: Maybank / CIMB / RHB / Tunai">
             </label>
             <label>Jumlah Sumbangan
               <input id="donationAmount" type="number" min="0" placeholder="RM">
             </label>
             <label class="span-2">Catatan
-              <textarea id="donationNote" rows="3" placeholder="Jika bank transfer, tulis: khairat kematian. Jika cash, tulis nama AJK penerima."></textarea>
+              <textarea id="donationNote" rows="3" placeholder="Tulis: Khairat kematian sumbangan. Tambah bank yang digunakan jika bank transfer."></textarea>
             </label>
             <button class="button button--primary" type="submit">Hantar Sumbangan</button>
             <p class="form-message" id="donationMessage" aria-live="polite"></p>
@@ -386,7 +405,7 @@
 
       <section class="section section--contact view-section" id="contact">
         <div class="container section__header section__header--light">
-          <p class="eyebrow">Contact</p>
+          <p class="eyebrow">Hubungi</p>
           <h2>Hubungi AJK Khairat SHK</h2>
           <p>Email rasmi surau: <a href="mailto:shk.bt7.meru@gmail.com">shk.bt7.meru@gmail.com</a></p>
           <p><a class="map-link" href="https://www.google.com/maps/search/?api=1&query=Surau%20Hj%20Kamaruddin%20Batu%207%201%2F2%20Jalan%20Meru%20Tambahan%20Klang" target="_blank" rel="noopener">Buka lokasi di Google Maps</a></p>
@@ -419,7 +438,7 @@
       </div>
     </footer>
 
-    <script src="supabase-config.js?v=20260912-neutral-format-examples"></script>
-    <script src="script.js?v=20260912-neutral-format-examples"></script>
+    <script src="supabase-config.js?v=20260921-registration-receipt-improvements"></script>
+    <script src="script.js?v=20260921-registration-receipt-improvements"></script>
   </body>
 </html>

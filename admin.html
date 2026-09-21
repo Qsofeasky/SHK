@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Admin Khairat SHK</title>
-    <link rel="stylesheet" href="styles.css?v=20260912-neutral-format-examples">
+    <link rel="stylesheet" href="styles.css?v=20260921-registration-receipt-improvements">
   </head>
   <body>
     <header class="site-header">
@@ -66,8 +66,8 @@
             <p class="form-message" id="adminStatus" aria-live="polite"></p>
           </div>
           <div class="form-actions">
-            <button class="button button--secondary" id="refreshAdmin" type="button">Refresh</button>
-            <button class="button button--secondary" id="logoutAdmin" type="button">Logout</button>
+            <button class="button button--secondary" id="refreshAdmin" type="button">Muat Semula</button>
+            <button class="button button--secondary" id="logoutAdmin" type="button">Log Keluar</button>
           </div>
         </div>
 
@@ -99,8 +99,8 @@
               <label class="admin-filter">Status
                 <select id="statusFilter">
                   <option value="pending">Pending</option>
-                  <option value="approved">Approved / Verified</option>
-                  <option value="rejected">Rejected</option>
+                  <option value="approved">Diluluskan / Disahkan</option>
+                  <option value="rejected">Ditolak</option>
                   <option value="all">All</option>
                 </select>
               </label>
@@ -176,7 +176,7 @@
         <div class="container admin-tools" id="adminReceiptSection" hidden>
           <section class="payment-card admin-tool-wide">
             <h3>Resit Digital</h3>
-            <p class="form-message">Nombor resit rasmi dijana automatik selepas admin verify bayaran. Format resit: SHK-0001/tahun semasa.</p>
+            <p class="form-message">Nombor resit rasmi dijana automatik selepas admin sahkan bayaran. Format resit: SHK-0001/tahun semasa.</p>
             <div class="receipt-status">
               <span>Resit terakhir dijana</span>
               <strong id="lastReceiptNo">Belum ada</strong>
@@ -197,7 +197,7 @@
       </section>
     </main>
 
-    <script src="supabase-config.js?v=20260912-neutral-format-examples"></script>
-    <script src="admin.js?v=20260912-neutral-format-examples"></script>
+    <script src="supabase-config.js?v=20260921-registration-receipt-improvements"></script>
+    <script src="admin.js?v=20260921-registration-receipt-improvements"></script>
   </body>
 </html>
