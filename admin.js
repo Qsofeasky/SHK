@@ -184,6 +184,27 @@ async function supabaseRpc(functionName, payload = {}) {
   return text ? JSON.parse(text) : null;
 }
 
+async function callEdgeFunction(functionName, payload = {}) {
+  const response = await fetch(`${config.url}/functions/v1/${functionName}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: config.anonKey,
+      Authorization: `Bearer ${adminState.accessToken}`
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : null;
+
+  if (!response.ok) {
+    throw new Error(data?.error || text || "Edge Function gagal.");
+  }
+
+  return data;
+}
+
 function showAdminError(error) {
   setAdminMessage("#adminStatus", error.message, "error");
   renderCards("#membershipList", [], renderMembershipCard);
@@ -428,7 +449,8 @@ function renderMembershipCard(record) {
       <p>Pekerjaan: ${escapeHtml(record.occupation || "-")}</p>
       <p>Alamat Rumah Sekarang: ${escapeHtml(record.address || "-")}</p>
       <p>Status Alamat Rumah: ${escapeHtml(record.residence_type || "-")}</p>
-      ${record.ic_proof_url ? `<p><a href="${escapeHtml(record.ic_proof_url)}" target="_blank" rel="noopener">Buka gambar IC di Google Drive</a></p>` : ""}
+      ${record.ic_proof_storage_path ? `<p><button class="button button--secondary button--small" data-action="open-ic-proof" data-path="${escapeHtml(record.ic_proof_storage_path)}" type="button">Buka gambar IC</button></p>` : ""}
+      ${record.ic_proof_url ? `<p><a href="${escapeHtml(record.ic_proof_url)}" target="_blank" rel="noopener">Buka gambar IC</a></p>` : ""}
       ${!record.ic_proof_url && record.ic_proof_data ? `<p><a href="${escapeHtml(record.ic_proof_data)}" download="${escapeHtml(record.ic_proof_name || "gambar-ic.png")}">Muat turun gambar IC</a></p>` : ""}
       ${record.location_url ? `
         <p>Lokasi Kediaman Sekarang: ${escapeHtml(formatLocationSource(record.location_latitude, record.location_longitude))}</p>
@@ -616,6 +638,12 @@ async function handleAdminAction(event) {
     const id = button.dataset.id;
 
     if (action === "approve-membership") await approveMembership(id);
+    if (action === "open-ic-proof") {
+      await openIcProof(button.dataset.path || "");
+      button.disabled = false;
+      button.textContent = "Buka gambar IC";
+      return;
+    }
     if (action === "reject-membership") await updateStatus("membership_checks", id, "rejected");
     if (action === "approve-dependant") await approveDependant(id);
     if (action === "reject-dependant") await updateStatus("dependant_updates", id, "rejected");
@@ -657,6 +685,23 @@ async function approveMembership(id) {
   }
 
   await updateStatus("membership_checks", id, "approved");
+}
+
+async function openIcProof(path) {
+  if (!path) {
+    throw new Error("Path gambar IC tidak dijumpai.");
+  }
+
+  const result = await callEdgeFunction("ic-proof-storage", {
+    action: "signed-url",
+    path
+  });
+
+  if (!result?.signed_url) {
+    throw new Error("Signed URL gambar IC gagal dijana.");
+  }
+
+  window.open(result.signed_url, "_blank", "noopener");
 }
 
 async function approveDependant(id) {
