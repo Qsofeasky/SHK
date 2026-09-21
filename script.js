@@ -585,7 +585,7 @@ if (paymentForm) {
     try {
       const payerPhone = document.querySelector("#payerIdentifier").value.trim();
       const bank = document.querySelector("#paymentBank")?.value.trim() || "";
-      const remark = document.querySelector("#paymentRemark")?.value.trim() || "";
+      const remark = document.querySelector("#paymentRemark")?.value.trim() || "khairat kematian/yuran";
       const note = [remark, bank ? `Bank: ${bank}` : ""].filter(Boolean).join(" | ");
       requirePhoneFormat(payerPhone, "No. telefon");
 
@@ -728,7 +728,7 @@ if (donationForm) {
 
     try {
       const donationBank = document.querySelector("#donationBank")?.value.trim() || "";
-      const donationNote = document.querySelector("#donationNote").value.trim();
+      const donationNote = document.querySelector("#donationNote").value.trim() || "khairat kematian/sumbangan";
       const note = [donationNote, donationBank ? `Bank: ${donationBank}` : ""].filter(Boolean).join(" | ");
       await insertRow("non_member_donations", {
         phone: (() => { const value = document.querySelector("#donorPhone").value.trim(); requirePhoneFormat(value, "No. telefon"); return value || null; })(),

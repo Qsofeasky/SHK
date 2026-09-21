@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Khairat SHK | Surau Hj Kamaruddin</title>
     <meta name="description" content="Portal Khairat Kematian Surau Hj Kamaruddin untuk semakan ahli, kemaskini maklumat diri, bayaran dan maklumat kariah.">
-    <link rel="stylesheet" href="styles.css?v=20260921-constitution-dashboard">
+    <link rel="stylesheet" href="styles.css?v=20260921-reference-remarks">
   </head>
   <body>
     <header class="site-header">
@@ -488,7 +488,7 @@
               <span>Akaun Rasmi</span>
               <strong>RHB Bank: 26229600007784</strong>
               <small>Nama akaun: Surau Hj Kamaruddin</small>
-              <small>Jika bayar melalui bank transfer, letakkan reference bank: <strong>khairat kematian</strong>.</small>
+              <small>Jika bayar melalui pindahan bank, letakkan rujukan: <strong>khairat kematian/yuran</strong>.</small>
             </div>
             <div class="qr-box">
               <img src="assets/duitnow-qr-surau-haji-kamaruddin.jpeg" alt="DuitNow QR bayaran Surau Haji Kamaruddin">
@@ -529,14 +529,14 @@
               <input id="paymentBank" type="text" placeholder="Contoh: Maybank / CIMB / RHB / Tunai">
             </label>
             <label>Catatan / Remark Bayaran
-              <input id="paymentRemark" type="text" placeholder="Khairat kematian sumbangan atau yuran">
+              <input id="paymentRemark" type="text" placeholder="Khairat kematian/yuran">
             </label>
             <label class="checkline">
               <input id="applyExcess" type="checkbox">
               Jika terlebih bayar, lebihan boleh dibawa ke tahun seterusnya selepas admin sahkan.
             </label>
             <label>Rujukan / Catatan
-              <textarea id="paymentNote" rows="3" placeholder="Jika guna tunai, sila tulis nama AJK penerima. Jika bank, tulis bank yang digunakan."></textarea>
+              <textarea id="paymentNote" rows="3" placeholder="Jika guna tunai, sila tulis nama AJK penerima."></textarea>
             </label>
             <button class="button button--primary" type="submit">Simpan Maklumat Bayaran</button>
             <p class="form-message" id="paymentMessage" aria-live="polite"></p>
@@ -557,12 +557,12 @@
           <div>
             <p class="eyebrow">Sumbangan</p>
             <h2>Sumbangan Bukan Ahli</h2>
-            <p>Orang ramai yang bukan ahli boleh merekodkan sumbangan untuk tabung khairat. Untuk pindahan bank, tulis catatan <strong>khairat kematian</strong>.</p>
+            <p>Orang ramai yang bukan ahli boleh merekodkan sumbangan untuk tabung khairat. Untuk pindahan bank, tulis catatan <strong>khairat kematian/sumbangan</strong>.</p>
             <div class="bank-box">
               <span>Akaun Rasmi</span>
               <strong>RHB Bank: 26229600007784</strong>
               <small>Nama akaun: Surau Hj Kamaruddin</small>
-              <small>Jika guna pindahan bank, tulis rujukan: <strong>khairat kematian</strong>.</small>
+              <small>Jika guna pindahan bank, tulis rujukan: <strong>khairat kematian/sumbangan</strong>.</small>
             </div>
             <div class="qr-box">
               <img src="assets/duitnow-qr-surau-haji-kamaruddin.jpeg" alt="DuitNow QR sumbangan Surau Haji Kamaruddin">
@@ -589,7 +589,7 @@
               <input id="donationAmount" type="number" min="0" placeholder="RM">
             </label>
             <label class="span-2">Catatan
-              <textarea id="donationNote" rows="3" placeholder="Tulis: Khairat kematian sumbangan. Tambah bank yang digunakan jika bank transfer."></textarea>
+              <textarea id="donationNote" rows="3" placeholder="Khairat kematian/sumbangan"></textarea>
             </label>
             <button class="button button--primary" type="submit">Hantar Sumbangan</button>
             <p class="form-message" id="donationMessage" aria-live="polite"></p>
@@ -632,7 +632,7 @@
       </div>
     </footer>
 
-    <script src="supabase-config.js?v=20260921-constitution-dashboard"></script>
-    <script src="script.js?v=20260921-constitution-dashboard"></script>
+    <script src="supabase-config.js?v=20260921-reference-remarks"></script>
+    <script src="script.js?v=20260921-reference-remarks"></script>
   </body>
 </html>
