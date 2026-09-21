@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Khairat SHK | Surau Hj Kamaruddin</title>
     <meta name="description" content="Portal Khairat Kematian Surau Hj Kamaruddin untuk semakan ahli, kemaskini maklumat diri, bayaran dan maklumat kariah.">
-    <link rel="stylesheet" href="styles.css?v=20260921-auto-receipt-paid-year-address">
+    <link rel="stylesheet" href="styles.css?v=20260921-address-based-location">
   </head>
   <body>
     <header class="site-header">
@@ -172,9 +172,9 @@
               </label>
               <div class="span-2 location-field" id="locationField" hidden>
                 <p class="location-note">
-                  Sila tekan Kongsi Lokasi Semasa. Lokasi Kediaman Sekarang digunakan oleh admin untuk semak kawasan kariah. Jika lokasi telefon tidak dibenarkan, sistem akan simpan pautan lokasi berdasarkan alamat rumah yang dimasukkan.
+                  Tekan butang ini selepas isi Alamat Rumah Sekarang. Lokasi Kediaman Sekarang akan dijana berdasarkan alamat rumah yang dimasukkan, bukan lokasi semasa telefon.
                 </p>
-                <button class="button button--secondary" id="detectLocation" type="button">Kongsi Lokasi Semasa</button>
+                <button class="button button--secondary" id="detectLocation" type="button">Guna Lokasi Berdasarkan Alamat</button>
                 <p class="form-message" id="locationMessage" aria-live="polite"></p>
               </div>
             </div>
@@ -237,9 +237,9 @@
               </label>
               <div class="span-2 location-field" id="dependantLocationField">
                 <p class="location-note">
-                  Sila tekan Kongsi Lokasi Semasa. Lokasi Kediaman Sekarang digunakan oleh admin untuk semak kawasan kariah. Jika lokasi telefon tidak dibenarkan, sistem akan simpan pautan lokasi berdasarkan alamat rumah yang dimasukkan.
+                  Tekan butang ini selepas isi Alamat Rumah Sekarang. Lokasi Kediaman Sekarang akan dijana berdasarkan alamat rumah yang dimasukkan, bukan lokasi semasa telefon.
                 </p>
-                <button class="button button--secondary" id="detectDependantLocation" type="button">Kongsi Lokasi Semasa</button>
+                <button class="button button--secondary" id="detectDependantLocation" type="button">Guna Lokasi Berdasarkan Alamat</button>
                 <p class="form-message" id="dependantLocationMessage" aria-live="polite"></p>
               </div>
             </div>
@@ -445,7 +445,7 @@
       </div>
     </footer>
 
-    <script src="supabase-config.js?v=20260921-auto-receipt-paid-year-address"></script>
-    <script src="script.js?v=20260921-auto-receipt-paid-year-address"></script>
+    <script src="supabase-config.js?v=20260921-address-based-location"></script>
+    <script src="script.js?v=20260921-address-based-location"></script>
   </body>
 </html>

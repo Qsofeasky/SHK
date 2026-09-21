@@ -321,9 +321,9 @@ if (checkForm) {
         occupation: document.querySelector("#checkOccupation").value.trim() || null,
         address: addressValue || null,
         residence_type: document.querySelector("#residenceType")?.value || null,
-        location_latitude: detectedLocation?.latitude || null,
-        location_longitude: detectedLocation?.longitude || null,
-        location_url: detectedLocation?.url || locationUrlFromAddress(addressValue),
+        location_latitude: null,
+        location_longitude: null,
+        location_url: locationUrlFromAddress(addressValue),
         ic_proof_data: icProofData,
         ic_proof_name: icProofFile?.name || null,
         kariah_confirmed: true
@@ -339,7 +339,7 @@ if (checkForm) {
         <p><strong>Pekerjaan:</strong> ${escapeHtml(pendingRegistrationPayload.occupation || "-")}</p>
         <p><strong>Alamat Rumah Sekarang:</strong> ${escapeHtml(addressValue || "-")}</p>
         <p><strong>Status Alamat Rumah:</strong> ${escapeHtml(pendingRegistrationPayload.residence_type || "-")}</p>
-        <p><strong>Lokasi Kediaman Sekarang:</strong> ${detectedLocation ? "Lokasi semasa telefon digunakan." : "Pautan lokasi dijana daripada alamat rumah."}</p>
+        <p><strong>Lokasi Kediaman Sekarang:</strong> Pautan lokasi dijana daripada Alamat Rumah Sekarang.</p>
         <p><strong>Gambar IC:</strong> ${escapeHtml(pendingRegistrationPayload.ic_proof_name || "-")}</p>
         <button class="button button--primary" id="confirmRegistration" type="button">Sahkan dan Hantar Daftar Ahli Baru</button>
       `);
@@ -371,27 +371,14 @@ document.querySelector("#checkAnswer")?.addEventListener("click", async (event) 
 });
 
 document.querySelector("#detectLocation")?.addEventListener("click", () => {
-  if (!navigator.geolocation) {
-    setMessage("#locationMessage", "Browser ini tidak support location detection.", "error");
+  const address = document.querySelector("#checkAddress")?.value.trim() || "";
+  if (!address) {
+    setMessage("#locationMessage", "Isi Alamat Rumah Sekarang dahulu untuk jana lokasi.", "error");
     return;
   }
 
-  setMessage("#locationMessage", "Sedang ambil lokasi...", "neutral");
-  navigator.geolocation.getCurrentPosition((position) => {
-    const { latitude, longitude } = position.coords;
-    detectedLocation = {
-      latitude,
-      longitude,
-      url: `https://www.google.com/maps?q=${latitude},${longitude}`
-    };
-    setMessage("#locationMessage", "Lokasi berjaya disimpan bersama borang.", "success");
-  }, () => {
-    setMessage("#locationMessage", "Lokasi tidak dibenarkan. Borang masih boleh dihantar tanpa lokasi.", "error");
-  }, {
-    enableHighAccuracy: true,
-    timeout: 10000,
-    maximumAge: 60000
-  });
+  detectedLocation = { url: locationUrlFromAddress(address) };
+  setMessage("#locationMessage", "Lokasi berdasarkan alamat rumah berjaya dijana.", "success");
 });
 
 const dependantAction = document.querySelector("#dependantAction");
@@ -552,15 +539,13 @@ if (dependantForm) {
         requirePhoneFormat(updatePayload.new_phone, "No. telefon baru");
         requireIcDashFormat(updatePayload.new_ic, "IC baru");
 
-        if (!updatePayload.new_name && !updatePayload.new_phone && !updatePayload.new_ic && !updatePayload.new_address && !updatePayload.new_residence_type && !dependantDetectedLocation) {
+        if (!updatePayload.new_name && !updatePayload.new_phone && !updatePayload.new_ic && !updatePayload.new_address && !updatePayload.new_residence_type) {
           throw new Error("Isi sekurang-kurangnya satu maklumat baru untuk dikemaskini.");
         }
 
-        if (dependantDetectedLocation) {
-          updatePayload.location_latitude = dependantDetectedLocation.latitude;
-          updatePayload.location_longitude = dependantDetectedLocation.longitude;
-          updatePayload.location_url = dependantDetectedLocation.url;
-        } else if (updatePayload.new_address) {
+        if (updatePayload.new_address) {
+          updatePayload.location_latitude = null;
+          updatePayload.location_longitude = null;
           updatePayload.location_url = locationUrlFromAddress(updatePayload.new_address);
         }
       }
@@ -580,27 +565,14 @@ if (dependantForm) {
   });
 }
 document.querySelector("#detectDependantLocation")?.addEventListener("click", () => {
-  if (!navigator.geolocation) {
-    setMessage("#dependantLocationMessage", "Browser ini tidak support location detection.", "error");
+  const address = document.querySelector("#dependantNewAddress")?.value.trim() || "";
+  if (!address) {
+    setMessage("#dependantLocationMessage", "Isi Alamat Rumah Sekarang dahulu untuk jana lokasi.", "error");
     return;
   }
 
-  setMessage("#dependantLocationMessage", "Sedang ambil lokasi...", "neutral");
-  navigator.geolocation.getCurrentPosition((position) => {
-    const { latitude, longitude } = position.coords;
-    dependantDetectedLocation = {
-      latitude,
-      longitude,
-      url: `https://www.google.com/maps?q=${latitude},${longitude}`
-    };
-    setMessage("#dependantLocationMessage", "Lokasi baru berjaya disimpan bersama borang.", "success");
-  }, () => {
-    setMessage("#dependantLocationMessage", "Lokasi tidak dibenarkan. Borang masih boleh dihantar dengan alamat sahaja.", "error");
-  }, {
-    enableHighAccuracy: true,
-    timeout: 10000,
-    maximumAge: 60000
-  });
+  dependantDetectedLocation = { url: locationUrlFromAddress(address) };
+  setMessage("#dependantLocationMessage", "Lokasi berdasarkan alamat rumah berjaya dijana.", "success");
 });
 
 const paymentForm = document.querySelector("#paymentForm");

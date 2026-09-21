@@ -430,7 +430,7 @@ function renderMembershipCard(record) {
       <p>Status Alamat Rumah: ${escapeHtml(record.residence_type || "-")}</p>
       ${record.ic_proof_data ? `<p><a href="${escapeHtml(record.ic_proof_data)}" download="${escapeHtml(record.ic_proof_name || "gambar-ic.png")}">Muat turun gambar IC</a></p>` : ""}
       ${record.location_url ? `
-        <p>Lokasi Kediaman Sekarang: ${escapeHtml(formatCoordinates(record.location_latitude, record.location_longitude))}</p>
+        <p>Lokasi Kediaman Sekarang: ${escapeHtml(formatLocationSource(record.location_latitude, record.location_longitude))}</p>
         <p><a href="${escapeHtml(record.location_url)}" target="_blank" rel="noopener">Buka lokasi pemohon</a></p>
       ` : ""}
       <div class="form-actions">
@@ -477,6 +477,10 @@ function renderLocationTable(records) {
 function formatCoordinates(latitude, longitude) {
   if (!latitude || !longitude) return "-";
   return `${Number(latitude).toFixed(6)}, ${Number(longitude).toFixed(6)}`;
+}
+
+function formatLocationSource(latitude, longitude) {
+  return latitude && longitude ? formatCoordinates(latitude, longitude) : "Berdasarkan alamat rumah";
 }
 
 function renderDependantCard(record) {
