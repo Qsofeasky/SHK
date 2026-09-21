@@ -117,6 +117,31 @@ async function callRpc(functionName, payload) {
   return response.json();
 }
 
+async function callEdgeFunction(functionName, payload) {
+  if (!supabase.ready) {
+    throw new Error("Supabase belum dikonfigurasi. Sila isi supabase-config.js dahulu.");
+  }
+
+  const response = await fetch(`${supabase.url}/functions/v1/${functionName}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: supabase.anonKey,
+      Authorization: `Bearer ${supabase.anonKey}`
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : null;
+
+  if (!response.ok) {
+    throw new Error(data?.error || text || "Edge Function gagal.");
+  }
+
+  return data;
+}
+
 function setMessage(selector, text, type = "neutral") {
   const node = document.querySelector(selector);
   if (!node) return;
@@ -312,6 +337,9 @@ if (checkForm) {
       const addressValue = document.querySelector("#checkAddress").value.trim();
       const icProofFile = document.querySelector("#icProofFile")?.files?.[0] || null;
       const icProofData = icProofFile ? await readImageFile(icProofFile, "Gambar IC") : null;
+      const icDriveFile = icProofFile && icProofData
+        ? await uploadIcProofToDrive(icProofFile, icProofData)
+        : null;
       pendingRegistrationPayload = {
         check_type: typeInput.value,
         member_name: name,
@@ -324,8 +352,10 @@ if (checkForm) {
         location_latitude: null,
         location_longitude: null,
         location_url: locationUrlFromAddress(addressValue),
-        ic_proof_data: icProofData,
-        ic_proof_name: icProofFile?.name || null,
+        ic_proof_data: null,
+        ic_proof_name: icDriveFile?.file_name || icProofFile?.name || null,
+        ic_proof_url: icDriveFile?.web_view_link || null,
+        ic_proof_drive_file_id: icDriveFile?.file_id || null,
         kariah_confirmed: true
       };
 
@@ -341,6 +371,7 @@ if (checkForm) {
         <p><strong>Status Alamat Rumah:</strong> ${escapeHtml(pendingRegistrationPayload.residence_type || "-")}</p>
         <p><strong>Lokasi Kediaman Sekarang:</strong> Pautan lokasi dijana daripada Alamat Rumah Sekarang.</p>
         <p><strong>Gambar IC:</strong> ${escapeHtml(pendingRegistrationPayload.ic_proof_name || "-")}</p>
+        <p><strong>Simpanan Google Drive:</strong> ${pendingRegistrationPayload.ic_proof_url ? "Berjaya upload ke Google Drive." : "Belum ada link Google Drive."}</p>
         <button class="button button--primary" id="confirmRegistration" type="button">Sahkan dan Hantar Daftar Ahli Baru</button>
       `);
       setMessage("#checkMessage", "Sila semak maklumat. Tekan butang pengesahan jika semuanya betul.", "neutral");
@@ -632,6 +663,15 @@ function readImageFile(file, label = "Gambar") {
     reader.addEventListener("load", () => resolve(reader.result));
     reader.addEventListener("error", () => reject(new Error(`${label} gagal dibaca.`)));
     reader.readAsDataURL(file);
+  });
+}
+
+async function uploadIcProofToDrive(file, dataUrl) {
+  setMessage("#checkMessage", "Sedang upload gambar IC ke Google Drive...", "neutral");
+  return callEdgeFunction("upload-ic-to-drive", {
+    fileName: file.name,
+    mimeType: file.type || "image/png",
+    dataUrl
   });
 }
 

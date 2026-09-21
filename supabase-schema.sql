@@ -12,6 +12,8 @@ create table if not exists public.membership_checks (
   residence_type text,
   ic_proof_data text,
   ic_proof_name text,
+  ic_proof_url text,
+  ic_proof_drive_file_id text,
   location_latitude numeric(10, 7),
   location_longitude numeric(10, 7),
   location_url text,
@@ -234,6 +236,12 @@ add column if not exists ic_proof_data text;
 
 alter table public.membership_checks
 add column if not exists ic_proof_name text;
+
+alter table public.membership_checks
+add column if not exists ic_proof_url text;
+
+alter table public.membership_checks
+add column if not exists ic_proof_drive_file_id text;
 
 alter table public.dependant_updates
 add column if not exists location_url text;

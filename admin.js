@@ -428,7 +428,8 @@ function renderMembershipCard(record) {
       <p>Pekerjaan: ${escapeHtml(record.occupation || "-")}</p>
       <p>Alamat Rumah Sekarang: ${escapeHtml(record.address || "-")}</p>
       <p>Status Alamat Rumah: ${escapeHtml(record.residence_type || "-")}</p>
-      ${record.ic_proof_data ? `<p><a href="${escapeHtml(record.ic_proof_data)}" download="${escapeHtml(record.ic_proof_name || "gambar-ic.png")}">Muat turun gambar IC</a></p>` : ""}
+      ${record.ic_proof_url ? `<p><a href="${escapeHtml(record.ic_proof_url)}" target="_blank" rel="noopener">Buka gambar IC di Google Drive</a></p>` : ""}
+      ${!record.ic_proof_url && record.ic_proof_data ? `<p><a href="${escapeHtml(record.ic_proof_data)}" download="${escapeHtml(record.ic_proof_name || "gambar-ic.png")}">Muat turun gambar IC</a></p>` : ""}
       ${record.location_url ? `
         <p>Lokasi Kediaman Sekarang: ${escapeHtml(formatLocationSource(record.location_latitude, record.location_longitude))}</p>
         <p><a href="${escapeHtml(record.location_url)}" target="_blank" rel="noopener">Buka lokasi pemohon</a></p>
