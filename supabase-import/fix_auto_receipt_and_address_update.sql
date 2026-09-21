@@ -34,17 +34,17 @@ begin
   perform pg_advisory_xact_lock(hashtext('shk_receipt_' || receipt_year::text));
 
   with receipt_numbers as (
-    select (regexp_match(receipt_no, '^SHK\s*-\s*([0-9]{1,4})\/' || receipt_year::text || '$', 'i'))[1]::integer as receipt_number
-    from public.payments
-    where receipt_no is not null
+    select (regexp_match(p.receipt_no, '^SHK\s*-\s*([0-9]{1,4})\/' || receipt_year::text || '$', 'i'))[1]::integer as receipt_number
+    from public.payments p
+    where p.receipt_no is not null
     union all
-    select (regexp_match(receipt_no, '^SHK\s*-\s*([0-9]{1,4})\/' || receipt_year::text || '$', 'i'))[1]::integer as receipt_number
-    from public.member_yearly_payments
-    where receipt_no is not null
+    select (regexp_match(myp.receipt_no, '^SHK\s*-\s*([0-9]{1,4})\/' || receipt_year::text || '$', 'i'))[1]::integer as receipt_number
+    from public.member_yearly_payments myp
+    where myp.receipt_no is not null
     union all
-    select (regexp_match(receipt_no, '^SHK\s*-\s*([0-9]{1,4})\/' || receipt_year::text || '$', 'i'))[1]::integer as receipt_number
-    from public.non_member_donations
-    where receipt_no is not null
+    select (regexp_match(d.receipt_no, '^SHK\s*-\s*([0-9]{1,4})\/' || receipt_year::text || '$', 'i'))[1]::integer as receipt_number
+    from public.non_member_donations d
+    where d.receipt_no is not null
   )
   select coalesce(max(receipt_number), 0) + 1
   into next_number
