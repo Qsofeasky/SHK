@@ -370,7 +370,7 @@ textarea {
   position: relative;
   z-index: 4;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-top: -42px;
 }
@@ -414,6 +414,136 @@ textarea {
 
 .action-card small {
   color: var(--muted);
+}
+
+.dashboard-section {
+  padding-top: 64px;
+  background:
+    linear-gradient(180deg, #f6fbf7, #ffffff 78%),
+    var(--mint-100);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr 1fr;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.dashboard-panel {
+  display: grid;
+  gap: 12px;
+  min-height: 220px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, #fff, #fbfdfa),
+    var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.dashboard-panel--wide {
+  grid-row: span 2;
+}
+
+.dashboard-panel--accent {
+  grid-column: span 2;
+  min-height: 180px;
+}
+
+.dashboard-panel h2,
+.dashboard-panel h3 {
+  margin: 0;
+  color: var(--green-950);
+  line-height: 1.16;
+}
+
+.feature-list,
+.constitution-card ol,
+.constitution-card ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.feature-list {
+  display: grid;
+  gap: 10px;
+  color: var(--muted);
+}
+
+.dashboard-rates {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.dashboard-rates div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.dashboard-rates dt {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.dashboard-rates dd {
+  margin: 0;
+  color: var(--green-850);
+  font-size: 1.35rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.constitution-section {
+  background:
+    linear-gradient(180deg, #ffffff, #f4faf6),
+    var(--surface);
+}
+
+.constitution-body {
+  display: grid;
+  gap: 16px;
+}
+
+.constitution-card {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 14px 34px rgba(19, 58, 45, 0.07);
+}
+
+.constitution-card h3,
+.constitution-card h4 {
+  color: var(--green-950);
+}
+
+.constitution-card h3 {
+  margin: 0 0 14px;
+  font-size: 1.15rem;
+}
+
+.constitution-card h4 {
+  margin: 18px 0 8px;
+}
+
+.constitution-card p,
+.constitution-card li {
+  color: var(--muted);
+  line-height: 1.68;
+}
+
+.constitution-card p {
+  margin: 0 0 10px;
+}
+
+.constitution-card li + li {
+  margin-top: 7px;
 }
 
 .price-grid {
@@ -1023,9 +1153,16 @@ textarea:focus {
   .admin-tools,
   .form-shell,
   .payment-grid,
+  .dashboard-grid,
   .price-grid,
   .contacts {
     grid-template-columns: 1fr;
+  }
+
+  .dashboard-panel--wide,
+  .dashboard-panel--accent {
+    grid-column: auto;
+    grid-row: auto;
   }
 
   .quick-actions {
@@ -1093,6 +1230,8 @@ textarea:focus {
   }
 
   .portal-card,
+  .dashboard-panel,
+  .constitution-card,
   .form-panel,
   .info-card,
   .payment-card {
