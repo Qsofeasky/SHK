@@ -95,6 +95,7 @@ document.querySelector("#adminExitButton")?.addEventListener("click", moveMember
 document.querySelectorAll("[data-admin-view]").forEach((button) => {
   button.addEventListener("click", () => showAdminView(button.dataset.adminView));
 });
+attachAutoFormatters();
 
 if (adminToggle && adminMenu) {
   adminToggle.addEventListener("click", () => {
@@ -1121,6 +1122,28 @@ function requireIcDashFormat(value, label) {
   if (text && !isIcDashFormat(text)) {
     throw new Error(`${label} mesti format XXXXXX-XX-XXXX, contoh XXXXXX-XX-XXXX.`);
   }
+}
+
+function digitsOnly(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
+function formatIcInput(value) {
+  const digits = digitsOnly(value).slice(0, 12);
+  if (digits.length <= 6) return digits;
+  if (digits.length <= 8) return `${digits.slice(0, 6)}-${digits.slice(6)}`;
+  return `${digits.slice(0, 6)}-${digits.slice(6, 8)}-${digits.slice(8)}`;
+}
+
+function attachAutoFormatters() {
+  document.querySelectorAll("[data-format='ic']").forEach((input) => {
+    if (!(input instanceof HTMLInputElement) || input.dataset.autoFormatAttached === "true") return;
+    input.dataset.autoFormatAttached = "true";
+    input.addEventListener("input", () => {
+      const formatted = formatIcInput(input.value);
+      if (input.value !== formatted) input.value = formatted;
+    });
+  });
 }
 
 function setAdminMessage(selector, text, type = "neutral") {

@@ -184,6 +184,48 @@ function requirePhoneOrIcFormat(value, label) {
     requireIcDashFormat(text, label);
   }
 }
+
+function digitsOnly(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
+function formatPhoneInput(value) {
+  const digits = digitsOnly(value).slice(0, 11);
+  if (digits.length <= 3) return digits;
+  return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+}
+
+function formatIcInput(value) {
+  const digits = digitsOnly(value).slice(0, 12);
+  if (digits.length <= 6) return digits;
+  if (digits.length <= 8) return `${digits.slice(0, 6)}-${digits.slice(6)}`;
+  return `${digits.slice(0, 6)}-${digits.slice(6, 8)}-${digits.slice(8)}`;
+}
+
+function formatPhoneOrIcInput(value) {
+  const digits = digitsOnly(value);
+  if (digits.startsWith("01")) return formatPhoneInput(digits);
+  return formatIcInput(digits);
+}
+
+function attachAutoFormatters(root = document) {
+  const scope = root instanceof Element ? root : document;
+  scope.querySelectorAll("[data-format]").forEach((input) => {
+    if (input instanceof HTMLInputElement && input.dataset.autoFormatAttached !== "true") {
+      input.dataset.autoFormatAttached = "true";
+      input.addEventListener("input", () => {
+        const format = input.dataset.format;
+        const formatted = format === "phone"
+          ? formatPhoneInput(input.value)
+          : format === "ic"
+            ? formatIcInput(input.value)
+            : formatPhoneOrIcInput(input.value);
+        if (input.value !== formatted) input.value = formatted;
+      });
+    }
+  });
+}
+
 function showCheckAnswer(html) {
   const node = document.querySelector("#checkAnswer");
   if (!node) return;
@@ -241,6 +283,7 @@ function syncDaftarFields() {
     id.required = true;
     id.type = "text";
     id.inputMode = show ? "text" : "tel";
+    id.dataset.format = show ? "ic" : "phone";
     id.placeholder = show ? "IC format XXXXXX-XX-XXXX, contoh: XXXXXX-XX-XXXX" : "Contoh: 01X-XXXXXX";
     id.title = show ? "No. IC mesti format XXXXXX-XX-XXXX." : "No. telefon mesti format 01X-XXXXXX.";
   }
@@ -268,6 +311,7 @@ checkType?.addEventListener("change", () => {
 });
 
 syncDaftarFields();
+attachAutoFormatters();
 
 if (checkForm) {
   checkForm.addEventListener("submit", async (event) => {
@@ -479,7 +523,7 @@ function addDependantRow() {
   row.className = "dependant-row";
   row.innerHTML = `
     <input type="text" placeholder="Nama penuh">
-    <input type="text" placeholder="No. IC / sijil lahir">
+    <input type="text" data-format="ic" placeholder="No. IC / sijil lahir">
     <select>
       <option></option>
       <option>Lelaki</option>
@@ -495,6 +539,7 @@ function addDependantRow() {
   `;
   rows.appendChild(row);
   row.querySelector("select:last-child").value = dependantDefaultStatus();
+  attachAutoFormatters(row);
 }
 
 addDependant?.addEventListener("click", addDependantRow);
