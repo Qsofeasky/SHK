@@ -16,26 +16,49 @@ if (toggle && menu) {
 }
 
 const publicSections = [...document.querySelectorAll(".view-section")];
+const homeSections = [...document.querySelectorAll("[data-home-section]")];
+
+function showHomeSections() {
+  homeSections.forEach((section) => {
+    section.hidden = false;
+  });
+  publicSections.forEach((section) => {
+    section.hidden = true;
+  });
+}
+
+function showHomeSection(sectionId) {
+  homeSections.forEach((section) => {
+    section.hidden = section.id !== sectionId;
+  });
+  publicSections.forEach((section) => {
+    section.hidden = true;
+  });
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
 
 function showPublicSection(sectionId) {
+  homeSections.forEach((section) => {
+    section.hidden = true;
+  });
   publicSections.forEach((section) => {
     section.hidden = section.id !== sectionId;
   });
+  window.scrollTo({ top: 0, behavior: "auto" });
 }
 
 function handlePublicRoute() {
   const sectionId = window.location.hash.replace("#", "");
   if (!sectionId || sectionId === "home") {
-    publicSections.forEach((section) => {
-      section.hidden = true;
-    });
+    showHomeSections();
     return;
   }
 
   const target = document.getElementById(sectionId);
   if (target?.classList.contains("view-section")) {
     showPublicSection(sectionId);
-    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  } else if (target?.hasAttribute("data-home-section")) {
+    showHomeSection(sectionId);
   }
 }
 
@@ -662,8 +685,10 @@ if (paymentForm) {
     try {
       const payerPhone = document.querySelector("#payerIdentifier").value.trim();
       const bank = document.querySelector("#paymentBank")?.value.trim() || "";
+      const reference = document.querySelector("#paymentReference")?.value.trim() || "";
       const remark = document.querySelector("#paymentRemark")?.value.trim() || "khairat kematian/yuran";
-      const note = [remark, bank ? `Bank: ${bank}` : ""].filter(Boolean).join(" | ");
+      const manualNote = document.querySelector("#paymentNote")?.value.trim() || "";
+      const note = [remark, bank ? `Bank: ${bank}` : "", reference ? `Rujukan: ${reference}` : "", manualNote].filter(Boolean).join(" | ");
       requirePhoneFormat(payerPhone, "No. telefon");
 
       const [receipt] = await callRpc("submit_payment_with_receipt", {
@@ -672,9 +697,9 @@ if (paymentForm) {
         p_payment_method: document.querySelector("#paymentMethod").value,
         p_payment_year: Number(document.querySelector("#paymentYear").value) || new Date().getFullYear(),
         p_amount: Number(document.querySelector("#paymentAmount").value) || null,
-        p_bank_statement_ref: bank || null,
+        p_bank_statement_ref: reference || null,
         p_apply_excess_to_next_year: document.querySelector("#applyExcess").checked,
-        p_note: note || document.querySelector("#paymentNote")?.value.trim() || null
+        p_note: note || null
       });
       await queueAdminReminder("Bayaran perlu pengesahan", `Bayaran ${document.querySelector("#payerName").value.trim()} perlu disemak dengan rekod bank.`);
 
@@ -814,8 +839,9 @@ if (donationForm) {
 
     try {
       const donationBank = document.querySelector("#donationBank")?.value.trim() || "";
+      const donationReference = document.querySelector("#donationReference")?.value.trim() || "";
       const donationNote = document.querySelector("#donationNote").value.trim() || "khairat kematian/sumbangan";
-      const note = [donationNote, donationBank ? `Bank: ${donationBank}` : ""].filter(Boolean).join(" | ");
+      const note = [donationNote, donationBank ? `Bank: ${donationBank}` : "", donationReference ? `Rujukan: ${donationReference}` : ""].filter(Boolean).join(" | ");
       await insertRow("non_member_donations", {
         phone: (() => { const value = document.querySelector("#donorPhone").value.trim(); requirePhoneFormat(value, "No. telefon"); return value || null; })(),
         donor_name: document.querySelector("#donorName").value.trim(),

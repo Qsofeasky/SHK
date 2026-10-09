@@ -545,6 +545,7 @@ function renderPaymentCard(record) {
       <p>Tahun: ${escapeHtml(record.payment_year || "-")}</p>
       <p>Jumlah: RM${escapeHtml(String(record.amount || "0"))}</p>
       <p>No. Resit: ${escapeHtml(record.receipt_no || "-")}</p>
+      <p>No. Rujukan Bank: ${escapeHtml(record.bank_statement_ref || "-")}</p>
       ${record.receipt_proof_url ? `<p><a href="${escapeHtml(record.receipt_proof_url)}" target="_blank" rel="noopener">Buka bukti bayaran</a></p>` : ""}
       ${record.receipt_proof_data ? `<p><a href="${escapeHtml(record.receipt_proof_data)}" download="${escapeHtml(record.receipt_proof_name || "resit-bayaran.png")}">Muat turun gambar resit</a></p>` : ""}
       <p>Catatan: ${escapeHtml(record.note || "-")}</p>
@@ -564,6 +565,7 @@ function renderDonationCard(record) {
       <p>Status: ${escapeHtml(displayStatus(record.status))}</p>
       <p>Telefon: ${escapeHtml(record.phone || "-")}</p>
       <p>Jumlah: RM${escapeHtml(String(record.amount || "0"))}</p>
+      <p>Catatan: ${escapeHtml(record.note || "-")}</p>
       <div class="form-actions">
         ${record.status === "pending" ? `<button class="button button--primary" data-action="approve-donation" data-id="${record.id}" type="button">Sahkan</button>` : ""}
         <button class="button button--secondary" data-action="reject-donation" data-id="${record.id}" type="button">Tolak</button>
