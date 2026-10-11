@@ -13,6 +13,13 @@ const adminPanel = document.querySelector("#adminPanel");
 const adminToggle = document.querySelector("#adminNavToggle");
 const adminMenu = document.querySelector("#admin-menu");
 let paidOverviewRecords = [];
+let paidYearSummary = {
+  year: new Date().getFullYear(),
+  totalAmount: 0,
+  paidCount: 0,
+  unpaidCount: 0
+};
+let paidAllYearTotals = [];
 let locationRecords = [];
 
 const paidYearFilter = document.querySelector("#paidYearFilter");
@@ -215,6 +222,15 @@ function showAdminError(error) {
   renderLocationTable([]);
   renderCards("#donationList", [], renderDonationCard);
   renderCards("#exitList", [], renderExitCard);
+  paidYearSummary = {
+    year: Number(paidYearFilter?.value) || new Date().getFullYear(),
+    totalAmount: 0,
+    paidCount: 0,
+    unpaidCount: 0
+  };
+  paidAllYearTotals = [];
+  renderPaidSummary();
+  renderAllYearTotals();
   renderPaidTable([]);
   setText("#lastReceiptNo", "Belum ada");
 }
@@ -297,12 +313,29 @@ async function loadPaidOverview() {
   const year = Number(paidYearFilter?.value) || new Date().getFullYear();
   const members = await supabaseRequest("members?select=member_no,member_name,phone,email&membership_status=eq.aktif&order=member_name.asc&limit=1000");
   const payments = await supabaseRequest(`member_yearly_payments?payment_year=eq.${year}&select=member_no,member_name,amount&limit=1000`);
-  const paidKeys = new Set(payments.map((payment) => normalKey(payment.member_no || payment.member_name)));
+  const allPayments = await supabaseRequest("member_yearly_payments?select=payment_year,amount&limit=10000");
+  const paymentAmounts = payments.reduce((map, payment) => {
+    const key = normalKey(payment.member_no || payment.member_name);
+    if (!key) return map;
+    map.set(key, (map.get(key) || 0) + paymentAmount(payment.amount));
+    return map;
+  }, new Map());
+  const paidKeys = new Set(paymentAmounts.keys());
   paidOverviewRecords = members.map((member) => ({
     ...member,
     payment_year: year,
-    paid: paidKeys.has(normalKey(member.member_no || member.member_name))
+    paid: paidKeys.has(normalKey(member.member_no || member.member_name)),
+    amount: paymentAmounts.get(normalKey(member.member_no || member.member_name)) || 0
   }));
+  paidYearSummary = {
+    year,
+    totalAmount: payments.reduce((total, payment) => total + paymentAmount(payment.amount), 0),
+    paidCount: paidOverviewRecords.filter((record) => record.paid).length,
+    unpaidCount: paidOverviewRecords.filter((record) => !record.paid).length
+  };
+  paidAllYearTotals = summarizePaymentsByYear(allPayments);
+  renderPaidSummary();
+  renderAllYearTotals();
   renderPaidTable(filteredPaidRecords());
 }
 
@@ -376,6 +409,87 @@ function filteredPaidRecords() {
       || normalKey(record.member_no).includes(query)
       || normalKey(record.email).includes(query);
   });
+}
+
+function paymentAmount(value) {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount : 0;
+}
+
+function formatMoney(value) {
+  return `RM${paymentAmount(value).toLocaleString("ms-MY", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
+}
+
+function summarizePaymentsByYear(payments) {
+  const totals = payments.reduce((map, payment) => {
+    const year = Number(payment.payment_year) || 0;
+    if (!year) return map;
+    const current = map.get(year) || { year, totalAmount: 0, recordCount: 0 };
+    current.totalAmount += paymentAmount(payment.amount);
+    current.recordCount += 1;
+    map.set(year, current);
+    return map;
+  }, new Map());
+
+  return [...totals.values()].sort((a, b) => b.year - a.year);
+}
+
+function renderPaidSummary() {
+  const container = document.querySelector("#paidYearSummary");
+  if (!container) return;
+
+  container.innerHTML = `
+    <article class="price-card">
+      <span>Jumlah Bayaran ${escapeHtml(String(paidYearSummary.year))}</span>
+      <strong>${escapeHtml(formatMoney(paidYearSummary.totalAmount))}</strong>
+      <small>Total bayaran ahli yang direkodkan untuk tahun ini.</small>
+    </article>
+    <article class="price-card">
+      <span>Ahli Sudah Bayar</span>
+      <strong>${escapeHtml(String(paidYearSummary.paidCount))}</strong>
+      <small>Ahli aktif dengan rekod bayaran tahun dipilih.</small>
+    </article>
+    <article class="price-card">
+      <span>Ahli Belum Bayar</span>
+      <strong>${escapeHtml(String(paidYearSummary.unpaidCount))}</strong>
+      <small>Ahli aktif tanpa rekod bayaran tahun dipilih.</small>
+    </article>
+  `;
+}
+
+function renderAllYearTotals() {
+  const container = document.querySelector("#paidAllYearTotals");
+  if (!container) return;
+
+  if (!paidAllYearTotals.length) {
+    container.innerHTML = `<p class="empty-state">Belum ada rekod bayaran tahunan.</p>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <h4 class="table-title">Jumlah Bayaran Mengikut Tahun</h4>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Tahun</th>
+          <th>Jumlah Bayaran</th>
+          <th>Bilangan Rekod Bayaran</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${paidAllYearTotals.map((record) => `
+          <tr>
+            <td>${escapeHtml(String(record.year))}</td>
+            <td>${escapeHtml(formatMoney(record.totalAmount))}</td>
+            <td>${escapeHtml(String(record.recordCount))}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
 }
 
 function filteredLocationRecords() {
@@ -607,6 +721,7 @@ function renderPaidTable(records) {
           <th>Nama Ahli</th>
           <th>No. Ahli</th>
           <th>Tahun</th>
+          <th>Jumlah Bayaran</th>
           <th>Status</th>
           <th>Email</th>
         </tr>
@@ -617,6 +732,7 @@ function renderPaidTable(records) {
             <td>${escapeHtml(record.member_name || "-")}</td>
             <td>${escapeHtml(record.member_no || "-")}</td>
             <td>${escapeHtml(String(record.payment_year))}</td>
+            <td>${record.paid ? escapeHtml(formatMoney(record.amount)) : "-"}</td>
             <td><span class="status-pill ${record.paid ? "status-pill--success" : ""}">${record.paid ? "Sudah Bayar" : "Belum Bayar"}</span></td>
             <td>${escapeHtml(record.email || "-")}</td>
           </tr>

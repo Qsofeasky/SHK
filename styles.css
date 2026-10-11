@@ -1048,6 +1048,19 @@ textarea:focus {
   margin-bottom: 28px;
 }
 
+.paid-summary {
+  margin: 0 0 18px;
+}
+
+.paid-year-totals {
+  margin-bottom: 18px;
+}
+
+.table-title {
+  margin: 0 0 12px;
+  color: var(--green-950);
+}
+
 .admin-list--wide {
   grid-column: 1 / -1;
 }
