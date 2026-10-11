@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Admin Khairat SHK</title>
-    <link rel="stylesheet" href="styles.css?v=20261011-paid-year-total">
+    <link rel="stylesheet" href="styles.css?v=20261011-approval-counts">
   </head>
   <body>
     <header class="site-header">
@@ -107,15 +107,15 @@
             </div>
           </section>
           <section class="admin-list">
-            <h3>Semakan / Daftar Ahli</h3>
+            <h3 class="admin-list-title">Semakan / Daftar Ahli <span id="membershipPendingCount" class="count-badge">0</span></h3>
             <div id="membershipList" class="admin-cards"></div>
           </section>
           <section class="admin-list">
-            <h3>Kemaskini Maklumat</h3>
+            <h3 class="admin-list-title">Kemaskini Maklumat <span id="dependantPendingCount" class="count-badge">0</span></h3>
             <div id="dependantList" class="admin-cards"></div>
           </section>
           <section class="admin-list">
-            <h3>Bayaran</h3>
+            <h3 class="admin-list-title">Bayaran <span id="paymentPendingCount" class="count-badge">0</span></h3>
             <div id="paymentList" class="admin-cards"></div>
           </section>
         </div>
@@ -213,7 +213,7 @@
       </section>
     </main>
 
-    <script src="supabase-config.js?v=20261011-paid-match-status"></script>
-    <script src="admin.js?v=20261011-paid-match-status"></script>
+    <script src="supabase-config.js?v=20261011-approval-counts"></script>
+    <script src="admin.js?v=20261011-approval-counts"></script>
   </body>
 </html>

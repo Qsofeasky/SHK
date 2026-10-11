@@ -1081,6 +1081,27 @@ textarea:focus {
   color: var(--green-950);
 }
 
+.admin-list-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 26px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #fff3cf;
+  color: #7a4b00;
+  font-size: 0.9rem;
+  font-weight: 800;
+  border: 1px solid rgba(222, 174, 54, 0.35);
+}
+
 .admin-cards {
   display: grid;
   gap: 14px;

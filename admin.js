@@ -536,6 +536,9 @@ async function updateAdminSummary(paidRecords = []) {
   const notPaidCount = paidRecords.length - paidCount;
 
   setText("#pendingCount", String(pendingCount));
+  setText("#membershipPendingCount", String(pendingCounts[0]));
+  setText("#dependantPendingCount", String(pendingCounts[1]));
+  setText("#paymentPendingCount", String(pendingCounts[2]));
   setText("#paidCount", String(paidCount));
   setText("#notPaidCount", String(notPaidCount));
 }
