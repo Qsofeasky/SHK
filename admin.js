@@ -311,21 +311,33 @@ async function loadExitRequests() {
 
 async function loadPaidOverview() {
   const year = Number(paidYearFilter?.value) || new Date().getFullYear();
-  const members = await supabaseRequest("members?select=member_no,member_name,phone,email&membership_status=eq.aktif&order=member_name.asc&limit=1000");
+  const members = await supabaseRequest("members?select=member_no,member_name,ic_no,phone,email&membership_status=eq.aktif&order=member_name.asc&limit=1000");
   const payments = await supabaseRequest(`member_yearly_payments?payment_year=eq.${year}&select=member_no,member_name,amount&limit=1000`);
+  const submissions = await supabaseRequest(`payments?payment_year=eq.${year}&select=payer_identifier,payer_name,amount,status&limit=1000`);
   const allPayments = await supabaseRequest("member_yearly_payments?select=payment_year,amount&limit=10000");
   const paymentAmounts = payments.reduce((map, payment) => {
-    const key = normalKey(payment.member_no || payment.member_name);
-    if (!key) return map;
-    map.set(key, (map.get(key) || 0) + paymentAmount(payment.amount));
+    paymentKeys(payment).forEach((key) => {
+      map.set(key, (map.get(key) || 0) + paymentAmount(payment.amount));
+    });
     return map;
   }, new Map());
   const paidKeys = new Set(paymentAmounts.keys());
+  const submissionMap = submissions.reduce((map, submission) => {
+    submissionKeys(submission).forEach((key) => {
+      const current = map.get(key) || { status: "", amount: 0 };
+      current.status = current.status === "verified" ? current.status : submission.status || "pending";
+      current.amount = Math.max(current.amount, paymentAmount(submission.amount));
+      map.set(key, current);
+    });
+    return map;
+  }, new Map());
   paidOverviewRecords = members.map((member) => ({
     ...member,
     payment_year: year,
-    paid: paidKeys.has(normalKey(member.member_no || member.member_name)),
-    amount: paymentAmounts.get(normalKey(member.member_no || member.member_name)) || 0
+    paid: memberKeys(member).some((key) => paidKeys.has(key)),
+    pending_payment: memberKeys(member).some((key) => submissionMap.has(key)),
+    pending_payment_status: memberKeys(member).map((key) => submissionMap.get(key)?.status).find(Boolean) || "",
+    amount: memberKeys(member).reduce((amount, key) => Math.max(amount, paymentAmounts.get(key) || submissionMap.get(key)?.amount || 0), 0)
   }));
   paidYearSummary = {
     year,
@@ -1229,6 +1241,26 @@ async function moveMemberToInactive() {
 
 function normalKey(value) {
   return String(value || "").trim().toLowerCase();
+}
+
+function compactKey(value) {
+  return normalKey(value).replace(/[^a-z0-9]/g, "");
+}
+
+function uniqueKeys(values) {
+  return [...new Set(values.flatMap((value) => {
+    const normal = normalKey(value);
+    const compact = compactKey(value);
+    return [normal, compact].filter(Boolean);
+  }))];
+}
+
+function memberKeys(member) {
+  return uniqueKeys([member.member_no, member.member_name, member.ic_no, member.phone]);
+}
+
+function paymentKeys(payment) {
+  return uniqueKeys([payment.member_no, payment.member_name]);
 }
 
 function isIcDashFormat(value) {
