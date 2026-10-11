@@ -744,8 +744,8 @@ function renderPaidTable(records) {
             <td>${escapeHtml(record.member_name || "-")}</td>
             <td>${escapeHtml(record.member_no || "-")}</td>
             <td>${escapeHtml(String(record.payment_year))}</td>
-            <td>${record.paid ? escapeHtml(formatMoney(record.amount)) : "-"}</td>
-            <td><span class="status-pill ${record.paid ? "status-pill--success" : ""}">${record.paid ? "Sudah Bayar" : "Belum Bayar"}</span></td>
+            <td>${record.amount ? escapeHtml(formatMoney(record.amount)) : "-"}</td>
+            <td>${renderPaidStatus(record)}</td>
             <td>${escapeHtml(record.email || "-")}</td>
           </tr>
         `).join("")}
@@ -756,6 +756,18 @@ function renderPaidTable(records) {
   container.querySelectorAll("[data-action]").forEach((button) => {
     button.addEventListener("click", handleAdminAction);
   });
+}
+
+function renderPaidStatus(record) {
+  if (record.paid || record.pending_payment_status === "verified") {
+    return `<span class="status-pill status-pill--success">Sudah Bayar</span>`;
+  }
+
+  if (record.pending_payment) {
+    return `<span class="status-pill">Menunggu Pengesahan</span>`;
+  }
+
+  return `<span class="status-pill">Belum Bayar</span>`;
 }
 
 async function handleAdminAction(event) {
@@ -901,6 +913,12 @@ function memberMatchPath(identifier, memberName = "") {
   return `members?or=(member_no.eq.${value},ic_no.eq.${value},phone.eq.${value},member_name.eq.${name})`;
 }
 
+async function findMemberForPayment(record) {
+  const path = `${memberMatchPath(record.payer_identifier || "", record.payer_name || "")}&select=member_no,member_name,ic_no,phone&limit=1`;
+  const [member] = await supabaseRequest(path);
+  return member || null;
+}
+
 async function deleteDependant(update, item) {
   let path = "member_dependants?";
   if (item.dependant_ic) {
@@ -939,6 +957,7 @@ async function updateDependant(update, item) {
 
 async function approvePayment(id) {
   const [record] = await supabaseRequest(`payments?id=eq.${id}&select=*`);
+  const member = await findMemberForPayment(record);
   const bankStatementRef = prompt("Masukkan rujukan bank / catatan semakan:", record.bank_statement_ref || record.receipt_no || "") || record.bank_statement_ref || null;
   const officialReceiptNo = parseReceiptNo(record.receipt_no)
     ? normalizeReceiptSearch(record.receipt_no)
@@ -953,8 +972,8 @@ async function approvePayment(id) {
     method: "POST",
     headers: { Prefer: "return=minimal" },
     body: JSON.stringify({
-      member_no: record.payer_identifier || null,
-      member_name: record.payer_name,
+      member_no: member?.member_no || record.payer_identifier || null,
+      member_name: member?.member_name || record.payer_name,
       payment_year: year,
       amount: currentYearAmount,
       receipt_no: officialReceiptNo,
@@ -968,8 +987,8 @@ async function approvePayment(id) {
       method: "POST",
       headers: { Prefer: "return=minimal" },
       body: JSON.stringify({
-        member_no: record.payer_identifier || null,
-        member_name: record.payer_name,
+        member_no: member?.member_no || record.payer_identifier || null,
+        member_name: member?.member_name || record.payer_name,
         payment_year: year + 1,
         amount: excessAmount,
         receipt_no: officialReceiptNo,
@@ -1261,6 +1280,10 @@ function memberKeys(member) {
 
 function paymentKeys(payment) {
   return uniqueKeys([payment.member_no, payment.member_name]);
+}
+
+function submissionKeys(submission) {
+  return uniqueKeys([submission.payer_identifier, submission.payer_name]);
 }
 
 function isIcDashFormat(value) {
