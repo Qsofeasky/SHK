@@ -812,24 +812,31 @@ async function handleAdminAction(event) {
 async function approveMembership(id) {
   const [record] = await supabaseRequest(`membership_checks?id=eq.${id}&select=*`);
 
-  if (record.check_type === "daftar") {
-    await supabaseRequest("members", {
-      method: "POST",
-      headers: { Prefer: "return=minimal" },
-      body: JSON.stringify({
-        member_no: record.member_identifier || null,
-        member_name: record.member_name,
-        ic_no: record.member_identifier || null,
-        phone: record.phone || null,
-        email: record.email || null,
-        occupation: record.occupation || null,
-        address: record.address || null,
-        source_sheet: "WEBSITE",
-        source_submission_id: record.id
-      })
-    });
-  }
+  if (!record) throw new Error("Permohonan tidak dijumpai.");
+  if (record.status === "approved") return;
 
+  if (record.check_type === "daftar") {
+    const existing = await supabaseRequest(`members?source_submission_id=eq.${encodeURIComponent(id)}&select=id&limit=2`);
+    if (!existing.length) {
+      await supabaseRequest("members", {
+        method: "POST",
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify({
+          member_no: record.member_identifier || null,
+          member_name: record.member_name,
+          ic_no: record.member_identifier || null,
+          phone: record.phone || null,
+          email: record.email || null,
+          occupation: record.occupation || null,
+          address: record.address || null,
+          source_sheet: "WEBSITE",
+          source_submission_id: record.id
+        })
+      });
+    }
+    const saved = await supabaseRequest(`members?source_submission_id=eq.${encodeURIComponent(id)}&select=id&limit=2`);
+    if (saved.length !== 1) throw new Error("Rekod ahli belum disimpan dengan tepat. Kelulusan dihentikan.");
+  }
   await updateStatus("membership_checks", id, "approved");
 }
 
@@ -852,6 +859,10 @@ async function openIcProof(path) {
 
 async function approveDependant(id) {
   const [update] = await supabaseRequest(`dependant_updates?id=eq.${id}&select=*`);
+  if (!update) throw new Error("Permohonan tidak dijumpai.");
+  if (update.status === "approved") return;
+  const member = await resolveUpdateMember(update);
+  const targetPath = `members?id=eq.${encodeURIComponent(member.id)}`;
   const items = await supabaseRequest(`dependant_update_items?update_id=eq.${id}&select=*`);
 
   for (const item of items) {
@@ -860,8 +871,8 @@ async function approveDependant(id) {
         method: "POST",
         headers: { Prefer: "return=minimal" },
         body: JSON.stringify({
-          member_no: update.member_identifier,
-          member_name: update.member_name,
+          member_no: member.member_no,
+          member_name: member.member_name,
           dependant_name: item.dependant_name,
           dependant_ic: item.dependant_ic,
           gender: item.gender,
@@ -883,11 +894,12 @@ async function approveDependant(id) {
   }
 
   if (update.dependant_total !== null) {
-    await supabaseRequest(memberMatchPath(update.member_identifier, update.member_name), {
+    const changed = await supabaseRequest(targetPath, {
       method: "PATCH",
-      headers: { Prefer: "return=minimal" },
+      headers: { Prefer: "return=representation" },
       body: JSON.stringify({ dependant_count: update.dependant_total })
     });
+    if (changed?.length !== 1) throw new Error("Jumlah tanggungan tidak berjaya dikemaskini. Kelulusan dihentikan.");
   }
 
   const memberPatch = {};
@@ -897,14 +909,36 @@ async function approveDependant(id) {
   if (update.new_address) memberPatch.address = update.new_address;
 
   if (Object.keys(memberPatch).length) {
-    await supabaseRequest(memberMatchPath(update.member_identifier, update.member_name), {
+    const changed = await supabaseRequest(targetPath, {
       method: "PATCH",
-      headers: { Prefer: "return=minimal" },
+      headers: { Prefer: "return=representation" },
       body: JSON.stringify(memberPatch)
     });
+    if (changed?.length !== 1) throw new Error("Maklumat ahli tidak berjaya dikemaskini. Kelulusan dihentikan.");
   }
 
   await updateStatus("dependant_updates", id, "approved");
+}
+
+async function resolveUpdateMember(update) {
+  const identifier = String(update.member_identifier || "").trim();
+  const name = String(update.member_name || "").trim();
+  let matches = [];
+  if (identifier) {
+    const variants = new Set([identifier]);
+    const digits = identifier.replace(/\D/g, "");
+    if (digits.length >= 7) {
+      variants.add(digits);
+      if (digits.length === 12) variants.add(digits.slice(0, 6) + "-" + digits.slice(6, 8) + "-" + digits.slice(8));
+      if (digits.startsWith("01")) variants.add(digits.slice(0, 3) + "-" + digits.slice(3));
+    }
+    const terms = [...variants].flatMap(value => ["member_no", "ic_no", "phone"].map(field => field + ".eq." + JSON.stringify(value)));
+    matches = await supabaseRequest("members?or=" + encodeURIComponent("(" + terms.join(",") + ")") + "&select=id,member_no,member_name&limit=2");
+  } else if (name) {
+    matches = await supabaseRequest("members?member_name=eq." + encodeURIComponent(name) + "&select=id,member_no,member_name&limit=2");
+  }
+  if (matches.length !== 1) throw new Error(matches.length ? "Lebih daripada satu ahli sepadan. Sila semak IC atau telefon ahli." : "Rekod ahli tidak dijumpai. Sila semak IC atau telefon ahli sebelum luluskan.");
+  return matches[0];
 }
 
 function memberMatchPath(identifier, memberName = "") {
