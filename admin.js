@@ -648,6 +648,7 @@ function renderDependantCard(record) {
       <p>Status: ${escapeHtml(displayStatus(record.status))}</p>
       <p>Rujukan Ahli: ${escapeHtml(record.member_identifier)}</p>
       <p>No. Telefon / IC: ${escapeHtml(record.phone || record.member_identifier || "-")}</p>
+      ${record.applied_at ? `<p>Disimpan pada rekod ahli: ${escapeHtml(new Date(record.applied_at).toLocaleString("ms-MY"))}</p>` : record.status === "approved" ? `<p>Kelulusan lama: simpanan perlu disemak.</p>` : ""}
       ${record.new_name ? `<p>Nama Baru: ${escapeHtml(record.new_name)}</p>` : ""}
       ${record.new_phone ? `<p>No. Telefon Baru: ${escapeHtml(record.new_phone)}</p>` : ""}
       ${record.new_ic ? `<p>IC Baru: ${escapeHtml(record.new_ic)}</p>` : ""}
@@ -658,6 +659,7 @@ function renderDependantCard(record) {
       ${items ? `<ul>${items}</ul>` : ""}
       <div class="form-actions">
         ${record.status === "pending" ? `<button class="button button--primary" data-action="approve-dependant" data-id="${record.id}" type="button">Luluskan</button>` : ""}
+        ${record.status === "approved" && !record.applied_at ? `<button class="button button--secondary" data-action="repair-dependant" data-id="${record.id}" type="button">Semak dan Pulihkan</button>` : ""}
         <button class="button button--secondary" data-action="reject-dependant" data-id="${record.id}" type="button">Tolak</button>
       </div>
     </article>
@@ -792,6 +794,7 @@ async function handleAdminAction(event) {
     }
     if (action === "reject-membership") await updateStatus("membership_checks", id, "rejected");
     if (action === "approve-dependant") await approveDependant(id);
+    if (action === "repair-dependant") await repairDependant(id);
     if (action === "reject-dependant") await updateStatus("dependant_updates", id, "rejected");
     if (action === "approve-payment") await approvePayment(id);
     if (action === "reject-payment") await updateStatus("payments", id, "rejected");
@@ -858,66 +861,16 @@ async function openIcProof(path) {
 }
 
 async function approveDependant(id) {
-  const [update] = await supabaseRequest(`dependant_updates?id=eq.${id}&select=*`);
-  if (!update) throw new Error("Permohonan tidak dijumpai.");
-  if (update.status === "approved") return;
-  const member = await resolveUpdateMember(update);
-  const targetPath = `members?id=eq.${encodeURIComponent(member.id)}`;
-  const items = await supabaseRequest(`dependant_update_items?update_id=eq.${id}&select=*`);
+  await supabaseRpc("approve_member_update", { p_update_id: id });
+}
 
-  for (const item of items) {
-    if (item.item_status === "Tambah") {
-      await supabaseRequest("member_dependants", {
-        method: "POST",
-        headers: { Prefer: "return=minimal" },
-        body: JSON.stringify({
-          member_no: member.member_no,
-          member_name: member.member_name,
-          dependant_name: item.dependant_name,
-          dependant_ic: item.dependant_ic,
-          gender: item.gender,
-          age: item.age,
-          relationship: item.relationship,
-          source_sheet: "WEBSITE",
-          source_submission_id: update.id
-        })
-      });
-    }
-
-    if (item.item_status === "Buang") {
-      await deleteDependant(update, item);
-    }
-
-    if (item.item_status === "Kemaskini") {
-      await updateDependant(update, item);
-    }
-  }
-
-  if (update.dependant_total !== null) {
-    const changed = await supabaseRequest(targetPath, {
-      method: "PATCH",
-      headers: { Prefer: "return=representation" },
-      body: JSON.stringify({ dependant_count: update.dependant_total })
-    });
-    if (changed?.length !== 1) throw new Error("Jumlah tanggungan tidak berjaya dikemaskini. Kelulusan dihentikan.");
-  }
-
-  const memberPatch = {};
-  if (update.new_name) memberPatch.member_name = update.new_name;
-  if (update.new_phone) memberPatch.phone = update.new_phone;
-  if (update.new_ic) memberPatch.ic_no = update.new_ic;
-  if (update.new_address) memberPatch.address = update.new_address;
-
-  if (Object.keys(memberPatch).length) {
-    const changed = await supabaseRequest(targetPath, {
-      method: "PATCH",
-      headers: { Prefer: "return=representation" },
-      body: JSON.stringify(memberPatch)
-    });
-    if (changed?.length !== 1) throw new Error("Maklumat ahli tidak berjaya dikemaskini. Kelulusan dihentikan.");
-  }
-
-  await updateStatus("dependant_updates", id, "approved");
+async function repairDependant(id) {
+  const memberNo = prompt("Masukkan nombor ahli asal yang telah disahkan. Semak rekod ahli dan permohonan terlebih dahulu.");
+  if (!memberNo?.trim()) throw new Error("Pemulihan dibatalkan.");
+  const candidates = await supabaseRequest("members?member_no=eq." + encodeURIComponent(memberNo.trim()) + "&select=id,member_no,member_name&limit=2");
+  if (candidates.length !== 1) throw new Error("Nombor ahli tidak ditemui secara unik.");
+  if (!confirm("Pulihkan permohonan ini kepada " + candidates[0].member_name + " (No. " + candidates[0].member_no + ")? Semak supaya permohonan lama tidak menimpa maklumat terkini.")) throw new Error("Pemulihan dibatalkan.");
+  await supabaseRpc("approve_member_update", { p_update_id: id, p_repair: true, p_member_no: memberNo.trim() });
 }
 
 async function resolveUpdateMember(update) {
@@ -957,42 +910,6 @@ async function findMemberForPayment(record) {
     return member;
   }
   return resolveUpdateMember({ member_identifier: record.payer_identifier, member_name: record.payer_name });
-}
-
-async function deleteDependant(update, item) {
-  let path = "member_dependants?";
-  if (item.dependant_ic) {
-    path += `dependant_ic=eq.${encodeURIComponent(item.dependant_ic)}`;
-  } else {
-    path += `member_name=eq.${encodeURIComponent(update.member_name)}&dependant_name=eq.${encodeURIComponent(item.dependant_name || "")}`;
-  }
-
-  await supabaseRequest(path, {
-    method: "DELETE",
-    headers: { Prefer: "return=minimal" }
-  });
-}
-async function updateDependant(update, item) {
-  if (!item.dependant_ic && !item.dependant_name) return;
-
-  let path = "member_dependants?";
-  if (item.dependant_ic) {
-    path += `dependant_ic=eq.${encodeURIComponent(item.dependant_ic)}`;
-  } else {
-    path += `member_name=eq.${encodeURIComponent(update.member_name)}&dependant_name=eq.${encodeURIComponent(item.dependant_name || "")}`;
-  }
-
-  await supabaseRequest(path, {
-    method: "PATCH",
-    headers: { Prefer: "return=minimal" },
-    body: JSON.stringify({
-      dependant_name: item.dependant_name || null,
-      dependant_ic: item.dependant_ic || null,
-      gender: item.gender || null,
-      age: item.age || null,
-      relationship: item.relationship || null
-    })
-  });
 }
 
 async function approvePayment(id) {

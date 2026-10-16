@@ -438,8 +438,13 @@
               </div>
             </div>
 
-            <label id="dependantTotalField" hidden>Jumlah Tanggungan Selepas Kemaskini
-              <input type="number" min="0" id="dependantTotal" placeholder="Contoh: 4">
+            <div class="form-actions">
+              <button class="button button--secondary" id="lookupCurrentMember" type="button">Semak Maklumat Terkini</button>
+            </div>
+            <p class="form-message" id="currentMemberMessage" aria-live="polite"></p>
+            <div id="currentDependants" aria-live="polite" hidden></div>
+            <label id="dependantTotalField" hidden>Jumlah Tanggungan Semasa
+              <input type="number" min="0" id="dependantTotal" readonly placeholder="Semak maklumat ahli dahulu">
             </label>
 
             <div class="dependant-table" id="dependantRows" hidden>
@@ -650,6 +655,6 @@
     </footer>
 
     <script src="supabase-config.js?v=20261013-dependant-definition"></script>
-    <script src="script.js?v=20261013-dependant-definition"></script>
+    <script src="script.js?v=20261016-dependant-preview"></script>
   </body>
 </html>

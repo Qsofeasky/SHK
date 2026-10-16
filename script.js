@@ -528,7 +528,7 @@ function syncDependantFields() {
     memberName.placeholder = rowAction ? "Nama ahli" : "Isi jika ingat nama lama";
   }
   if (memberIdentifier) memberIdentifier.required = showSelfUpdate || rowAction;
-  if (dependantTotal) dependantTotal.required = rowAction;
+  if (dependantTotal) dependantTotal.required = false;
 
   document.querySelectorAll("#dependantRows .dependant-row:not(.dependant-row--head) select:last-child").forEach((select) => {
     select.value = dependantDefaultStatus();
@@ -540,7 +540,7 @@ function syncDependantFields() {
   }
 }
 
-function addDependantRow() {
+function addDependantRow(current = null) {
   if (!rows) return;
   const row = document.createElement("div");
   row.className = "dependant-row";
@@ -560,12 +560,22 @@ function addDependantRow() {
       <option>Kemaskini</option>
     </select>
   `;
+  if (current) {
+    row.dataset.targetDependantId = current.id;
+    const inputs = row.querySelectorAll("input");
+    inputs[0].value = current.dependant_name || "";
+    inputs[1].placeholder = current.masked_ic ? current.masked_ic + " (biarkan kosong jika kekal)" : "IC baharu jika berubah";
+    inputs[2].value = current.age ?? "";
+    inputs[3].value = current.relationship || "";
+    row.querySelector("select").value = current.gender || "";
+  }
   rows.appendChild(row);
   row.querySelector("select:last-child").value = dependantDefaultStatus();
+  row.querySelector("select:last-child").disabled = true;
   attachAutoFormatters(row);
 }
 
-addDependant?.addEventListener("click", addDependantRow);
+addDependant?.addEventListener("click", () => addDependantRow());
 
 dependantAction?.addEventListener("change", () => {
   syncDependantFields();
@@ -573,6 +583,88 @@ dependantAction?.addEventListener("change", () => {
 });
 
 syncDependantFields();
+
+let currentMemberPreview = null;
+let currentMemberIdentity = "";
+let currentLookupVersion = 0;
+let currentLookupTimer;
+const currentDependantsPanel = document.querySelector("#currentDependants");
+function currentIdentity() {
+  return [document.querySelector("#memberName")?.value.trim() || "", document.querySelector("#memberId")?.value.trim() || "", dependantAction?.value || ""].join("|");
+}
+function invalidateCurrentMember() {
+  currentLookupVersion++;
+  currentMemberPreview = null;
+  currentMemberIdentity = "";
+  if (currentDependantsPanel) { currentDependantsPanel.hidden = true; currentDependantsPanel.innerHTML = ""; }
+  rows?.querySelectorAll(".dependant-row:not(.dependant-row--head)").forEach(row => row.remove());
+  const total = document.querySelector("#dependantTotal");
+  if (total) total.value = "";
+  setMessage("#currentMemberMessage", "Semak nama dan telefon/IC terkini sebelum membuat perubahan.", "neutral");
+}
+async function loadCurrentMember() {
+  const identity = currentIdentity();
+  const version = ++currentLookupVersion;
+  const name = document.querySelector("#memberName")?.value.trim() || "";
+  const identifier = document.querySelector("#memberId")?.value.trim() || "";
+  try {
+    if (isDependantRowAction() && !name) throw new Error("Masukkan nama penuh ahli dahulu.");
+    if (!identifier) throw new Error("Masukkan telefon atau IC ahli dahulu.");
+    requirePhoneOrIcFormat(identifier, "Telefon / IC ahli");
+    setMessage("#currentMemberMessage", "Sedang menyemak rekod terkini...", "neutral");
+    const result = await callRpc("lookup_member_for_update", {p_member_name:name, p_identifier:identifier});
+    if (version !== currentLookupVersion || identity !== currentIdentity()) return;
+    currentMemberPreview = result;
+    currentMemberIdentity = identity;
+    const list = result.dependants || [];
+    document.querySelector("#dependantTotal").value = list.length;
+    const action = dependantAction?.value;
+    const canSelect = action === "Kurangkan Tanggungan" || action === "Kemaskini Maklumat Tanggungan";
+    currentDependantsPanel.hidden = false;
+    currentDependantsPanel.innerHTML = `<h4>${escapeHtml(result.member_name)} — Tanggungan Terkini (${list.length})</h4>
+      ${list.length ? list.map((d,index) => `<article class="info-card"><strong>${escapeHtml(d.dependant_name || "Tanpa nama")}</strong>
+        <p>${escapeHtml(d.relationship || "-")} · ${escapeHtml(d.gender || "-")} · Umur: ${escapeHtml(String(d.age ?? "-"))}</p>
+        <p>IC / sijil lahir: ${escapeHtml(d.masked_ic || "Tiada rekod")}</p>
+        ${canSelect ? `<button class="button button--secondary" type="button" data-current-dependant="${index}">${action === "Kurangkan Tanggungan" ? "Pilih untuk buang" : "Pilih untuk kemaskini"}</button>` : ""}</article>`).join("") : "<p>Belum ada tanggungan dalam rekod.</p>"}
+      <p>Perubahan hanya berkuat kuasa selepas kelulusan admin. IC penuh tidak dipaparkan; biarkan isian IC kosong untuk mengekalkannya.</p>`;
+    rows?.querySelectorAll(".dependant-row:not(.dependant-row--head)").forEach(row => row.remove());
+    if (action === "Tambah Tanggungan") addDependantRow();
+    if (addDependant) addDependant.hidden = action !== "Tambah Tanggungan";
+    setMessage("#currentMemberMessage", "Rekod terkini ditemui. Semak maklumat sebelum membuat permohonan.", "success");
+  } catch(error) {
+    if (version !== currentLookupVersion || identity !== currentIdentity()) return;
+    invalidateCurrentMember();
+    setMessage("#currentMemberMessage", error.message, "error");
+  }
+}
+currentDependantsPanel?.addEventListener("click", event => {
+  const button = event.target.closest("[data-current-dependant]");
+  if (!button || !currentMemberPreview || currentMemberIdentity !== currentIdentity()) return;
+  const dependant = currentMemberPreview.dependants[Number(button.dataset.currentDependant)];
+  if (!dependant || [...rows.querySelectorAll("[data-target-dependant-id]")].some(row => row.dataset.targetDependantId === dependant.id)) return;
+  addDependantRow(dependant);
+  button.disabled = true;
+});
+document.querySelector("#lookupCurrentMember")?.addEventListener("click", loadCurrentMember);
+["#memberName", "#memberId"].forEach(selector => document.querySelector(selector)?.addEventListener("input", () => {
+  invalidateCurrentMember();
+  clearTimeout(currentLookupTimer);
+  currentLookupTimer = setTimeout(() => {
+    const name = document.querySelector("#memberName")?.value.trim();
+    const identifier = document.querySelector("#memberId")?.value.trim();
+    if (!identifier || (isDependantRowAction() && !name)) return;
+    try { requirePhoneOrIcFormat(identifier, "Telefon / IC"); } catch { return; }
+    loadCurrentMember();
+  }, 600);
+}));
+dependantAction?.addEventListener("change", () => {
+  invalidateCurrentMember();
+  const name = document.querySelector("#memberName")?.value.trim();
+  const identifier = document.querySelector("#memberId")?.value.trim();
+  if (identifier && (!isDependantRowAction() || name)) loadCurrentMember();
+});
+invalidateCurrentMember();
+
 
 const dependantForm = document.querySelector("#dependantForm");
 
@@ -596,13 +688,17 @@ if (dependantForm) {
       }
       requirePhoneOrIcFormat(memberIdentifier, "No. telefon / IC ahli");
 
+      if (!currentMemberPreview || currentMemberIdentity !== currentIdentity()) {
+        throw new Error("Sila semak maklumat ahli terkini dahulu sebelum hantar.");
+      }
       const updatePayload = {
+        member_id: currentMemberPreview.member_id,
         id: crypto.randomUUID(),
-        member_name: memberName || memberIdentifier,
+        member_name: currentMemberPreview.member_name,
         member_identifier: memberIdentifier,
         phone: memberIdentifier,
         update_action: action,
-        dependant_total: rowAction ? Number(document.querySelector("#dependantTotal")?.value) || null : null
+        dependant_total: null
       };
 
       let items = [];
@@ -614,17 +710,21 @@ if (dependantForm) {
             const selects = row.querySelectorAll("select");
             return {
               update_id: updatePayload.id,
+              target_dependant_id: row.dataset.targetDependantId || null,
               dependant_name: inputs[0]?.value.trim() || null,
               dependant_ic: inputs[1]?.value.trim() || null,
               gender: selects[0]?.value || null,
-              age: Number(inputs[2]?.value) || null,
+              age: inputs[2]?.value === "" ? null : Number(inputs[2]?.value),
               relationship: inputs[3]?.value.trim() || null,
               item_status: selects[1]?.value || dependantDefaultStatus()
             };
           })
           .filter((item) => item.dependant_name || item.dependant_ic || item.relationship || item.gender || item.age);
 
-        items.forEach((item) => requireIcDashFormat(item.dependant_ic, "No. IC tanggungan"));
+        items.forEach((item) => {
+          requireIcDashFormat(item.dependant_ic, "No. IC tanggungan");
+          if (action !== "Tambah Tanggungan" && !item.target_dependant_id) throw new Error("Pilih tanggungan daripada senarai terkini.");
+        });
 
         if (!items.length) {
           throw new Error("Isi sekurang-kurangnya satu maklumat tanggungan.");
@@ -650,15 +750,15 @@ if (dependantForm) {
         }
       }
 
-      await insertRow("dependant_updates", updatePayload);
-      if (items.length) await insertRow("dependant_update_items", items);
+      await callRpc("submit_member_update", { p_payload: updatePayload, p_items: items });
       await queueAdminReminder("Kemaskini maklumat baru", `Kemaskini maklumat diterima untuk ${memberName || memberIdentifier}.`);
 
       dependantForm.reset();
+      invalidateCurrentMember();
       dependantDetectedLocation = null;
       syncDependantFields();
       setMessage("#dependantLocationMessage", "", "neutral");
-      setMessage("#dependantMessage", "Kemaskini berjaya dihantar untuk admin approval.", "success");
+      setMessage("#dependantMessage", "Permohonan diterima. Maklumat akan berubah selepas admin meluluskan dan simpanan disahkan.", "success");
     } catch (error) {
       setMessage("#dependantMessage", error.message, "error");
     }
