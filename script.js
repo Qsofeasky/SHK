@@ -314,7 +314,7 @@ function syncDaftarFields() {
     checkIdField.childNodes[0].textContent = show ? "No. IC" : "No. Telefon";
   }
   if (phone) phone.required = show;
-  if (email) email.required = show;
+  if (email) email.required = false;
   if (occupation) occupation.required = show;
   if (address) address.required = show;
   if (residenceType) residenceType.required = show;
