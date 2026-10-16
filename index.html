@@ -549,7 +549,11 @@
             <label>Catatan Bayaran
               <input id="paymentRemark" type="text" placeholder="Khairat kematian/yuran">
             </label>
-            <p>Lebihan yuran ahli akan diperuntukkan secara automatik ke tahun berikutnya selepas pengesahan admin. Bayaran yang belum cukup setahun direkod sebagai bayaran sebahagian.</p>
+            <label class="checkline">
+              <input id="paymentConfirmation" type="checkbox" required aria-describedby="paymentExcessNote">
+              Sahkan bayaran
+            </label>
+            <p id="paymentExcessNote"><strong>Nota:</strong> Jika terlebih bayar yuran ahli, lebihan akan dibawa ke tahun berikutnya secara automatik selepas pengesahan admin. Baki yang belum cukup untuk satu tahun direkod sebagai bayaran sebahagian.</p>
             <label>Rujukan / Catatan
               <textarea id="paymentNote" rows="3" placeholder="Jika guna tunai, sila tulis nama AJK penerima."></textarea>
             </label>
