@@ -792,7 +792,7 @@ if (paymentForm) {
       const note = [remark, bank ? `Bank: ${bank}` : "", reference ? `Rujukan: ${reference}` : "", manualNote].filter(Boolean).join(" | ");
       requirePhoneFormat(payerPhone, "No. telefon");
 
-      const [receipt] = await callRpc("submit_fee_payment", {
+      const receiptResponse = await callRpc("submit_fee_payment", {
         p_payer_name: document.querySelector("#payerName").value.trim(),
         p_payer_identifier: payerPhone || null,
         p_payment_method: document.querySelector("#paymentMethod").value,
@@ -802,6 +802,7 @@ if (paymentForm) {
         p_fee_type: document.querySelector("#paymentFeeType").value,
         p_note: note || null
       });
+      const receipt = Array.isArray(receiptResponse) ? receiptResponse[0] : receiptResponse;
       await queueAdminReminder("Bayaran perlu pengesahan", `Bayaran ${document.querySelector("#payerName").value.trim()} perlu disemak dengan rekod bank.`);
 
       paymentForm.reset();
