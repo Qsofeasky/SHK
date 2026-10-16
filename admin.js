@@ -869,12 +869,14 @@ async function approveDependant(id) {
 }
 
 async function repairDependant(id) {
-  const memberNo = prompt("Masukkan nombor ahli asal yang telah disahkan. Semak rekod ahli dan permohonan terlebih dahulu.");
-  if (!memberNo?.trim()) throw new Error("Pemulihan dibatalkan.");
-  const candidates = await supabaseRequest("members?member_no=eq." + encodeURIComponent(memberNo.trim()) + "&select=id,member_no,member_name&limit=2");
-  if (candidates.length !== 1) throw new Error("Nombor ahli tidak ditemui secara unik.");
-  if (!confirm("Pulihkan permohonan ini kepada " + candidates[0].member_name + " (No. " + candidates[0].member_no + ")? Semak supaya permohonan lama tidak menimpa maklumat terkini.")) throw new Error("Pemulihan dibatalkan.");
-  await supabaseRpc("approve_member_update", { p_update_id: id, p_repair: true, p_member_no: memberNo.trim() });
+  const phone = prompt("Masukkan nombor telefon ahli terkini dalam rekod sistem. Contoh: 01X-XXXXXXX.");
+  if (!phone?.trim()) throw new Error("Pemulihan dibatalkan.");
+  const member = await supabaseRpc("lookup_repair_member_by_phone", { p_phone: phone.trim() });
+  if (!member?.member_id) throw new Error("Telefon ahli tidak dapat disahkan.");
+  if (!confirm("Pulihkan permohonan ini kepada " + member.member_name + " (telefon berakhir " + member.phone_last4 + ")? Semak nama dan permohonan sebelum meneruskan.")) throw new Error("Pemulihan dibatalkan.");
+  const result = await supabaseRpc("repair_member_update_by_phone", { p_update_id: id, p_phone: phone.trim() });
+  if (!["applied", "already_applied"].includes(result?.status)) throw new Error("Simpanan belum dapat disahkan.");
+  alert("Pemulihan berjaya disahkan untuk " + member.member_name + ".");
 }
 
 async function resolveUpdateMember(update) {

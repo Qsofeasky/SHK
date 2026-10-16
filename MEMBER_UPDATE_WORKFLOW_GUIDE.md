@@ -22,7 +22,7 @@ Kod projek telah diubah. Database sebenar belum diubah dalam sesi ini.
 
 Kelulusan baharu menyimpan semua perubahan dan status bersama-sama dalam satu transaksi. Jika mana-mana baris gagal, semua perubahan permohonan itu dibatalkan. Bilangan tanggungan dikira berdasarkan rekod sebenar, termasuk sifar.
 
-Permohonan lama berstatus diluluskan tetapi belum mempunyai penanda simpanan memaparkan Semak dan Pulihkan. Semak maklumat permohonan, kemudian sahkan nombor ahli asal. Sistem memaparkan nama ahli sebelum pengesahan. Rekod yang tidak sepadan, tanggungan sudah tiada, atau permohonan lama yang berisiko menimpa permohonan lebih baharu tidak dipaksa.
+Permohonan lama berstatus diluluskan tetapi belum mempunyai penanda simpanan memaparkan Semak dan Pulihkan. Semak maklumat permohonan, kemudian sahkan nombor telefon terkini ahli. Sistem memaparkan nama ahli sebelum pengesahan. Rekod yang tidak sepadan, tanggungan sudah tiada, atau permohonan lama yang berisiko menimpa permohonan lebih baharu tidak dipaksa.
 
 Pemulihan kelompok menyokong kemaskini diri serta tambah, buang dan kemaskini tanggungan apabila pemilik dan sasaran dapat dipadankan secara unik. Rekod tanggungan lama yang mungkin telah dipadam atau IC telah berubah memerlukan semakan manual. Skrip tidak mencipta ahli utama yang tidak wujud.
 
@@ -36,3 +36,9 @@ Salinan rekod ahli dan senarai tanggungan sebelum setiap perubahan disimpan dala
 
 
 Semakan akhir membaca semula setiap tanggungan dan bilangan ahli sebelum merekodkan kelulusan. Jika database mengabaikan perubahan, transaksi dibatalkan. Untuk pemasangan yang sudah menjalankan SQL aliran baharu, kemas kini fungsi melalui SHK-sahkan-kelulusan-tanggungan.sql, kemudian deploy admin.js dan admin.html terkini.
+
+
+Pemulihan melalui admin kini menggunakan telefon, termasuk ahli tanpa nombor ahli. Masukkan telefon yang sedang tersimpan pada rekod ahli, bukan nombor baharu yang belum berjaya disimpan. Nama ahli dipaparkan sebelum pengesahan. Untuk pemasangan sedia ada, jalankan SHK-pemulihan-guna-telefon.sql dahulu kemudian deploy admin.js/admin.html baharu. 10 ujian khusus pemulihan melalui telefon lulus.
+
+
+Carian kemaskini kini menggunakan telefon/IC yang sepadan secara unik. Ejaan nama input tidak menyekat carian dan tidak menukar nama rasmi. Nama rasmi dipaparkan dan kotak pengesahan mesti ditandakan sebelum permohonan dihantar. Perbezaan seperti Abd/Abdul serta Muhamad/Mohamad/Muhammad/Mohd diterima kerana identiti ditentukan oleh telefon/IC, bukan kerana nama-nama itu digabungkan. Jika telefon dikongsi oleh beberapa ahli, padanan tetap ditolak. Untuk sistem sedia ada, jalankan SHK-padan-telefon-IC-unik.sql kemudian deploy index.html/script.js.

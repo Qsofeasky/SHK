@@ -621,7 +621,7 @@ async function loadCurrentMember() {
     const action = dependantAction?.value;
     const canSelect = action === "Kurangkan Tanggungan" || action === "Kemaskini Maklumat Tanggungan";
     currentDependantsPanel.hidden = false;
-    currentDependantsPanel.innerHTML = `<h4>${escapeHtml(result.member_name)} — Tanggungan Terkini (${list.length})</h4>
+    currentDependantsPanel.innerHTML = `<label><input type="checkbox" id="confirmCurrentMember"> Saya sahkan rekod ini ialah ahli yang dimaksudkan: <strong>${escapeHtml(result.member_name)}</strong></label><h4>${escapeHtml(result.member_name)} — Tanggungan Terkini (${list.length})</h4>
       ${list.length ? list.map((d,index) => `<article class="info-card"><strong>${escapeHtml(d.dependant_name || "Tanpa nama")}</strong>
         <p>${escapeHtml(d.relationship || "-")} · ${escapeHtml(d.gender || "-")} · Umur: ${escapeHtml(String(d.age ?? "-"))}</p>
         <p>IC / sijil lahir: ${escapeHtml(d.masked_ic || "Tiada rekod")}</p>
@@ -691,6 +691,7 @@ if (dependantForm) {
       if (!currentMemberPreview || currentMemberIdentity !== currentIdentity()) {
         throw new Error("Sila semak maklumat ahli terkini dahulu sebelum hantar.");
       }
+      if (!document.querySelector("#confirmCurrentMember")?.checked) throw new Error("Sahkan nama rasmi ahli yang dipaparkan sebelum menghantar permohonan.");
       const updatePayload = {
         member_id: currentMemberPreview.member_id,
         id: crypto.randomUUID(),
