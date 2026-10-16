@@ -803,7 +803,7 @@ if (paymentForm) {
         p_note: note || null
       });
       const receipt = Array.isArray(receiptResponse) ? receiptResponse[0] : receiptResponse;
-      await queueAdminReminder("Bayaran perlu pengesahan", `Bayaran ${document.querySelector("#payerName").value.trim()} perlu disemak dengan rekod bank.`);
+      void queueAdminReminder("Bayaran perlu pengesahan", `Bayaran ${document.querySelector("#payerName").value.trim()} perlu disemak dengan rekod bank.`);
 
       paymentForm.reset();
       if (paymentYearInput) {
@@ -812,7 +812,8 @@ if (paymentForm) {
           paymentYearInput.value = currentYear;
         }
       }
-      setMessage("#paymentMessage", `Maklumat bayaran disimpan. Resit dijana: ${normalizeReceiptSearch(receipt?.receipt_no)}.`, "success");
+      setMessage("#paymentMessage", `Maklumat bayaran berjaya dihantar. Resit dijana: ${normalizeReceiptSearch(receipt?.receipt_no)}. Status: menunggu pengesahan admin.`, "success");
+      alert("Maklumat bayaran berjaya dihantar. Tekan OK untuk melihat resit.");
       const receiptAnswer = document.querySelector("#publicReceiptAnswer");
       if (receiptAnswer && receipt) {
         receiptAnswer.hidden = false;
@@ -944,19 +945,26 @@ if (donationForm) {
       const donationReference = document.querySelector("#donationReference")?.value.trim() || "";
       const donationNote = document.querySelector("#donationNote").value.trim() || "khairat kematian/sumbangan";
       const note = [donationNote, donationBank ? `Bank: ${donationBank}` : "", donationReference ? `Rujukan: ${donationReference}` : ""].filter(Boolean).join(" | ");
-      await insertRow("non_member_donations", {
-        phone: (() => { const value = document.querySelector("#donorPhone").value.trim(); requirePhoneFormat(value, "No. telefon"); return value || null; })(),
-        donor_name: document.querySelector("#donorName").value.trim(),
-
-        payment_method: document.querySelector("#donationMethod").value,
-        amount: Number(document.querySelector("#donationAmount").value) || null,
-        receipt_no: null,
-        receipt_proof_url: null,
-        note: note || null
+      const donorName = document.querySelector("#donorName").value.trim();
+      const donorPhone = document.querySelector("#donorPhone").value.trim();
+      requirePhoneFormat(donorPhone, "No. telefon");
+      const response = await callRpc("submit_donation_with_receipt", {
+        p_donor_name: donorName,
+        p_phone: donorPhone || null,
+        p_payment_method: document.querySelector("#donationMethod").value,
+        p_amount: Number(document.querySelector("#donationAmount").value) || null,
+        p_note: note || null
       });
-      await queueAdminReminder("Sumbangan bukan ahli", `Sumbangan daripada ${document.querySelector("#donorName").value.trim()} perlu pengesahan.`);
-
+      const receipt = Array.isArray(response) ? response[0] : response;
+      void queueAdminReminder("Sumbangan bukan ahli", "Sumbangan daripada " + donorName + " perlu pengesahan.");
       donationForm.reset();
+      setMessage("#donationMessage", "Maklumat sumbangan berjaya dihantar. Resit dijana: " + normalizeReceiptSearch(receipt?.receipt_no) + ". Status: menunggu pengesahan admin.", "success");
+      alert("Maklumat sumbangan berjaya dihantar. Tekan OK untuk melihat resit.");
+      const answer = document.querySelector("#donationReceiptAnswer");
+      if (answer && receipt) {
+        answer.hidden = false;
+        answer.innerHTML = renderOfficialReceipt(receipt);
+      }
     } catch (error) {
       setMessage("#donationMessage", error.message, "error");
     }
