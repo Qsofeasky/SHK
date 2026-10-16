@@ -311,44 +311,20 @@ async function loadExitRequests() {
 
 async function loadPaidOverview() {
   const year = Number(paidYearFilter?.value) || new Date().getFullYear();
-  const members = await supabaseRequest("members?select=id,member_no,member_name,ic_no,phone,email&membership_status=eq.aktif&order=member_name.asc&limit=1000");
-  const payments = await supabaseRequest(`member_yearly_payments?payment_year=eq.${year}&select=member_id,member_no,member_name,amount&limit=1000`);
-  const submissions = await supabaseRequest(`payments?payment_year=eq.${year}&select=member_id,payer_identifier,payer_name,amount,status&limit=1000`);
-  const allPayments = await supabaseRequest("member_yearly_payments?select=payment_year,amount&limit=10000");
-  const paymentAmounts = payments.reduce((map, payment) => {
-    paymentKeys(payment).forEach((key) => {
-      map.set(key, (map.get(key) || 0) + paymentAmount(payment.amount));
-    });
-    return map;
-  }, new Map());
-  const paidKeys = new Set(paymentAmounts.keys());
-  const submissionMap = submissions.reduce((map, submission) => {
-    submissionKeys(submission).forEach((key) => {
-      const current = map.get(key) || { status: "", amount: 0 };
-      current.status = current.status === "verified" ? current.status : submission.status || "pending";
-      current.amount = Math.max(current.amount, paymentAmount(submission.amount));
-      map.set(key, current);
-    });
-    return map;
-  }, new Map());
-  paidOverviewRecords = members.map((member) => ({
-    ...member,
-    payment_year: year,
-    paid: memberKeys(member).some((key) => paidKeys.has(key)),
-    pending_payment: memberKeys(member).some((key) => submissionMap.has(key)),
-    pending_payment_status: memberKeys(member).map((key) => submissionMap.get(key)?.status).find(Boolean) || "",
-    amount: memberKeys(member).reduce((amount, key) => Math.max(amount, paymentAmounts.get(key) || submissionMap.get(key)?.amount || 0), 0)
-  }));
-  paidYearSummary = {
-    year,
-    totalAmount: payments.reduce((total, payment) => total + paymentAmount(payment.amount), 0),
-    paidCount: paidOverviewRecords.filter((record) => record.paid).length,
-    unpaidCount: paidOverviewRecords.filter((record) => !record.paid).length
-  };
-  paidAllYearTotals = summarizePaymentsByYear(allPayments);
-  renderPaidSummary();
-  renderAllYearTotals();
-  renderPaidTable(filteredPaidRecords());
+  const data = await supabaseRpc("admin_fee_overview", { p_year: year });
+  paidOverviewRecords = (data.members || []).map(member => ({...member,payment_year:year,paid:member.annual_status === "paid",amount:Number(member.annual_paid || 0)}));
+  paidYearSummary = {year,totalAmount:Number(data.annual_total || 0),registrationTotal:Number(data.registration_total || 0),
+    paidCount:paidOverviewRecords.filter(m=>m.annual_status === "paid").length,
+    partialCount:paidOverviewRecords.filter(m=>m.annual_status === "partial").length,
+    unpaidCount:paidOverviewRecords.filter(m=>m.annual_status === "unpaid").length,
+    needsIcCount:paidOverviewRecords.filter(m=>m.annual_status === "needs_ic").length};
+  paidAllYearTotals = data.year_totals || [];
+  for (const total of paidAllYearTotals) {
+    if (paidYearFilter && ![...paidYearFilter.options].some(o=>Number(o.value) === total.payment_year)) {
+      const option=document.createElement("option");option.value=total.payment_year;option.textContent=total.payment_year;paidYearFilter.appendChild(option);
+    }
+  }
+  renderPaidSummary();renderAllYearTotals();renderPaidTable(filteredPaidRecords());
 }
 
 async function loadLastReceiptNo() {
@@ -450,58 +426,15 @@ function summarizePaymentsByYear(payments) {
 }
 
 function renderPaidSummary() {
-  const container = document.querySelector("#paidYearSummary");
-  if (!container) return;
-
-  container.innerHTML = `
-    <article class="price-card">
-      <span>Jumlah Bayaran ${escapeHtml(String(paidYearSummary.year))}</span>
-      <strong>${escapeHtml(formatMoney(paidYearSummary.totalAmount))}</strong>
-      <small>Total bayaran ahli yang direkodkan untuk tahun ini.</small>
-    </article>
-    <article class="price-card">
-      <span>Ahli Sudah Bayar</span>
-      <strong>${escapeHtml(String(paidYearSummary.paidCount))}</strong>
-      <small>Ahli aktif dengan rekod bayaran tahun dipilih.</small>
-    </article>
-    <article class="price-card">
-      <span>Ahli Belum Bayar</span>
-      <strong>${escapeHtml(String(paidYearSummary.unpaidCount))}</strong>
-      <small>Ahli aktif tanpa rekod bayaran tahun dipilih.</small>
-    </article>
-  `;
+  const box=document.querySelector("#paidYearSummary");if(!box)return;
+  box.innerHTML=`<article class="price-card"><span>Yuran Pendaftaran ${escapeHtml(String(paidYearSummary.year))}</span><strong>${escapeHtml(formatMoney(paidYearSummary.registrationTotal))}</strong><small>Jumlah pendaftaran diperuntukkan pada tahun dipilih, termasuk rekod import yang mempunyai tahun pendaftaran.</small></article>
+  <article class="price-card"><span>Yuran Ahli ${escapeHtml(String(paidYearSummary.year))}</span><strong>${escapeHtml(formatMoney(paidYearSummary.totalAmount))}</strong><small>Jumlah diperuntukkan untuk tahun dipilih. Lebihan untuk tahun hadapan ditunjukkan pada tahun berkenaan.</small></article>
+  <article class="price-card"><span>Status Yuran Ahli</span><strong>${paidYearSummary.paidCount} cukup · ${paidYearSummary.partialCount} sebahagian</strong><small>${paidYearSummary.unpaidCount} belum bayar · ${paidYearSummary.needsIcCount} perlu IC untuk menentukan kadar.</small></article>`;
 }
 
 function renderAllYearTotals() {
-  const container = document.querySelector("#paidAllYearTotals");
-  if (!container) return;
-
-  if (!paidAllYearTotals.length) {
-    container.innerHTML = `<p class="empty-state">Belum ada rekod bayaran tahunan.</p>`;
-    return;
-  }
-
-  container.innerHTML = `
-    <h4 class="table-title">Jumlah Bayaran Mengikut Tahun</h4>
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th>Tahun</th>
-          <th>Jumlah Bayaran</th>
-          <th>Bilangan Rekod Bayaran</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${paidAllYearTotals.map((record) => `
-          <tr>
-            <td>${escapeHtml(String(record.year))}</td>
-            <td>${escapeHtml(formatMoney(record.totalAmount))}</td>
-            <td>${escapeHtml(String(record.recordCount))}</td>
-          </tr>
-        `).join("")}
-      </tbody>
-    </table>
-  `;
+ const box=document.querySelector("#paidAllYearTotals");if(!box)return;
+ box.innerHTML=`<h4>Agihan Yuran Mengikut Tahun</h4><table class="admin-table"><thead><tr><th>Tahun</th><th>Yuran Pendaftaran</th><th>Yuran Ahli</th></tr></thead><tbody>${paidAllYearTotals.map(t=>`<tr><td>${escapeHtml(String(t.payment_year))}</td><td>${escapeHtml(formatMoney(t.registration_total))}</td><td>${escapeHtml(formatMoney(t.annual_total))}</td></tr>`).join("")}</tbody></table>`;
 }
 
 function filteredLocationRecords() {
@@ -674,6 +607,9 @@ function renderPaymentCard(record) {
       <p>No. Telefon: ${escapeHtml(record.payer_identifier || "-")}</p>
       <p>Tahun: ${escapeHtml(record.payment_year || "-")}</p>
       <p>Jumlah: RM${escapeHtml(String(record.amount || "0"))}</p>
+      <p>Jenis: ${escapeHtml(({annual:"Yuran Ahli",registration:"Yuran Pendaftaran",mixed:"Pendaftaran + Yuran Ahli"})[record.fee_type] || "Yuran Ahli")}</p>
+      ${record.status === "pending" ? `<label>Agihkan sebagai<select data-fee-type><option value="annual" ${record.fee_type === "annual" || !record.fee_type ? "selected" : ""}>Yuran Ahli</option><option value="registration" ${record.fee_type === "registration" ? "selected" : ""}>Yuran Pendaftaran</option><option value="mixed" ${record.fee_type === "mixed" ? "selected" : ""}>Pendaftaran + Yuran Ahli</option></select></label>` : ""}
+
       <p>No. Resit: ${escapeHtml(record.receipt_no || "-")}</p>
       <p>No. Rujukan Bank: ${escapeHtml(record.bank_statement_ref || "-")}</p>
       ${record.receipt_proof_url ? `<p><a href="${escapeHtml(record.receipt_proof_url)}" target="_blank" rel="noopener">Buka bukti bayaran</a></p>` : ""}
@@ -722,57 +658,16 @@ function renderExitCard(record) {
 }
 
 function renderPaidTable(records) {
-  const container = document.querySelector("#paidList");
-  if (!container) return;
-
-  if (!records.length) {
-    container.innerHTML = `<p class="empty-state">Tiada rekod ahli aktif.</p>`;
-    return;
-  }
-
-  container.innerHTML = `
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th>Nama Ahli</th>
-          <th>No. Ahli</th>
-          <th>Tahun</th>
-          <th>Jumlah Bayaran</th>
-          <th>Status</th>
-          <th>Email</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${records.map((record) => `
-          <tr>
-            <td>${escapeHtml(record.member_name || "-")}</td>
-            <td>${escapeHtml(record.member_no || "-")}</td>
-            <td>${escapeHtml(String(record.payment_year))}</td>
-            <td>${record.amount ? escapeHtml(formatMoney(record.amount)) : "-"}</td>
-            <td>${renderPaidStatus(record)}</td>
-            <td>${escapeHtml(record.email || "-")}</td>
-          </tr>
-        `).join("")}
-      </tbody>
-    </table>
-  `;
-
-  container.querySelectorAll("[data-action]").forEach((button) => {
-    button.addEventListener("click", handleAdminAction);
-  });
+ const box=document.querySelector("#paidList");if(!box)return;
+ if(!records.length){box.innerHTML='<p class="empty-state">Tiada rekod ahli aktif.</p>';return;}
+ const money=value=>value === null || value === undefined ? "Perlu IC" : escapeHtml(formatMoney(value));
+ box.innerHTML=`<h4>Yuran Pendaftaran — Sekali Sahaja</h4><p>Kadar berdasarkan umur daripada IC: bawah 60 tahun RM50; 60 tahun ke atas RM30. Pendaftaran lama yang telah dibayar dikekalkan mengikut rekod asal.</p>
+ <table class="admin-table"><thead><tr><th>Nama Ahli</th><th>Kadar</th><th>Telah Dibayar</th><th>Baki</th><th>Status</th></tr></thead><tbody>${records.map(r=>`<tr><td>${escapeHtml(r.member_name)}</td><td>${money(r.registration_due)}</td><td>${money(r.registration_paid)}</td><td>${r.registration_status === "paid" ? "RM0.00" : money(r.registration_due == null ? null : Math.max(0,Number(r.registration_due)-Number(r.registration_paid)))}</td><td>${feeStatus(r.registration_status)}</td></tr>`).join("")}</tbody></table>
+ <h4>Yuran Ahli ${escapeHtml(String(paidYearSummary.year))}</h4><p>Bawah 60 tahun RM30; 60 tahun ke atas RM20. Lebihan bayaran baharu dibawa ke tahun berikutnya secara automatik; baki yang belum cukup setahun ditandakan sebagai bayaran sebahagian.</p>
+ <table class="admin-table"><thead><tr><th>Nama Ahli</th><th>Kadar Tahun Ini</th><th>Bayaran Diperuntukkan</th><th>Baki</th><th>Status</th></tr></thead><tbody>${records.map(r=>`<tr><td>${escapeHtml(r.member_name)}</td><td>${money(r.annual_due)}</td><td>${money(r.annual_paid)}</td><td>${money(r.annual_due == null ? null : Math.max(0,Number(r.annual_due)-Number(r.annual_paid)))}</td><td>${feeStatus(r.annual_status,r.pending_payment)}</td></tr>`).join("")}</tbody></table>`;
 }
 
-function renderPaidStatus(record) {
-  if (record.paid || record.pending_payment_status === "verified") {
-    return `<span class="status-pill status-pill--success">Sudah Bayar</span>`;
-  }
 
-  if (record.pending_payment) {
-    return `<span class="status-pill">Menunggu Pengesahan</span>`;
-  }
-
-  return `<span class="status-pill">Belum Bayar</span>`;
-}
 
 async function handleAdminAction(event) {
   const button = event.currentTarget;
@@ -907,55 +802,16 @@ async function findMemberForPayment(record) {
 }
 
 async function approvePayment(id) {
-  const [record] = await supabaseRequest(`payments?id=eq.${id}&select=*`);
-  const member = await findMemberForPayment(record);
-  const bankStatementRef = prompt("Masukkan rujukan bank / catatan semakan:", record.bank_statement_ref || record.receipt_no || "") || record.bank_statement_ref || null;
-  const officialReceiptNo = parseReceiptNo(record.receipt_no)
-    ? normalizeReceiptSearch(record.receipt_no)
-    : await nextReceiptNo();
-  const year = record.payment_year || new Date().getFullYear();
-  const amount = Number(record.amount || 0);
-  const annualAmount = 50;
-  const currentYearAmount = record.apply_excess_to_next_year && amount > annualAmount ? annualAmount : amount;
-  const excessAmount = record.apply_excess_to_next_year && amount > annualAmount ? amount - annualAmount : 0;
-
-  await supabaseRequest("member_yearly_payments", {
-    method: "POST",
-    headers: { Prefer: "return=minimal" },
-    body: JSON.stringify({
-      member_no: member?.member_no || record.payer_identifier || null,
-      member_name: member?.member_name || record.payer_name,
-      payment_year: year,
-      amount: currentYearAmount,
-      receipt_no: officialReceiptNo,
-      source_sheet: `WEBSITE-${record.payment_method}`,
-      source_submission_id: record.id
-    })
-  });
-
-  if (excessAmount > 0) {
-    await supabaseRequest("member_yearly_payments", {
-      method: "POST",
-      headers: { Prefer: "return=minimal" },
-      body: JSON.stringify({
-        member_no: member?.member_no || record.payer_identifier || null,
-        member_name: member?.member_name || record.payer_name,
-        payment_year: year + 1,
-        amount: excessAmount,
-        receipt_no: officialReceiptNo,
-        source_sheet: `WEBSITE-${record.payment_method}-EXCESS`,
-        source_submission_id: record.id
-      })
-    });
-  }
-
-  await supabaseRequest(`payments?id=eq.${id}`, {
-    method: "PATCH",
-    headers: { Prefer: "return=minimal" },
-    body: JSON.stringify({ status: "verified", receipt_no: officialReceiptNo, bank_statement_ref: bankStatementRef })
-  });
-  alert(`Resit digital dijana: ${officialReceiptNo}`);
-  await loadLastReceiptNo();
+ const card=document.querySelector(`[data-action="approve-payment"][data-id="${id}"]`)?.closest(".admin-card");
+ const type=card?.querySelector("[data-fee-type]")?.value || "annual";
+ const plan=await supabaseRpc("preview_fee_payment",{p_payment_id:id,p_fee_type:type});
+ const text=plan.allocations.map(line=>`${line.fee_type === "registration" ? "Pendaftaran" : "Yuran ahli"} ${line.year}: ${formatMoney(line.amount)}${line.fee_type === "annual" ? " / kadar "+formatMoney(line.due) : ""}`).join("\n");
+ if(!confirm(`Sahkan bayaran untuk ${plan.member_name}?\n\n${text}\n\nJumlah: ${formatMoney(plan.total)}\nLebihan diagih automatik mengikut tahun.`))throw new Error("Pengesahan dibatalkan.");
+ const bankRef=prompt("Rujukan bank / catatan semakan (pilihan):","");
+ if(bankRef === null)throw new Error("Pengesahan dibatalkan.");
+ const result=await supabaseRpc("approve_fee_payment",{p_payment_id:id,p_fee_type:type,p_bank_ref:bankRef.trim() || null,p_expected_allocations:plan.allocations});
+ alert(`Bayaran berjaya disahkan. Resit: ${result.receipt_no}`);
+ await loadLastReceiptNo();
 }
 
 async function approveDonation(id) {
@@ -1299,4 +1155,9 @@ function escapeHtml(value) {
     '"': "&quot;",
     "'": "&#039;"
   })[char]);
+}
+
+function feeStatus(status,pending=false) {
+ const labels={paid:"Sudah Bayar",partial:"Bayaran Sebahagian",unpaid:"Belum Bayar",needs_ic:"Perlu IC untuk Tentukan Kadar"};
+ return `<span class="status-pill ${status === "paid" ? "status-pill--success" : ""}">${labels[status] || "Belum Disemak"}</span>${pending ? "<small> · Ada bayaran menunggu pengesahan</small>" : ""}`;
 }

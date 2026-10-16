@@ -390,11 +390,11 @@ if (checkForm) {
         const [result] = history;
         const paymentRows = history
           .filter((row) => row.payment_year)
-          .map((row) => `<li><span>${escapeHtml(String(row.payment_year))}</span><strong>RM${escapeHtml(String(row.amount || 0))}</strong></li>`)
+          .map((row) => `<li><span>${escapeHtml(String(row.payment_year))}<br><small>${escapeHtml(row.status)}</small></span><strong>RM${escapeHtml(Number(row.amount || 0).toFixed(2))}</strong></li>`)
           .join("");
 
         showCheckAnswer(`
-          <span class="status-pill ${result.found ? "status-pill--success" : ""}">${escapeHtml(result.status)}</span>
+          <span class="status-pill ${result.found ? "status-pill--success" : ""}">${escapeHtml(result.payment_year ? "Rekod Yuran Ahli" : result.status)}</span>
           ${result.member_name ? `<h3>${escapeHtml(result.member_name)}</h3>` : ""}
           ${paymentRows ? `<ul class="payment-history">${paymentRows}</ul>` : ""}
         `);
@@ -792,14 +792,14 @@ if (paymentForm) {
       const note = [remark, bank ? `Bank: ${bank}` : "", reference ? `Rujukan: ${reference}` : "", manualNote].filter(Boolean).join(" | ");
       requirePhoneFormat(payerPhone, "No. telefon");
 
-      const [receipt] = await callRpc("submit_payment_with_receipt", {
+      const [receipt] = await callRpc("submit_fee_payment", {
         p_payer_name: document.querySelector("#payerName").value.trim(),
         p_payer_identifier: payerPhone || null,
         p_payment_method: document.querySelector("#paymentMethod").value,
         p_payment_year: Number(document.querySelector("#paymentYear").value) || new Date().getFullYear(),
         p_amount: Number(document.querySelector("#paymentAmount").value) || null,
         p_bank_statement_ref: reference || null,
-        p_apply_excess_to_next_year: document.querySelector("#applyExcess").checked,
+        p_fee_type: document.querySelector("#paymentFeeType").value,
         p_note: note || null
       });
       await queueAdminReminder("Bayaran perlu pengesahan", `Bayaran ${document.querySelector("#payerName").value.trim()} perlu disemak dengan rekod bank.`);

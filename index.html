@@ -112,18 +112,18 @@
             </ul>
           </article>
           <article class="dashboard-panel">
-            <p class="eyebrow">Yuran 2027</p>
+            <p class="eyebrow">Yuran Semasa</p>
             <h3>Yuran Pendaftaran</h3>
             <dl class="dashboard-rates">
-              <div><dt>60 tahun ke bawah</dt><dd>RM50</dd></div>
+              <div><dt>bawah 60 tahun</dt><dd>RM50</dd></div>
               <div><dt>60 tahun ke atas</dt><dd>RM30</dd></div>
             </dl>
           </article>
           <article class="dashboard-panel">
-            <p class="eyebrow">Yuran Tahunan 2027</p>
+            <p class="eyebrow">Yuran Ahli Semasa</p>
             <h3>Yuran Ahli</h3>
             <dl class="dashboard-rates">
-              <div><dt>60 tahun ke bawah</dt><dd>RM30</dd></div>
+              <div><dt>bawah 60 tahun</dt><dd>RM30</dd></div>
               <div><dt>60 tahun ke atas / tiada pendapatan tetap</dt><dd>RM20</dd></div>
             </dl>
           </article>
@@ -193,9 +193,9 @@
             <p><strong>Berkuat kuasa 1 Januari 2027</strong></p>
             <h4>Semasa Pendaftaran</h4>
             <ol>
-              <li>Yuran pendaftaran: RM50.00 untuk kategori 60 tahun ke bawah.</li>
+              <li>Yuran pendaftaran: RM50.00 untuk kategori bawah 60 tahun.</li>
               <li>Yuran pendaftaran: RM30.00 untuk kategori 60 tahun ke atas.</li>
-              <li>Yuran tahunan: RM30.00 untuk kategori 60 tahun ke bawah.</li>
+              <li>Yuran tahunan: RM30.00 untuk kategori bawah 60 tahun.</li>
               <li>Yuran tahunan: RM20.00 untuk kategori 60 tahun ke atas atau tiada pendapatan tetap.</li>
               <li>Ahli Berdaftar boleh menderma atau bersedekah ke Tabung Khairat SHK sebanyak yang mereka mampu.</li>
             </ol>
@@ -291,12 +291,12 @@
           <article class="price-card">
             <span>Yuran pendaftaran 2027</span>
             <strong>RM50 / RM30</strong>
-            <small>RM50 untuk 60 tahun ke bawah, RM30 untuk 60 tahun ke atas.</small>
+            <small>RM50 untuk bawah 60 tahun, RM30 untuk 60 tahun ke atas.</small>
           </article>
           <article class="price-card">
             <span>Yuran tahunan 2027</span>
             <strong>RM30 / RM20</strong>
-            <small>RM30 untuk 60 tahun ke bawah, RM20 untuk 60 tahun ke atas atau tiada pendapatan tetap.</small>
+            <small>RM30 untuk bawah 60 tahun, RM20 untuk 60 tahun ke atas atau tiada pendapatan tetap.</small>
           </article>
           <article class="price-card">
             <span>Derma / sedekah</span>
@@ -512,7 +512,7 @@
               <input id="payerName" type="text" placeholder="Nama ahli / waris" required>
             </label>
             <label>No. Telefon
-              <input id="payerIdentifier" type="text" inputmode="tel" data-format="phone" placeholder="Contoh: 01X-XXXXXX" title="No. telefon mesti format 01X-XXXXXX.">
+              <input id="payerIdentifier" required type="text" inputmode="tel" data-format="phone" placeholder="Contoh: 01X-XXXXXX" title="No. telefon mesti format 01X-XXXXXX.">
             </label>
             <label>Tahun Bayaran
               <select id="paymentYear">
@@ -528,6 +528,9 @@
                 <option value="2035">2035</option>
               </select>
             </label>
+            <label>Jenis Yuran
+              <select id="paymentFeeType"><option value="annual">Yuran Ahli</option><option value="registration">Yuran Pendaftaran</option><option value="mixed">Pendaftaran + Yuran Ahli</option></select>
+            </label>
             <label>Kaedah Bayaran
               <select id="paymentMethod">
                 <option value="online">Pindahan bank / dalam talian</option>
@@ -535,7 +538,7 @@
               </select>
             </label>
             <label>Jumlah Bayaran
-              <input id="paymentAmount" type="number" min="0" placeholder="RM">
+              <input id="paymentAmount" type="number" min="0.01" step="0.01" required placeholder="RM">
             </label>
             <label>Bank Yang Digunakan
               <input id="paymentBank" type="text" placeholder="Contoh: Maybank / CIMB / RHB / Tunai">
@@ -546,10 +549,7 @@
             <label>Catatan Bayaran
               <input id="paymentRemark" type="text" placeholder="Khairat kematian/yuran">
             </label>
-            <label class="checkline">
-              <input id="applyExcess" type="checkbox">
-              Jika terlebih bayar, lebihan boleh dibawa ke tahun seterusnya selepas admin sahkan.
-            </label>
+            <p>Lebihan yuran ahli akan diperuntukkan secara automatik ke tahun berikutnya selepas pengesahan admin. Bayaran yang belum cukup setahun direkod sebagai bayaran sebahagian.</p>
             <label>Rujukan / Catatan
               <textarea id="paymentNote" rows="3" placeholder="Jika guna tunai, sila tulis nama AJK penerima."></textarea>
             </label>
@@ -655,6 +655,6 @@
     </footer>
 
     <script src="supabase-config.js?v=20261013-dependant-definition"></script>
-    <script src="script.js?v=20261016-optional-email"></script>
+    <script src="script.js?v=20261016-fee-allocation"></script>
   </body>
 </html>
