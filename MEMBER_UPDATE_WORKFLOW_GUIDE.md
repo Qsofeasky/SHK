@@ -32,4 +32,7 @@ Salinan rekod ahli dan senarai tanggungan sebelum setiap perubahan disimpan dala
 
 ## Pengesahan
 
-15 ujian aliran PostgreSQL, 7 ujian interaksi DOM borang, 14 ujian carian/pautan bayaran, dan 3 ujian padanan ID admin lulus. Termasuk transaksi gagal separuh, pemilikan tanggungan, IC berubah, umur sifar, muat semula SQL, kelulusan berulang, sesi bukan admin dan respons carian lama yang tiba lewat. Semakan sintaks JavaScript lulus. Ujian menggunakan data rekaan; pengesahan pada data sebenar masih perlu selepas SQL dijalankan.
+19 ujian aliran PostgreSQL, 7 ujian interaksi DOM borang, 14 ujian carian/pautan bayaran, dan 3 ujian padanan ID admin lulus. Termasuk transaksi gagal separuh, pemilikan tanggungan, IC berubah, umur sifar, muat semula SQL, kelulusan berulang, sesi bukan admin dan respons carian lama yang tiba lewat. Semakan sintaks JavaScript lulus. Ujian menggunakan data rekaan; pengesahan pada data sebenar masih perlu selepas SQL dijalankan.
+
+
+Semakan akhir membaca semula setiap tanggungan dan bilangan ahli sebelum merekodkan kelulusan. Jika database mengabaikan perubahan, transaksi dibatalkan. Untuk pemasangan yang sudah menjalankan SQL aliran baharu, kemas kini fungsi melalui SHK-sahkan-kelulusan-tanggungan.sql, kemudian deploy admin.js dan admin.html terkini.

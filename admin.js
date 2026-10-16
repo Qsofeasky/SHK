@@ -778,6 +778,7 @@ function renderPaidStatus(record) {
 async function handleAdminAction(event) {
   const button = event.currentTarget;
   const card = button.closest(".admin-card");
+  const originalText = button.textContent;
   button.disabled = true;
   button.textContent = "Sedang proses...";
 
@@ -809,6 +810,7 @@ async function handleAdminAction(event) {
   } catch (error) {
     alert(error.message);
     button.disabled = false;
+    button.textContent = originalText;
   }
 }
 
@@ -861,7 +863,9 @@ async function openIcProof(path) {
 }
 
 async function approveDependant(id) {
-  await supabaseRpc("approve_member_update", { p_update_id: id });
+  const result = await supabaseRpc("approve_member_update", { p_update_id: id });
+  if (!["applied", "already_applied"].includes(result?.status)) throw new Error("Simpanan belum dapat disahkan. Permohonan tidak dianggap selesai.");
+  alert("Maklumat berjaya disimpan pada rekod ahli. Semakan menggunakan maklumat terkini.");
 }
 
 async function repairDependant(id) {

@@ -127,14 +127,40 @@ BEGIN
       age=coalesce(i.age,age),relationship=coalesce(nullif(trim(i.relationship),''),relationship) WHERE id=did AND member_id=mid;
     END IF;
    END IF;
+   IF i.item_status='Buang' THEN
+    IF EXISTS(SELECT 1 FROM public.member_dependants d WHERE d.id=did) THEN RAISE EXCEPTION 'Pembuangan tanggungan tidak disimpan. Kelulusan dibatalkan.'; END IF;
+   ELSE
+    IF NOT EXISTS(SELECT 1 FROM public.member_dependants d WHERE d.id=did AND d.member_id=mid
+     AND (nullif(trim(i.dependant_name),'') IS NULL OR trim(d.dependant_name) IS NOT DISTINCT FROM trim(i.dependant_name))
+     AND (nullif(trim(i.dependant_ic),'') IS NULL OR trim(d.dependant_ic) IS NOT DISTINCT FROM trim(i.dependant_ic))
+     AND (nullif(trim(i.gender),'') IS NULL OR d.gender IS NOT DISTINCT FROM i.gender)
+     AND (i.age IS NULL OR d.age IS NOT DISTINCT FROM i.age)
+     AND (nullif(trim(i.relationship),'') IS NULL OR trim(d.relationship) IS NOT DISTINCT FROM trim(i.relationship))) THEN
+     RAISE EXCEPTION 'Maklumat tanggungan tersimpan tidak sepadan dengan permohonan. Kelulusan dibatalkan.';
+    END IF;
+   END IF;
    UPDATE public.dependant_update_items SET applied_dependant_id=did WHERE id=i.id;
    change_count:=change_count+1;
   END LOOP;
   IF change_count=0 THEN RAISE EXCEPTION 'Tiada baris tanggungan untuk dikemaskini.'; END IF;
   SELECT count(*) INTO desired_count FROM public.member_dependants WHERE member_id=mid;
   UPDATE public.members SET dependant_count=desired_count WHERE id=mid;
+  IF NOT EXISTS(SELECT 1 FROM public.members x WHERE x.id=mid AND x.dependant_count=desired_count) THEN
+   RAISE EXCEPTION 'Jumlah tanggungan tidak berjaya disimpan. Kelulusan dibatalkan.';
+  END IF;
+ END IF;
+ IF u.update_action='Kemaskini Maklumat Diri' AND NOT EXISTS(SELECT 1 FROM public.members x WHERE x.id=mid
+  AND (nullif(trim(u.new_name),'') IS NULL OR trim(x.member_name) IS NOT DISTINCT FROM trim(u.new_name))
+  AND (nullif(trim(u.new_phone),'') IS NULL OR trim(x.phone) IS NOT DISTINCT FROM trim(u.new_phone))
+  AND (nullif(trim(u.new_ic),'') IS NULL OR trim(x.ic_no) IS NOT DISTINCT FROM trim(u.new_ic))
+  AND (nullif(trim(u.new_address),'') IS NULL OR trim(x.address) IS NOT DISTINCT FROM trim(u.new_address))
+  AND (nullif(trim(u.new_residence_type),'') IS NULL OR x.residence_type IS NOT DISTINCT FROM u.new_residence_type)) THEN
+  RAISE EXCEPTION 'Maklumat ahli tersimpan tidak sepadan. Kelulusan dibatalkan.';
  END IF;
  UPDATE public.dependant_updates SET member_id=mid,status='approved',applied_at=now() WHERE id=u.id;
+ IF NOT EXISTS(SELECT 1 FROM public.dependant_updates x WHERE x.id=u.id AND x.status='approved' AND x.applied_at IS NOT NULL AND x.member_id=mid) THEN
+  RAISE EXCEPTION 'Status simpanan gagal disahkan. Semua perubahan dibatalkan.';
+ END IF;
  RETURN jsonb_build_object('status','applied','member_id',mid,'changed_items',change_count);
 END;
 $$;
