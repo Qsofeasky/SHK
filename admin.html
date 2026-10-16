@@ -164,8 +164,15 @@
         <div class="container admin-sections" id="adminPaidSection" hidden>
           <section class="admin-list admin-list--wide">
             <div class="section-bar">
-              <h3>Bayaran Ahli</h3>
-              <label class="admin-filter">Tahun Bayaran
+              <h3 id="paidViewTitle">Bayaran Ahli</h3>
+              <label class="admin-filter">Paparan
+                <select id="paidViewFilter">
+                  <option value="annual">Bayaran Ahli</option>
+                  <option value="registration">Yuran Pendaftaran</option>
+                  <option value="allocation">Agihan Yuran Mengikut Tahun</option>
+                </select>
+              </label>
+              <label class="admin-filter" id="paidYearField">Tahun Bayaran
                 <select id="paidYearFilter">
                   <option value="2026">2026</option>
                   <option value="2027">2027</option>
@@ -179,12 +186,13 @@
                   <option value="2035">2035</option>
                 </select>
               </label>
-              <label class="admin-filter">Cari Ahli
+              <label class="admin-filter" id="paidSearchField">Cari Ahli
                 <input id="paidSearch" type="search" placeholder="Nama atau no. ahli">
               </label>
             </div>
             <div id="paidYearSummary" class="admin-dashboard paid-summary" aria-live="polite"></div>
-            <div id="paidAllYearTotals" class="admin-table-wrap paid-year-totals"></div>
+            <div id="paidAllYearTotals" class="admin-table-wrap paid-year-totals" hidden></div>
+            <div id="paidRegistrationList" class="admin-table-wrap" hidden></div>
             <div id="paidList" class="admin-table-wrap"></div>
           </section>
         </div>
@@ -214,6 +222,6 @@
     </main>
 
     <script src="supabase-config.js?v=20261011-approval-counts"></script>
-    <script src="admin.js?v=20261016-fee-allocation"></script>
+    <script src="admin.js?v=20261016-fee-views"></script>
   </body>
 </html>

@@ -20,6 +20,7 @@ let paidYearSummary = {
   unpaidCount: 0
 };
 let paidAllYearTotals = [];
+let paidFeeView = "annual";
 let locationRecords = [];
 
 const paidYearFilter = document.querySelector("#paidYearFilter");
@@ -83,6 +84,7 @@ document.querySelector("#statusFilter")?.addEventListener("change", () => {
 document.querySelector("#paidSearch")?.addEventListener("input", () => {
   renderPaidTable(filteredPaidRecords());
 });
+document.querySelector("#paidViewFilter")?.addEventListener("change", (event) => setPaidFeeView(event.target.value));
 paidYearFilter?.addEventListener("change", () => {
   loadPaidOverview()
     .then(() => updateAdminSummary(paidOverviewRecords))
@@ -425,11 +427,26 @@ function summarizePaymentsByYear(payments) {
   return [...totals.values()].sort((a, b) => b.year - a.year);
 }
 
+function setPaidFeeView(view) {
+  paidFeeView = ["annual", "registration", "allocation"].includes(view) ? view : "annual";
+  const titles = {annual: "Bayaran Ahli", registration: "Yuran Pendaftaran", allocation: "Agihan Yuran Mengikut Tahun"};
+  document.querySelector("#paidViewTitle").textContent = titles[paidFeeView];
+  document.querySelector("#paidViewFilter").value = paidFeeView;
+  document.querySelector("#paidList").hidden = paidFeeView !== "annual";
+  document.querySelector("#paidRegistrationList").hidden = paidFeeView !== "registration";
+  document.querySelector("#paidAllYearTotals").hidden = paidFeeView !== "allocation";
+  for (const id of ["paidYearSummary", "paidYearField", "paidSearchField"]) {
+    document.getElementById(id).hidden = paidFeeView === "allocation";
+  }
+  renderPaidSummary();
+}
+
 function renderPaidSummary() {
   const box=document.querySelector("#paidYearSummary");if(!box)return;
-  box.innerHTML=`<article class="price-card"><span>Yuran Pendaftaran ${escapeHtml(String(paidYearSummary.year))}</span><strong>${escapeHtml(formatMoney(paidYearSummary.registrationTotal))}</strong><small>Jumlah pendaftaran diperuntukkan pada tahun dipilih, termasuk rekod import yang mempunyai tahun pendaftaran.</small></article>
-  <article class="price-card"><span>Yuran Ahli ${escapeHtml(String(paidYearSummary.year))}</span><strong>${escapeHtml(formatMoney(paidYearSummary.totalAmount))}</strong><small>Jumlah diperuntukkan untuk tahun dipilih. Lebihan untuk tahun hadapan ditunjukkan pada tahun berkenaan.</small></article>
-  <article class="price-card"><span>Status Yuran Ahli</span><strong>${paidYearSummary.paidCount} cukup · ${paidYearSummary.partialCount} sebahagian</strong><small>${paidYearSummary.unpaidCount} belum bayar · ${paidYearSummary.needsIcCount} perlu IC untuk menentukan kadar.</small></article>`;
+  box.innerHTML=`<article data-fee-summary="registration" class="price-card"><span>Yuran Pendaftaran ${escapeHtml(String(paidYearSummary.year))}</span><strong>${escapeHtml(formatMoney(paidYearSummary.registrationTotal))}</strong><small>Jumlah pendaftaran diperuntukkan pada tahun dipilih, termasuk rekod import yang mempunyai tahun pendaftaran.</small></article>
+  <article data-fee-summary="annual" class="price-card"><span>Yuran Ahli ${escapeHtml(String(paidYearSummary.year))}</span><strong>${escapeHtml(formatMoney(paidYearSummary.totalAmount))}</strong><small>Jumlah diperuntukkan untuk tahun dipilih. Lebihan untuk tahun hadapan ditunjukkan pada tahun berkenaan.</small></article>
+  <article data-fee-summary="annual" class="price-card"><span>Status Yuran Ahli</span><strong>${paidYearSummary.paidCount} cukup · ${paidYearSummary.partialCount} sebahagian</strong><small>${paidYearSummary.unpaidCount} belum bayar · ${paidYearSummary.needsIcCount} perlu IC untuk menentukan kadar.</small></article>`;
+  box.querySelectorAll("[data-fee-summary]").forEach(card => { card.hidden = card.dataset.feeSummary !== paidFeeView; });
 }
 
 function renderAllYearTotals() {
@@ -658,12 +675,13 @@ function renderExitCard(record) {
 }
 
 function renderPaidTable(records) {
- const box=document.querySelector("#paidList");if(!box)return;
- if(!records.length){box.innerHTML='<p class="empty-state">Tiada rekod ahli aktif.</p>';return;}
+ const box=document.querySelector("#paidList"), registrationBox=document.querySelector("#paidRegistrationList");if(!box || !registrationBox)return;
+ if(!records.length){box.innerHTML=registrationBox.innerHTML='<p class="empty-state">Tiada rekod ahli yang sepadan.</p>';return;}
  const money=value=>value === null || value === undefined ? "Perlu IC" : escapeHtml(formatMoney(value));
- box.innerHTML=`<h4>Yuran Pendaftaran — Sekali Sahaja</h4><p>Kadar berdasarkan umur daripada IC: bawah 60 tahun RM50; 60 tahun ke atas RM30. Pendaftaran lama yang telah dibayar dikekalkan mengikut rekod asal.</p>
+ registrationBox.innerHTML=`<h4>Yuran Pendaftaran — Sekali Sahaja</h4><p>Kadar berdasarkan umur daripada IC: bawah 60 tahun RM50; 60 tahun ke atas RM30. Pendaftaran lama yang telah dibayar dikekalkan mengikut rekod asal.</p>
  <table class="admin-table"><thead><tr><th>Nama Ahli</th><th>Kadar</th><th>Telah Dibayar</th><th>Baki</th><th>Status</th></tr></thead><tbody>${records.map(r=>`<tr><td>${escapeHtml(r.member_name)}</td><td>${money(r.registration_due)}</td><td>${money(r.registration_paid)}</td><td>${r.registration_status === "paid" ? "RM0.00" : money(r.registration_due == null ? null : Math.max(0,Number(r.registration_due)-Number(r.registration_paid)))}</td><td>${feeStatus(r.registration_status)}</td></tr>`).join("")}</tbody></table>
- <h4>Yuran Ahli ${escapeHtml(String(paidYearSummary.year))}</h4><p>Bawah 60 tahun RM30; 60 tahun ke atas RM20. Lebihan bayaran baharu dibawa ke tahun berikutnya secara automatik; baki yang belum cukup setahun ditandakan sebagai bayaran sebahagian.</p>
+`;
+ box.innerHTML=`<h4>Yuran Ahli ${escapeHtml(String(paidYearSummary.year))}</h4><p>Bawah 60 tahun RM30; 60 tahun ke atas RM20. Lebihan bayaran baharu dibawa ke tahun berikutnya secara automatik; baki yang belum cukup setahun ditandakan sebagai bayaran sebahagian.</p>
  <table class="admin-table"><thead><tr><th>Nama Ahli</th><th>Kadar Tahun Ini</th><th>Bayaran Diperuntukkan</th><th>Baki</th><th>Status</th></tr></thead><tbody>${records.map(r=>`<tr><td>${escapeHtml(r.member_name)}</td><td>${money(r.annual_due)}</td><td>${money(r.annual_paid)}</td><td>${money(r.annual_due == null ? null : Math.max(0,Number(r.annual_due)-Number(r.annual_paid)))}</td><td>${feeStatus(r.annual_status,r.pending_payment)}</td></tr>`).join("")}</tbody></table>`;
 }
 
