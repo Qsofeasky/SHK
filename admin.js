@@ -659,7 +659,6 @@ function renderDependantCard(record) {
       ${items ? `<ul>${items}</ul>` : ""}
       <div class="form-actions">
         ${record.status === "pending" ? `<button class="button button--primary" data-action="approve-dependant" data-id="${record.id}" type="button">Luluskan</button>` : ""}
-        ${record.status === "approved" && !record.applied_at ? `<button class="button button--secondary" data-action="repair-dependant" data-id="${record.id}" type="button">Semak dan Pulihkan</button>` : ""}
         <button class="button button--secondary" data-action="reject-dependant" data-id="${record.id}" type="button">Tolak</button>
       </div>
     </article>
@@ -795,7 +794,6 @@ async function handleAdminAction(event) {
     }
     if (action === "reject-membership") await updateStatus("membership_checks", id, "rejected");
     if (action === "approve-dependant") await approveDependant(id);
-    if (action === "repair-dependant") await repairDependant(id);
     if (action === "reject-dependant") await updateStatus("dependant_updates", id, "rejected");
     if (action === "approve-payment") await approvePayment(id);
     if (action === "reject-payment") await updateStatus("payments", id, "rejected");
@@ -868,16 +866,6 @@ async function approveDependant(id) {
   alert("Maklumat berjaya disimpan pada rekod ahli. Semakan menggunakan maklumat terkini.");
 }
 
-async function repairDependant(id) {
-  const phone = prompt("Masukkan nombor telefon ahli terkini dalam rekod sistem. Contoh: 01X-XXXXXXX.");
-  if (!phone?.trim()) throw new Error("Pemulihan dibatalkan.");
-  const member = await supabaseRpc("lookup_repair_member_by_phone", { p_phone: phone.trim() });
-  if (!member?.member_id) throw new Error("Telefon ahli tidak dapat disahkan.");
-  if (!confirm("Pulihkan permohonan ini kepada " + member.member_name + " (telefon berakhir " + member.phone_last4 + ")? Semak nama dan permohonan sebelum meneruskan.")) throw new Error("Pemulihan dibatalkan.");
-  const result = await supabaseRpc("repair_member_update_by_phone", { p_update_id: id, p_phone: phone.trim() });
-  if (!["applied", "already_applied"].includes(result?.status)) throw new Error("Simpanan belum dapat disahkan.");
-  alert("Pemulihan berjaya disahkan untuk " + member.member_name + ".");
-}
 
 async function resolveUpdateMember(update) {
   const identifier = String(update.member_identifier || "").trim();
