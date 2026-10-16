@@ -311,9 +311,9 @@ async function loadExitRequests() {
 
 async function loadPaidOverview() {
   const year = Number(paidYearFilter?.value) || new Date().getFullYear();
-  const members = await supabaseRequest("members?select=member_no,member_name,ic_no,phone,email&membership_status=eq.aktif&order=member_name.asc&limit=1000");
-  const payments = await supabaseRequest(`member_yearly_payments?payment_year=eq.${year}&select=member_no,member_name,amount&limit=1000`);
-  const submissions = await supabaseRequest(`payments?payment_year=eq.${year}&select=payer_identifier,payer_name,amount,status&limit=1000`);
+  const members = await supabaseRequest("members?select=id,member_no,member_name,ic_no,phone,email&membership_status=eq.aktif&order=member_name.asc&limit=1000");
+  const payments = await supabaseRequest(`member_yearly_payments?payment_year=eq.${year}&select=member_id,member_no,member_name,amount&limit=1000`);
+  const submissions = await supabaseRequest(`payments?payment_year=eq.${year}&select=member_id,payer_identifier,payer_name,amount,status&limit=1000`);
   const allPayments = await supabaseRequest("member_yearly_payments?select=payment_year,amount&limit=10000");
   const paymentAmounts = payments.reduce((map, payment) => {
     paymentKeys(payment).forEach((key) => {
@@ -951,9 +951,12 @@ function memberMatchPath(identifier, memberName = "") {
 }
 
 async function findMemberForPayment(record) {
-  const path = `${memberMatchPath(record.payer_identifier || "", record.payer_name || "")}&select=member_no,member_name,ic_no,phone&limit=1`;
-  const [member] = await supabaseRequest(path);
-  return member || null;
+  if (record.member_id) {
+    const [member] = await supabaseRequest("members?id=eq." + encodeURIComponent(record.member_id) + "&select=id,member_no,member_name,ic_no,phone&limit=1");
+    if (!member) throw new Error("Rekod ahli untuk bayaran ini tidak dijumpai.");
+    return member;
+  }
+  return resolveUpdateMember({ member_identifier: record.payer_identifier, member_name: record.payer_name });
 }
 
 async function deleteDependant(update, item) {
@@ -1312,15 +1315,15 @@ function uniqueKeys(values) {
 }
 
 function memberKeys(member) {
-  return uniqueKeys([member.member_no, member.member_name, member.ic_no, member.phone]);
+  return member.id ? [`member:${member.id}`] : uniqueKeys([member.member_no, member.member_name, member.ic_no, member.phone]);
 }
 
 function paymentKeys(payment) {
-  return uniqueKeys([payment.member_no, payment.member_name]);
+  return payment.member_id ? [`member:${payment.member_id}`] : [];
 }
 
 function submissionKeys(submission) {
-  return uniqueKeys([submission.payer_identifier, submission.payer_name]);
+  return submission.member_id ? [`member:${submission.member_id}`] : [];
 }
 
 function isIcDashFormat(value) {
