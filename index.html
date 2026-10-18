@@ -407,8 +407,8 @@
               <label id="memberNameField">Nama Ahli Lama (jika ingat)
                 <input type="text" id="memberName" placeholder="Isi jika ingat nama lama">
               </label>
-              <label id="memberIdField">No. Telefon / IC Ahli
-                <input type="text" id="memberId" data-format="phone-or-ic" placeholder="Telefon: 01X-XXXXXX atau IC: XXXXXX-XX-XXXX" title="Telefon mesti format 01X-XXXXXX. IC mesti format XXXXXX-XX-XXXX." required>
+              <label id="memberIdField">No. Telefon Ahli Lama
+                <input type="tel" inputmode="tel" id="memberId" data-format="phone" placeholder="Masukkan no. telefon ahli lama" title="Masukkan nombor telefon dalam rekod ahli lama. Contoh: 01X-XXXXXX." required>
               </label>
               <label id="dependantNewNameField">Nama Baru
                 <input type="text" id="dependantNewName" placeholder="Isi jika mahu tukar nama">
@@ -483,7 +483,7 @@
           <aside class="info-card">
             <h3>Panduan Kemaskini</h3>
             <ul>
-              <li>Masukkan no. telefon atau IC ahli sebagai rujukan. Nama lama boleh dikosongkan jika tidak ingat.</li>
+              <li>Masukkan no. telefon ahli lama yang ada dalam rekod sebagai rujukan. Nama lama boleh dikosongkan jika tidak ingat.</li>
               <li>Kemaskini maklumat diri hanya paparkan field diri. Pilihan tanggungan hanya paparkan maklumat tanggungan.</li>
             </ul>
           </aside>
@@ -660,6 +660,6 @@
     </footer>
 
     <script src="supabase-config.js?v=20261013-dependant-definition"></script>
-    <script src="script.js?v=20261016-receipt-success-first"></script>
+    <script src="script.js?v=20261018-old-member-phone"></script>
   </body>
 </html>

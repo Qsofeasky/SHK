@@ -600,7 +600,7 @@ function invalidateCurrentMember() {
   rows?.querySelectorAll(".dependant-row:not(.dependant-row--head)").forEach(row => row.remove());
   const total = document.querySelector("#dependantTotal");
   if (total) total.value = "";
-  setMessage("#currentMemberMessage", "Semak nama dan telefon/IC terkini sebelum membuat perubahan.", "neutral");
+  setMessage("#currentMemberMessage", "Semak rekod menggunakan no. telefon ahli lama sebelum membuat perubahan.", "neutral");
 }
 async function loadCurrentMember() {
   const identity = currentIdentity();
@@ -609,8 +609,8 @@ async function loadCurrentMember() {
   const identifier = document.querySelector("#memberId")?.value.trim() || "";
   try {
     if (isDependantRowAction() && !name) throw new Error("Masukkan nama penuh ahli dahulu.");
-    if (!identifier) throw new Error("Masukkan telefon atau IC ahli dahulu.");
-    requirePhoneOrIcFormat(identifier, "Telefon / IC ahli");
+    if (!identifier) throw new Error("Masukkan no. telefon ahli lama dahulu.");
+    requirePhoneFormat(identifier, "No. telefon ahli lama");
     setMessage("#currentMemberMessage", "Sedang menyemak rekod terkini...", "neutral");
     const result = await callRpc("lookup_member_for_update", {p_member_name:name, p_identifier:identifier});
     if (version !== currentLookupVersion || identity !== currentIdentity()) return;
@@ -653,7 +653,7 @@ document.querySelector("#lookupCurrentMember")?.addEventListener("click", loadCu
     const name = document.querySelector("#memberName")?.value.trim();
     const identifier = document.querySelector("#memberId")?.value.trim();
     if (!identifier || (isDependantRowAction() && !name)) return;
-    try { requirePhoneOrIcFormat(identifier, "Telefon / IC"); } catch { return; }
+    try { requirePhoneFormat(identifier, "No. telefon ahli lama"); } catch { return; }
     loadCurrentMember();
   }, 600);
 }));
@@ -684,9 +684,9 @@ if (dependantForm) {
       }
 
       if (!memberIdentifier) {
-        throw new Error("Masukkan no. telefon atau IC ahli sebagai rujukan.");
+        throw new Error("Masukkan no. telefon ahli lama sebagai rujukan.");
       }
-      requirePhoneOrIcFormat(memberIdentifier, "No. telefon / IC ahli");
+      requirePhoneFormat(memberIdentifier, "No. telefon ahli lama");
 
       if (!currentMemberPreview || currentMemberIdentity !== currentIdentity()) {
         throw new Error("Sila semak maklumat ahli terkini dahulu sebelum hantar.");
