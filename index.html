@@ -536,6 +536,14 @@
             <label>Jenis Yuran
               <select id="paymentFeeType"><option value="annual">Yuran Ahli</option><option value="registration">Yuran Pendaftaran</option><option value="mixed">Pendaftaran + Yuran Ahli</option></select>
             </label>
+            <label>Kategori Kadar
+              <select id="paymentRateCategory" required>
+                <option value="">Pilih kategori kadar</option>
+                <option value="under60">Bawah 60 tahun</option>
+                <option value="60plus">60 tahun ke atas</option>
+              </select>
+            </label>
+            <p id="paymentRateSummary" aria-live="polite">Pilih kategori untuk melihat kadar bayaran.</p>
             <label>Kaedah Bayaran
               <select id="paymentMethod">
                 <option value="online">Pindahan bank / dalam talian</option>
@@ -665,6 +673,6 @@
     </footer>
 
     <script src="supabase-config.js?v=20261013-dependant-definition"></script>
-    <script src="script.js?v=20261018-auto-self-lookup"></script>
+    <script src="script.js?v=20261018-rate-category"></script>
   </body>
 </html>

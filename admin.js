@@ -627,6 +627,8 @@ function renderPaymentCard(record) {
       <p>Jenis: ${escapeHtml(({annual:"Yuran Ahli",registration:"Yuran Pendaftaran",mixed:"Pendaftaran + Yuran Ahli"})[record.fee_type] || "Yuran Ahli")}</p>
       ${record.status === "pending" ? `<label>Agihkan sebagai<select data-fee-type><option value="annual" ${record.fee_type === "annual" || !record.fee_type ? "selected" : ""}>Yuran Ahli</option><option value="registration" ${record.fee_type === "registration" ? "selected" : ""}>Yuran Pendaftaran</option><option value="mixed" ${record.fee_type === "mixed" ? "selected" : ""}>Pendaftaran + Yuran Ahli</option></select></label>` : ""}
 
+      <p>Kategori pilihan ahli: ${escapeHtml(record.rate_category === "under60" ? "Bawah 60 tahun" : record.rate_category === "60plus" ? "60 tahun ke atas" : "Belum dipilih")}</p>
+      ${record.status === "pending" ? `<label>Kategori kadar untuk pengesahan<select data-rate-category><option value="">Ikut IC (atau pilih kategori jika tiada IC)</option><option value="under60" ${record.rate_category === "under60" ? "selected" : ""}>Bawah 60 tahun — Pendaftaran RM50 / Tahunan RM30</option><option value="60plus" ${record.rate_category === "60plus" ? "selected" : ""}>60 tahun ke atas — Pendaftaran RM30 / Tahunan RM20</option></select></label>` : ""}
       <p>No. Resit: ${escapeHtml(record.receipt_no || "-")}</p>
       <p>No. Rujukan Bank: ${escapeHtml(record.bank_statement_ref || "-")}</p>
       ${record.receipt_proof_url ? `<p><a href="${escapeHtml(record.receipt_proof_url)}" target="_blank" rel="noopener">Buka bukti bayaran</a></p>` : ""}
@@ -822,12 +824,13 @@ async function findMemberForPayment(record) {
 async function approvePayment(id) {
  const card=document.querySelector(`[data-action="approve-payment"][data-id="${id}"]`)?.closest(".admin-card");
  const type=card?.querySelector("[data-fee-type]")?.value || "annual";
- const plan=await supabaseRpc("preview_fee_payment",{p_payment_id:id,p_fee_type:type});
+ const category=card?.querySelector("[data-rate-category]")?.value || null;
+ const plan=await supabaseRpc("preview_fee_payment_category",{p_payment_id:id,p_fee_type:type,p_rate_category:category});
  const text=plan.allocations.map(line=>`${line.fee_type === "registration" ? "Pendaftaran" : "Yuran ahli"} ${line.year}: ${formatMoney(line.amount)}${line.fee_type === "annual" ? " / kadar "+formatMoney(line.due) : ""}`).join("\n");
  if(!confirm(`Sahkan bayaran untuk ${plan.member_name}?\n\n${text}\n\nJumlah: ${formatMoney(plan.total)}\nLebihan diagih automatik mengikut tahun.`))throw new Error("Pengesahan dibatalkan.");
  const bankRef=prompt("Rujukan bank / catatan semakan (pilihan):","");
  if(bankRef === null)throw new Error("Pengesahan dibatalkan.");
- const result=await supabaseRpc("approve_fee_payment",{p_payment_id:id,p_fee_type:type,p_bank_ref:bankRef.trim() || null,p_expected_allocations:plan.allocations});
+ const result=await supabaseRpc("approve_fee_payment_category",{p_payment_id:id,p_fee_type:type,p_rate_category:category,p_bank_ref:bankRef.trim() || null,p_expected_allocations:plan.allocations});
  alert(`Bayaran berjaya disahkan. Resit: ${result.receipt_no}`);
  await loadLastReceiptNo();
 }

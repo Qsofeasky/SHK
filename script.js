@@ -801,6 +801,18 @@ document.querySelector("#detectDependantLocation")?.addEventListener("click", ()
   setMessage("#dependantLocationMessage", "Lokasi berdasarkan alamat rumah berjaya dijana.", "success");
 });
 
+function showPaymentRate() {
+  const category = document.querySelector("#paymentRateCategory")?.value;
+  const box = document.querySelector("#paymentRateSummary");
+  if (!box) return;
+  if (!category) { box.textContent = "Pilih kategori untuk melihat kadar bayaran."; return; }
+  const registration = category === "60plus" ? 30 : 50;
+  const annual = category === "60plus" ? 20 : 30;
+  const type = document.querySelector("#paymentFeeType").value;
+  box.textContent = type === "mixed" ? "Kadar pendaftaran RM" + registration + " + yuran tahunan RM" + annual + " (jumlah RM" + (registration + annual) + ")." : type === "registration" ? "Kadar pendaftaran sekali sahaja: RM" + registration + "." : "Kadar yuran tahunan: RM" + annual + ".";
+}
+["#paymentRateCategory", "#paymentFeeType"].forEach(id => document.querySelector(id)?.addEventListener("change", showPaymentRate));
+
 const paymentForm = document.querySelector("#paymentForm");
 
 if (paymentForm) {
@@ -817,7 +829,10 @@ if (paymentForm) {
       const note = [remark, bank ? `Bank: ${bank}` : "", reference ? `Rujukan: ${reference}` : "", manualNote].filter(Boolean).join(" | ");
       requirePhoneFormat(payerPhone, "No. telefon");
 
-      const receiptResponse = await callRpc("submit_fee_payment", {
+      const category = document.querySelector("#paymentRateCategory").value;
+      if (!category) throw new Error("Pilih kategori kadar bayaran.");
+      const receiptResponse = await callRpc("submit_fee_payment_category", {
+        p_rate_category: category,
         p_payer_name: document.querySelector("#payerName").value.trim(),
         p_payer_identifier: payerPhone || null,
         p_payment_method: document.querySelector("#paymentMethod").value,
@@ -831,6 +846,7 @@ if (paymentForm) {
       void queueAdminReminder("Bayaran perlu pengesahan", `Bayaran ${document.querySelector("#payerName").value.trim()} perlu disemak dengan rekod bank.`);
 
       paymentForm.reset();
+      showPaymentRate();
       if (paymentYearInput) {
         const currentYear = String(new Date().getFullYear());
         if ([...paymentYearInput.options].some((option) => option.value === currentYear)) {
