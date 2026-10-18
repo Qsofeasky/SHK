@@ -512,7 +512,7 @@ function syncDependantFields() {
   const showSelfUpdate = dependantAction?.value === "Kemaskini Maklumat Diri";
   const rowAction = isDependantRowAction();
   const lookupButton = document.querySelector("#lookupCurrentMember");
-  if (lookupButton) lookupButton.closest(".form-actions").hidden = rowAction;
+  if (lookupButton) lookupButton.closest(".form-actions").hidden = true;
   if (updatePurpose) updatePurpose.value = rowAction ? "dependants" : "self";
   const actionField = document.querySelector("#dependantActionField");
   if (actionField) actionField.hidden = !rowAction || document.querySelector("#currentDependants")?.hidden !== false;
@@ -623,7 +623,7 @@ function invalidateCurrentMember() {
   rows?.querySelectorAll(".dependant-row:not(.dependant-row--head)").forEach(row => row.remove());
   const total = document.querySelector("#dependantTotal");
   if (total) total.value = "";
-  setMessage("#currentMemberMessage", isDependantRowAction() ? "Masukkan nama dan IC ahli untuk melihat tanggungan terkini." : "Semak rekod menggunakan no. telefon ahli lama sebelum membuat perubahan.", "neutral");
+  setMessage("#currentMemberMessage", isDependantRowAction() ? "Masukkan nama dan IC ahli untuk melihat tanggungan terkini." : "", "neutral");
 }
 async function loadCurrentMember() {
   const identity = currentIdentity();
