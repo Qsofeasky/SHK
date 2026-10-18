@@ -514,10 +514,17 @@ function syncDependantFields() {
   const rowAction = isDependantRowAction();
   if (updatePurpose) updatePurpose.value = rowAction ? "dependants" : "self";
   const actionField = document.querySelector("#dependantActionField");
-  if (actionField) actionField.hidden = !rowAction;
+  if (actionField) actionField.hidden = !rowAction || document.querySelector("#currentDependants")?.hidden !== false;
 
   if (memberNameField) memberNameField.childNodes[0].textContent = rowAction ? "Nama Ahli" : "Nama Ahli Lama (jika ingat)";
-  if (memberIdField) memberIdField.hidden = false;
+  if (memberIdField) {
+    memberIdField.hidden = false;
+    memberIdField.childNodes[0].textContent = rowAction ? "No. IC Ahli" : "No. Telefon Ahli Lama";
+    const input = document.querySelector("#memberId");
+    input.dataset.format = rowAction ? "ic" : "phone";
+    input.placeholder = rowAction ? "Masukkan no. IC ahli" : "Masukkan no. telefon ahli lama";
+    input.title = rowAction ? "No. IC ahli: XXXXXX-XX-XXXX" : "No. telefon dalam rekod ahli lama";
+  }
   if (dependantNewNameField) dependantNewNameField.hidden = !showSelfUpdate;
   if (dependantNewPhoneField) dependantNewPhoneField.hidden = !showSelfUpdate;
   if (dependantNewIcField) dependantNewIcField.hidden = !showSelfUpdate;
@@ -525,8 +532,8 @@ function syncDependantFields() {
   if (dependantResidenceTypeField) dependantResidenceTypeField.hidden = !showSelfUpdate;
   if (dependantLocationField) dependantLocationField.hidden = !showSelfUpdate;
   if (dependantTotalField) dependantTotalField.hidden = !rowAction;
-  if (rows) rows.hidden = !rowAction;
-  if (addDependant) addDependant.hidden = !rowAction;
+  if (rows) rows.hidden = !rowAction || document.querySelector("#currentDependants")?.hidden !== false;
+  if (addDependant) addDependant.hidden = !rowAction || dependantAction?.value !== "Tambah Tanggungan" || document.querySelector("#currentDependants")?.hidden !== false;
 
   const memberName = document.querySelector("#memberName");
   const memberIdentifier = document.querySelector("#memberId");
@@ -600,7 +607,14 @@ const currentDependantsPanel = document.querySelector("#currentDependants");
 function currentIdentity() {
   return [document.querySelector("#memberName")?.value.trim() || "", document.querySelector("#memberId")?.value.trim() || "", dependantAction?.value || ""].join("|");
 }
+function requireUpdateIdentifier(value) {
+  if (isDependantRowAction()) requireIcDashFormat(formatIcInput(value), "No. IC ahli");
+  else requirePhoneFormat(value, "No. telefon ahli lama");
+}
 function invalidateCurrentMember() {
+  document.querySelector("#dependantActionField").hidden = true;
+  if (rows) rows.hidden = true;
+  if (addDependant) addDependant.hidden = true;
   currentLookupVersion++;
   currentMemberPreview = null;
   currentMemberIdentity = "";
@@ -608,7 +622,7 @@ function invalidateCurrentMember() {
   rows?.querySelectorAll(".dependant-row:not(.dependant-row--head)").forEach(row => row.remove());
   const total = document.querySelector("#dependantTotal");
   if (total) total.value = "";
-  setMessage("#currentMemberMessage", "Semak rekod menggunakan no. telefon ahli lama sebelum membuat perubahan.", "neutral");
+  setMessage("#currentMemberMessage", isDependantRowAction() ? "Masukkan nama dan IC ahli untuk melihat tanggungan terkini." : "Semak rekod menggunakan no. telefon ahli lama sebelum membuat perubahan.", "neutral");
 }
 async function loadCurrentMember() {
   const identity = currentIdentity();
@@ -617,8 +631,8 @@ async function loadCurrentMember() {
   const identifier = document.querySelector("#memberId")?.value.trim() || "";
   try {
     if (isDependantRowAction() && !name) throw new Error("Masukkan nama penuh ahli dahulu.");
-    if (!identifier) throw new Error("Masukkan no. telefon ahli lama dahulu.");
-    requirePhoneFormat(identifier, "No. telefon ahli lama");
+    if (!identifier) throw new Error(isDependantRowAction() ? "Masukkan no. IC ahli dahulu." : "Masukkan no. telefon ahli lama dahulu.");
+    requireUpdateIdentifier(identifier);
     setMessage("#currentMemberMessage", "Sedang menyemak rekod terkini...", "neutral");
     const result = await callRpc("lookup_member_for_update", {p_member_name:name, p_identifier:identifier});
     if (version !== currentLookupVersion || identity !== currentIdentity()) return;
@@ -629,6 +643,8 @@ async function loadCurrentMember() {
     const action = dependantAction?.value;
     const canSelect = action === "Kurangkan Tanggungan" || action === "Kemaskini Maklumat Tanggungan";
     currentDependantsPanel.hidden = false;
+    document.querySelector("#dependantActionField").hidden = !isDependantRowAction();
+    if (rows) rows.hidden = !isDependantRowAction();
     currentDependantsPanel.innerHTML = `<label><input type="checkbox" id="confirmCurrentMember"> Saya sahkan rekod ini ialah ahli yang dimaksudkan: <strong>${escapeHtml(result.member_name)}</strong></label><h4>${escapeHtml(result.member_name)} — Tanggungan Terkini (${list.length})</h4>
       ${list.length ? list.map((d,index) => `<article class="info-card"><strong>${escapeHtml(d.dependant_name || "Tanpa nama")}</strong>
         <p>${escapeHtml(d.relationship || "-")} · ${escapeHtml(d.gender || "-")} · Umur: ${escapeHtml(String(d.age ?? "-"))}</p>
@@ -661,7 +677,7 @@ document.querySelector("#lookupCurrentMember")?.addEventListener("click", loadCu
     const name = document.querySelector("#memberName")?.value.trim();
     const identifier = document.querySelector("#memberId")?.value.trim();
     if (!identifier || (isDependantRowAction() && !name)) return;
-    try { requirePhoneFormat(identifier, "No. telefon ahli lama"); } catch { return; }
+    try { requireUpdateIdentifier(identifier); } catch { return; }
     loadCurrentMember();
   }, 600);
 }));
@@ -694,7 +710,7 @@ if (dependantForm) {
       if (!memberIdentifier) {
         throw new Error("Masukkan no. telefon ahli lama sebagai rujukan.");
       }
-      requirePhoneFormat(memberIdentifier, "No. telefon ahli lama");
+      requireUpdateIdentifier(memberIdentifier);
 
       if (!currentMemberPreview || currentMemberIdentity !== currentIdentity()) {
         throw new Error("Sila semak maklumat ahli terkini dahulu sebelum hantar.");

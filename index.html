@@ -397,14 +397,6 @@
                 <option value="dependants">Maklumat Tanggungan</option>
               </select>
             </label>
-            <label id="dependantActionField" hidden>Maklumat Tanggungan
-              <select id="dependantAction">
-                <option hidden>Kemaskini Maklumat Diri</option>
-                <option>Tambah Tanggungan</option>
-                <option>Kurangkan Tanggungan</option>
-                <option>Kemaskini Maklumat Tanggungan</option>
-              </select>
-            </label>
           </div>
         </div>
         <div class="container form-shell">
@@ -449,6 +441,14 @@
             </div>
             <p class="form-message" id="currentMemberMessage" aria-live="polite"></p>
             <div id="currentDependants" aria-live="polite" hidden></div>
+            <label id="dependantActionField" hidden>Pilih Tindakan Tanggungan
+              <select id="dependantAction">
+                <option hidden>Kemaskini Maklumat Diri</option>
+                <option>Tambah Tanggungan</option>
+                <option>Kurangkan Tanggungan</option>
+                <option>Kemaskini Maklumat Tanggungan</option>
+              </select>
+            </label>
             <label id="dependantTotalField" hidden>Jumlah Tanggungan Semasa
               <input type="number" min="0" id="dependantTotal" readonly placeholder="Semak maklumat ahli dahulu">
             </label>
@@ -489,7 +489,7 @@
           <aside class="info-card">
             <h3>Panduan Kemaskini</h3>
             <ul>
-              <li>Masukkan no. telefon ahli lama yang ada dalam rekod sebagai rujukan. Nama lama boleh dikosongkan jika tidak ingat.</li>
+              <li>Untuk maklumat diri, gunakan no. telefon ahli lama. Untuk maklumat tanggungan, masukkan nama dan IC ahli, semak senarai terkini, kemudian pilih tindakan di bawah senarai.</li>
               <li>Kemaskini maklumat diri hanya paparkan field diri. Pilihan tanggungan hanya paparkan maklumat tanggungan.</li>
             </ul>
           </aside>
@@ -666,6 +666,6 @@
     </footer>
 
     <script src="supabase-config.js?v=20261013-dependant-definition"></script>
-    <script src="script.js?v=20261018-dependant-dropdown"></script>
+    <script src="script.js?v=20261018-dependants-lookup-first"></script>
   </body>
 </html>
