@@ -483,7 +483,7 @@ document.querySelector("#detectLocation")?.addEventListener("click", () => {
 const dependantAction = document.querySelector("#dependantAction");
 const updatePurpose = document.querySelector("#updatePurpose");
 updatePurpose?.addEventListener("change", () => {
-  dependantAction.value = updatePurpose.value === "dependants" ? "Kemaskini Maklumat Tanggungan" : "Kemaskini Maklumat Diri";
+  dependantAction.value = updatePurpose.value === "dependants" ? "Tambah Tanggungan" : "Kemaskini Maklumat Diri";
   dependantAction.dispatchEvent(new Event("change"));
 });
 const memberNameField = document.querySelector("#memberNameField");
@@ -500,12 +500,11 @@ const addDependant = document.querySelector("#addDependant");
 let dependantDetectedLocation = null;
 
 function isDependantRowAction() {
-  return ["Tambah Tanggungan", "Kurangkan Tanggungan", "Kemaskini Maklumat Tanggungan"].includes(dependantAction?.value || "");
+  return ["Tambah Tanggungan", "Kurangkan Tanggungan"].includes(dependantAction?.value || "");
 }
 
 function dependantDefaultStatus() {
   if (dependantAction?.value === "Kurangkan Tanggungan") return "Buang";
-  if (dependantAction?.value === "Kemaskini Maklumat Tanggungan") return "Kemaskini";
   return "Tambah";
 }
 
@@ -641,7 +640,7 @@ async function loadCurrentMember() {
     const list = result.dependants || [];
     document.querySelector("#dependantTotal").value = list.length;
     const action = dependantAction?.value;
-    const canSelect = action === "Kurangkan Tanggungan" || action === "Kemaskini Maklumat Tanggungan";
+    const canSelect = action === "Kurangkan Tanggungan";
     currentDependantsPanel.hidden = false;
     document.querySelector("#dependantActionField").hidden = !isDependantRowAction();
     if (rows) rows.hidden = !isDependantRowAction();
