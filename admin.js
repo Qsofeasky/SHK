@@ -316,9 +316,9 @@ async function loadPaidOverview() {
   const data = await supabaseRpc("admin_fee_overview", { p_year: year });
   paidOverviewRecords = (data.members || []).map(member => ({...member,payment_year:year,paid:member.annual_status === "paid",amount:Number(member.annual_paid || 0)}));
   paidYearSummary = {year,totalAmount:Number(data.annual_total || 0),registrationTotal:Number(data.registration_total || 0),
-    paidCount:paidOverviewRecords.filter(m=>m.annual_status === "paid").length,
+    paidCount:paidOverviewRecords.filter(m=>Number(m.annual_paid || 0)>0).length,
     partialCount:paidOverviewRecords.filter(m=>m.annual_status === "partial").length,
-    unpaidCount:paidOverviewRecords.filter(m=>m.annual_status === "unpaid").length,
+    unpaidCount:paidOverviewRecords.filter(m=>Number(m.annual_paid || 0)<=0).length,
     needsIcCount:paidOverviewRecords.filter(m=>m.annual_status === "needs_ic").length};
   paidAllYearTotals = data.year_totals || [];
   for (const total of paidAllYearTotals) {
@@ -445,7 +445,7 @@ function renderPaidSummary() {
   const box=document.querySelector("#paidYearSummary");if(!box)return;
   box.innerHTML=`<article data-fee-summary="registration" class="price-card"><span>Yuran Pendaftaran ${escapeHtml(String(paidYearSummary.year))}</span><strong>${escapeHtml(formatMoney(paidYearSummary.registrationTotal))}</strong><small>Jumlah pendaftaran diperuntukkan pada tahun dipilih, termasuk rekod import yang mempunyai tahun pendaftaran.</small></article>
   <article data-fee-summary="annual" class="price-card"><span>Yuran Ahli ${escapeHtml(String(paidYearSummary.year))}</span><strong>${escapeHtml(formatMoney(paidYearSummary.totalAmount))}</strong><small>Jumlah diperuntukkan untuk tahun dipilih. Lebihan untuk tahun hadapan ditunjukkan pada tahun berkenaan.</small></article>
-  <article data-fee-summary="annual" class="price-card"><span>Status Yuran Ahli</span><strong>${paidYearSummary.paidCount} cukup · ${paidYearSummary.partialCount} sebahagian</strong><small>${paidYearSummary.unpaidCount} belum bayar · ${paidYearSummary.needsIcCount} belum ditetapkan kategori kadar.</small></article>`;
+  <article data-fee-summary="annual" class="price-card"><span>Status Yuran Ahli</span><strong>${paidYearSummary.paidCount} sudah bayar</strong><small>${paidYearSummary.unpaidCount} belum bayar. Status berdasarkan kewujudan rekod yuran tahunan.</small></article>`;
   box.querySelectorAll("[data-fee-summary]").forEach(card => { card.hidden = card.dataset.feeSummary !== paidFeeView; });
 }
 
@@ -687,8 +687,8 @@ function renderPaidTable(records) {
  registrationBox.innerHTML=`<h4>Yuran Pendaftaran — Sekali Sahaja</h4><p>Kadar mengikut kategori pilihan ahli: bawah 60 tahun RM50; 60 tahun ke atas RM30. Pendaftaran lama yang telah dibayar dikekalkan mengikut rekod asal.</p>
  <table class="admin-table"><thead><tr><th>Nama Ahli</th><th>Kadar</th><th>Telah Dibayar</th><th>Baki</th><th>Status</th></tr></thead><tbody>${records.map(r=>`<tr><td>${escapeHtml(r.member_name)}</td><td>${money(r.registration_due)}</td><td>${money(r.registration_paid)}</td><td>${r.registration_status === "paid" ? "RM0.00" : money(r.registration_due == null ? null : Math.max(0,Number(r.registration_due)-Number(r.registration_paid)))}</td><td>${feeStatus(r.registration_status)}</td></tr>`).join("")}</tbody></table>
 `;
- box.innerHTML=`<h4>Yuran Ahli ${escapeHtml(String(paidYearSummary.year))}</h4><p>Bawah 60 tahun RM30; 60 tahun ke atas RM20. Lebihan bayaran baharu dibawa ke tahun berikutnya secara automatik; baki yang belum cukup setahun ditandakan sebagai bayaran sebahagian.</p>
- <table class="admin-table"><thead><tr><th>Nama Ahli</th><th>Kadar Tahun Ini</th><th>Bayaran Diperuntukkan</th><th>Baki</th><th>Status</th></tr></thead><tbody>${records.map(r=>`<tr><td>${escapeHtml(r.member_name)}</td><td>${money(r.annual_due)}</td><td>${money(r.annual_paid)}</td><td>${money(r.annual_due == null ? null : Math.max(0,Number(r.annual_due)-Number(r.annual_paid)))}</td><td>${feeStatus(r.annual_status,r.pending_payment)}</td></tr>`).join("")}</tbody></table>`;
+ box.innerHTML=`<h4>Yuran Ahli ${escapeHtml(String(paidYearSummary.year))}</h4><p>Bawah 60 tahun RM30; 60 tahun ke atas RM20. Rekod lama menggunakan jumlah bayaran tersimpan sebagai kadar paparan. Bayaran baharu menggunakan kategori pilihan ahli; lebihan dibawa ke tahun berikutnya dan baki separa tetap direkodkan. Status Sudah Bayar bermaksud ada rekod bayaran.</p>
+ <table class="admin-table"><thead><tr><th>Nama Ahli</th><th>Kadar Tahun Ini</th><th>Bayaran Diperuntukkan</th><th>Baki</th><th>Status</th></tr></thead><tbody>${records.map(r=>`<tr><td>${escapeHtml(r.member_name)}</td><td>${r.annual_due == null ? "—" : money(r.annual_due)}</td><td>${money(r.annual_paid)}</td><td>${r.annual_due == null ? "—" : money(Math.max(0,Number(r.annual_due)-Number(r.annual_paid)))}</td><td>${feeStatus(Number(r.annual_paid || 0)>0 ? "paid" : "unpaid")}</td></tr>`).join("")}</tbody></table>`;
 }
 
 
