@@ -481,6 +481,11 @@ document.querySelector("#detectLocation")?.addEventListener("click", () => {
 });
 
 const dependantAction = document.querySelector("#dependantAction");
+const updatePurpose = document.querySelector("#updatePurpose");
+updatePurpose?.addEventListener("change", () => {
+  dependantAction.value = updatePurpose.value === "dependants" ? "Kemaskini Maklumat Tanggungan" : "Kemaskini Maklumat Diri";
+  dependantAction.dispatchEvent(new Event("change"));
+});
 const memberNameField = document.querySelector("#memberNameField");
 const memberIdField = document.querySelector("#memberIdField");
 const dependantNewNameField = document.querySelector("#dependantNewNameField");
@@ -507,6 +512,9 @@ function dependantDefaultStatus() {
 function syncDependantFields() {
   const showSelfUpdate = dependantAction?.value === "Kemaskini Maklumat Diri";
   const rowAction = isDependantRowAction();
+  if (updatePurpose) updatePurpose.value = rowAction ? "dependants" : "self";
+  const actionField = document.querySelector("#dependantActionField");
+  if (actionField) actionField.hidden = !rowAction;
 
   if (memberNameField) memberNameField.childNodes[0].textContent = rowAction ? "Nama Ahli" : "Nama Ahli Lama (jika ingat)";
   if (memberIdField) memberIdField.hidden = false;

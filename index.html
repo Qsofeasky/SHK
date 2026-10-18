@@ -392,8 +392,14 @@
         <div class="container update-selector">
           <div class="form-panel">
             <label>Tujuan Kemaskini
+              <select id="updatePurpose">
+                <option value="self">Kemaskini Maklumat Diri</option>
+                <option value="dependants">Maklumat Tanggungan</option>
+              </select>
+            </label>
+            <label id="dependantActionField" hidden>Maklumat Tanggungan
               <select id="dependantAction">
-                <option>Kemaskini Maklumat Diri</option>
+                <option hidden>Kemaskini Maklumat Diri</option>
                 <option>Tambah Tanggungan</option>
                 <option>Kurangkan Tanggungan</option>
                 <option>Kemaskini Maklumat Tanggungan</option>
@@ -660,6 +666,6 @@
     </footer>
 
     <script src="supabase-config.js?v=20261013-dependant-definition"></script>
-    <script src="script.js?v=20261018-old-member-phone"></script>
+    <script src="script.js?v=20261018-dependant-dropdown"></script>
   </body>
 </html>
