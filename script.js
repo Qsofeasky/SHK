@@ -634,11 +634,17 @@ async function loadCurrentMember() {
     if (isDependantRowAction() && !name) throw new Error("Masukkan nama penuh ahli dahulu.");
     if (!identifier) throw new Error(isDependantRowAction() ? "Masukkan no. IC ahli dahulu." : "Masukkan no. telefon ahli lama dahulu.");
     requireUpdateIdentifier(identifier);
-    setMessage("#currentMemberMessage", "Sedang menyemak rekod terkini...", "neutral");
+    setMessage("#currentMemberMessage", isDependantRowAction() ? "Sedang menyemak rekod terkini..." : "", "neutral");
     const result = await callRpc("lookup_member_for_update", {p_member_name:name, p_identifier:identifier});
     if (version !== currentLookupVersion || identity !== currentIdentity()) return;
     currentMemberPreview = result;
     currentMemberIdentity = identity;
+    if (!isDependantRowAction()) {
+      currentDependantsPanel.hidden = true;
+      currentDependantsPanel.innerHTML = "";
+      setMessage("#currentMemberMessage", "", "neutral");
+      return;
+    }
     const list = result.dependants || [];
     document.querySelector("#dependantTotal").value = list.length;
     const action = dependantAction?.value;
@@ -716,7 +722,7 @@ if (dependantForm) {
       if (!currentMemberPreview || currentMemberIdentity !== currentIdentity()) {
         throw new Error("Sila semak maklumat ahli terkini dahulu sebelum hantar.");
       }
-      if (!rowAction && !document.querySelector("#confirmCurrentMember")?.checked) throw new Error("Sahkan nama rasmi ahli yang dipaparkan sebelum menghantar permohonan.");
+
       const updatePayload = {
         member_id: currentMemberPreview.member_id,
         id: crypto.randomUUID(),
