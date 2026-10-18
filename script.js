@@ -511,6 +511,8 @@ function dependantDefaultStatus() {
 function syncDependantFields() {
   const showSelfUpdate = dependantAction?.value === "Kemaskini Maklumat Diri";
   const rowAction = isDependantRowAction();
+  const lookupButton = document.querySelector("#lookupCurrentMember");
+  if (lookupButton) lookupButton.closest(".form-actions").hidden = rowAction;
   if (updatePurpose) updatePurpose.value = rowAction ? "dependants" : "self";
   const actionField = document.querySelector("#dependantActionField");
   if (actionField) actionField.hidden = !rowAction || document.querySelector("#currentDependants")?.hidden !== false;
@@ -644,7 +646,7 @@ async function loadCurrentMember() {
     currentDependantsPanel.hidden = false;
     document.querySelector("#dependantActionField").hidden = !isDependantRowAction();
     if (rows) rows.hidden = !isDependantRowAction();
-    currentDependantsPanel.innerHTML = `<label><input type="checkbox" id="confirmCurrentMember"> Saya sahkan rekod ini ialah ahli yang dimaksudkan: <strong>${escapeHtml(result.member_name)}</strong></label><h4>${escapeHtml(result.member_name)} — Tanggungan Terkini (${list.length})</h4>
+    currentDependantsPanel.innerHTML = `${isDependantRowAction() ? "" : `<label><input type="checkbox" id="confirmCurrentMember"> Saya sahkan rekod ini ialah ahli yang dimaksudkan: <strong>${escapeHtml(result.member_name)}</strong></label>`}<h4>${escapeHtml(result.member_name)} — Tanggungan Terkini (${list.length})</h4>
       ${list.length ? list.map((d,index) => `<article class="info-card"><strong>${escapeHtml(d.dependant_name || "Tanpa nama")}</strong>
         <p>${escapeHtml(d.relationship || "-")} · ${escapeHtml(d.gender || "-")} · Umur: ${escapeHtml(String(d.age ?? "-"))}</p>
         <p>IC / sijil lahir: ${escapeHtml(d.masked_ic || "Tiada rekod")}</p>
@@ -653,7 +655,7 @@ async function loadCurrentMember() {
     rows?.querySelectorAll(".dependant-row:not(.dependant-row--head)").forEach(row => row.remove());
     if (action === "Tambah Tanggungan") addDependantRow();
     if (addDependant) addDependant.hidden = action !== "Tambah Tanggungan";
-    setMessage("#currentMemberMessage", "Rekod terkini ditemui. Semak maklumat sebelum membuat permohonan.", "success");
+    setMessage("#currentMemberMessage", isDependantRowAction() ? "" : "Rekod terkini ditemui. Semak maklumat sebelum membuat permohonan.", "success");
   } catch(error) {
     if (version !== currentLookupVersion || identity !== currentIdentity()) return;
     invalidateCurrentMember();
@@ -714,7 +716,7 @@ if (dependantForm) {
       if (!currentMemberPreview || currentMemberIdentity !== currentIdentity()) {
         throw new Error("Sila semak maklumat ahli terkini dahulu sebelum hantar.");
       }
-      if (!document.querySelector("#confirmCurrentMember")?.checked) throw new Error("Sahkan nama rasmi ahli yang dipaparkan sebelum menghantar permohonan.");
+      if (!rowAction && !document.querySelector("#confirmCurrentMember")?.checked) throw new Error("Sahkan nama rasmi ahli yang dipaparkan sebelum menghantar permohonan.");
       const updatePayload = {
         member_id: currentMemberPreview.member_id,
         id: crypto.randomUUID(),
