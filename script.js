@@ -541,7 +541,7 @@ function syncDependantFields() {
   const dependantTotal = document.querySelector("#dependantTotal");
   if (memberName) {
     memberName.required = rowAction;
-    memberName.placeholder = rowAction ? "Nama ahli" : "Isi jika ingat nama lama";
+    memberName.placeholder = rowAction ? "Nama penuh seperti dalam rekod ahli" : "Isi jika ingat nama lama";
   }
   if (memberIdentifier) memberIdentifier.required = showSelfUpdate || rowAction;
   if (dependantTotal) dependantTotal.required = false;

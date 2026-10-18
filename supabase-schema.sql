@@ -1670,10 +1670,18 @@ RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 DECLARE mid uuid; m public.members%rowtype; matches integer;
 BEGIN
  IF nullif(trim(p_identifier),'') IS NULL THEN RAISE EXCEPTION 'Masukkan telefon atau IC ahli.'; END IF;
- mid := public.shk_resolve_member_link(p_identifier,NULL);
+ IF length(regexp_replace(p_identifier,'[^0-9]','','g'))=12 THEN
+  IF nullif(trim(p_member_name),'') IS NULL THEN RAISE EXCEPTION 'Masukkan nama penuh dan IC ahli.'; END IF;
+  SELECT count(*),(array_agg(x.id))[1] INTO matches,mid FROM public.members x
+  WHERE regexp_replace(coalesce(x.ic_no,''),'[^0-9]','','g')=regexp_replace(p_identifier,'[^0-9]','','g')
+    AND lower(regexp_replace(trim(coalesce(x.member_name,'')),'\s+',' ','g'))=lower(regexp_replace(trim(p_member_name),'\s+',' ','g'));
+  IF matches<>1 THEN RAISE EXCEPTION 'Nama dan IC tidak sepadan dengan satu rekod ahli. Semak nama penuh dan IC ahli.'; END IF;
+ ELSE
+  mid := public.shk_resolve_member_link(p_identifier,NULL);
+ END IF;
  IF mid IS NULL THEN RAISE EXCEPTION 'Ahli tidak ditemui atau padanan berganda. Semak telefon/IC terkini.'; END IF;
  SELECT * INTO m FROM public.members WHERE id=mid;
- -- The typed name is a hint only. A unique phone/IC selects the member.
+ -- IC lookup requires both the full name and IC to match one member.
 
  IF m.membership_status<>'aktif' THEN RAISE EXCEPTION 'Rekod ahli tidak aktif. Hubungi pentadbir.'; END IF;
  RETURN jsonb_build_object('member_id',m.id,'member_name',m.member_name,'member_no',m.member_no,
