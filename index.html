@@ -55,19 +55,19 @@
 
           <aside class="portal-card" aria-labelledby="portal-title">
             <span class="status-pill">Data ahli</span>
-            <h2 id="portal-title">Ringkasan Rekod 2026</h2>
+            <h2 id="portal-title">Ringkasan Rekod Tahun Semasa</h2>
             <dl class="metrics">
               <div>
-                <dt>Jumlah Ahli</dt>
-                <dd>271</dd>
+                <dt>Jumlah Ahli Aktif</dt>
+                <dd id="publicActiveCount">—</dd>
               </div>
               <div>
-                <dt>Yuran 2026 Sudah Bayar</dt>
-                <dd>182</dd>
+                <dt id="publicPaidLabel">Ada Rekod Bayaran</dt>
+                <dd id="publicPaidCount">—</dd>
               </div>
               <div>
-                <dt>Yuran Belum Bayar</dt>
-                <dd>89</dd>
+                <dt id="publicUnpaidLabel">Tiada Rekod Bayaran</dt>
+                <dd id="publicUnpaidCount">—</dd>
               </div>
             </dl>
             <p>Rekod baru daripada laman web akan disimpan dahulu untuk semakan dan kelulusan AJK.</p>
@@ -673,6 +673,6 @@
     </footer>
 
     <script src="supabase-config.js?v=20261013-dependant-definition"></script>
-    <script src="script.js?v=20261018-rate-category"></script>
+    <script src="script.js?v=20261018-live-public-summary"></script>
   </body>
 </html>

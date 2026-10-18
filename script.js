@@ -1021,3 +1021,25 @@ function escapeHtml(value) {
     "'": "&#039;"
   })[char]);
 }
+
+async function loadPublicFeeSummary() {
+  const currentYear = Number(new Intl.DateTimeFormat("en", { timeZone: "Asia/Kuala_Lumpur", year: "numeric" }).format(new Date()));
+  function labels(year) {
+    document.querySelector("#portal-title").textContent = "Ringkasan Rekod " + year;
+    document.querySelector("#publicPaidLabel").textContent = "Ada Rekod Bayaran " + year;
+    document.querySelector("#publicUnpaidLabel").textContent = "Tiada Rekod Bayaran " + year;
+  }
+  if (!document.querySelector("#publicActiveCount")) return;
+  labels(currentYear);
+  try {
+    const data = await callRpc("public_current_fee_summary", {});
+    if (!Number.isInteger(data.year) || ![data.active_members,data.with_payment,data.without_payment].every(n => Number.isInteger(n) && n >= 0) || data.active_members !== data.with_payment + data.without_payment) throw new Error("Ringkasan tidak sah");
+    labels(data.year);
+    document.querySelector("#publicActiveCount").textContent = data.active_members;
+    document.querySelector("#publicPaidCount").textContent = data.with_payment;
+    document.querySelector("#publicUnpaidCount").textContent = data.without_payment;
+  } catch {
+    for (const id of ["publicActiveCount","publicPaidCount","publicUnpaidCount"]) document.getElementById(id).textContent = "—";
+  }
+}
+loadPublicFeeSummary();
