@@ -482,8 +482,12 @@ async function updateAdminSummary(paidRecords = []) {
     countPending("payments")
   ]);
   const pendingCount = pendingCounts.reduce((total, count) => total + count, 0);
-  const paidCount = paidRecords.filter((record) => record.paid).length;
-  const notPaidCount = paidRecords.length - paidCount;
+  const year = Number(new Intl.DateTimeFormat("en", { timeZone: "Asia/Kuala_Lumpur", year: "numeric" }).format(new Date()));
+  const currentRecords = paidYearSummary.year === year ? paidRecords : (await supabaseRpc("admin_fee_overview", { p_year: year })).members || [];
+  const paidCount = currentRecords.filter((record) => Number(record.annual_paid || 0) > 0).length;
+  const notPaidCount = currentRecords.length - paidCount;
+  setText("#paidCountLabel", `Ada Rekod Bayaran ${year}`);
+  setText("#notPaidCountLabel", `Tiada Rekod Bayaran ${year}`);
 
   setText("#pendingCount", String(pendingCount));
   setText("#membershipPendingCount", String(pendingCounts[0]));

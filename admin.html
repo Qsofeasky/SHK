@@ -78,14 +78,14 @@
             <small>Rekod baru yang perlu disemak.</small>
           </article>
           <article class="price-card">
-            <span>Sudah Bayar Tahun Ini</span>
+            <span id="paidCountLabel">Ada Rekod Bayaran Tahun Semasa</span>
             <strong id="paidCount">0</strong>
-            <small>Ahli aktif yang sudah ada rekod bayaran.</small>
+            <small>Ahli aktif dengan rekod yuran tahunan tahun semasa, termasuk bayaran sebahagian.</small>
           </article>
           <article class="price-card">
-            <span>Belum Bayar</span>
+            <span id="notPaidCountLabel">Tiada Rekod Bayaran Tahun Semasa</span>
             <strong id="notPaidCount">0</strong>
-            <small>Ahli aktif yang belum ada rekod bayaran.</small>
+            <small>Ahli aktif tanpa rekod yuran tahunan bagi tahun semasa.</small>
           </article>
         </div>
 
@@ -222,6 +222,6 @@
     </main>
 
     <script src="supabase-config.js?v=20261011-approval-counts"></script>
-    <script src="admin.js?v=20261018-no-ic-approval"></script>
+    <script src="admin.js?v=20261018-current-year-cards"></script>
   </body>
 </html>
