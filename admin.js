@@ -445,7 +445,7 @@ function renderPaidSummary() {
   const box=document.querySelector("#paidYearSummary");if(!box)return;
   box.innerHTML=`<article data-fee-summary="registration" class="price-card"><span>Yuran Pendaftaran ${escapeHtml(String(paidYearSummary.year))}</span><strong>${escapeHtml(formatMoney(paidYearSummary.registrationTotal))}</strong><small>Jumlah pendaftaran diperuntukkan pada tahun dipilih, termasuk rekod import yang mempunyai tahun pendaftaran.</small></article>
   <article data-fee-summary="annual" class="price-card"><span>Yuran Ahli ${escapeHtml(String(paidYearSummary.year))}</span><strong>${escapeHtml(formatMoney(paidYearSummary.totalAmount))}</strong><small>Jumlah diperuntukkan untuk tahun dipilih. Lebihan untuk tahun hadapan ditunjukkan pada tahun berkenaan.</small></article>
-  <article data-fee-summary="annual" class="price-card"><span>Status Yuran Ahli</span><strong>${paidYearSummary.paidCount} cukup · ${paidYearSummary.partialCount} sebahagian</strong><small>${paidYearSummary.unpaidCount} belum bayar · ${paidYearSummary.needsIcCount} perlu IC untuk menentukan kadar.</small></article>`;
+  <article data-fee-summary="annual" class="price-card"><span>Status Yuran Ahli</span><strong>${paidYearSummary.paidCount} cukup · ${paidYearSummary.partialCount} sebahagian</strong><small>${paidYearSummary.unpaidCount} belum bayar · ${paidYearSummary.needsIcCount} belum ditetapkan kategori kadar.</small></article>`;
   box.querySelectorAll("[data-fee-summary]").forEach(card => { card.hidden = card.dataset.feeSummary !== paidFeeView; });
 }
 
@@ -628,7 +628,7 @@ function renderPaymentCard(record) {
       ${record.status === "pending" ? `<label>Agihkan sebagai<select data-fee-type><option value="annual" ${record.fee_type === "annual" || !record.fee_type ? "selected" : ""}>Yuran Ahli</option><option value="registration" ${record.fee_type === "registration" ? "selected" : ""}>Yuran Pendaftaran</option><option value="mixed" ${record.fee_type === "mixed" ? "selected" : ""}>Pendaftaran + Yuran Ahli</option></select></label>` : ""}
 
       <p>Kategori pilihan ahli: ${escapeHtml(record.rate_category === "under60" ? "Bawah 60 tahun" : record.rate_category === "60plus" ? "60 tahun ke atas" : "Belum dipilih")}</p>
-      ${record.status === "pending" ? `<label>Kategori kadar untuk pengesahan<select data-rate-category><option value="">Ikut IC (atau pilih kategori jika tiada IC)</option><option value="under60" ${record.rate_category === "under60" ? "selected" : ""}>Bawah 60 tahun — Pendaftaran RM50 / Tahunan RM30</option><option value="60plus" ${record.rate_category === "60plus" ? "selected" : ""}>60 tahun ke atas — Pendaftaran RM30 / Tahunan RM20</option></select></label>` : ""}
+      ${record.status === "pending" ? `<label>Kategori kadar untuk pengesahan<select data-rate-category><option value="">Pilih kategori kadar</option><option value="under60" ${record.rate_category === "under60" ? "selected" : ""}>Bawah 60 tahun — Pendaftaran RM50 / Tahunan RM30</option><option value="60plus" ${record.rate_category === "60plus" ? "selected" : ""}>60 tahun ke atas — Pendaftaran RM30 / Tahunan RM20</option></select></label>` : ""}
       <p>No. Resit: ${escapeHtml(record.receipt_no || "-")}</p>
       <p>No. Rujukan Bank: ${escapeHtml(record.bank_statement_ref || "-")}</p>
       ${record.receipt_proof_url ? `<p><a href="${escapeHtml(record.receipt_proof_url)}" target="_blank" rel="noopener">Buka bukti bayaran</a></p>` : ""}
@@ -679,8 +679,8 @@ function renderExitCard(record) {
 function renderPaidTable(records) {
  const box=document.querySelector("#paidList"), registrationBox=document.querySelector("#paidRegistrationList");if(!box || !registrationBox)return;
  if(!records.length){box.innerHTML=registrationBox.innerHTML='<p class="empty-state">Tiada rekod ahli yang sepadan.</p>';return;}
- const money=value=>value === null || value === undefined ? "Perlu IC" : escapeHtml(formatMoney(value));
- registrationBox.innerHTML=`<h4>Yuran Pendaftaran — Sekali Sahaja</h4><p>Kadar berdasarkan umur daripada IC: bawah 60 tahun RM50; 60 tahun ke atas RM30. Pendaftaran lama yang telah dibayar dikekalkan mengikut rekod asal.</p>
+ const money=value=>value === null || value === undefined ? "Kategori belum ditetapkan" : escapeHtml(formatMoney(value));
+ registrationBox.innerHTML=`<h4>Yuran Pendaftaran — Sekali Sahaja</h4><p>Kadar mengikut kategori pilihan ahli: bawah 60 tahun RM50; 60 tahun ke atas RM30. Pendaftaran lama yang telah dibayar dikekalkan mengikut rekod asal.</p>
  <table class="admin-table"><thead><tr><th>Nama Ahli</th><th>Kadar</th><th>Telah Dibayar</th><th>Baki</th><th>Status</th></tr></thead><tbody>${records.map(r=>`<tr><td>${escapeHtml(r.member_name)}</td><td>${money(r.registration_due)}</td><td>${money(r.registration_paid)}</td><td>${r.registration_status === "paid" ? "RM0.00" : money(r.registration_due == null ? null : Math.max(0,Number(r.registration_due)-Number(r.registration_paid)))}</td><td>${feeStatus(r.registration_status)}</td></tr>`).join("")}</tbody></table>
 `;
  box.innerHTML=`<h4>Yuran Ahli ${escapeHtml(String(paidYearSummary.year))}</h4><p>Bawah 60 tahun RM30; 60 tahun ke atas RM20. Lebihan bayaran baharu dibawa ke tahun berikutnya secara automatik; baki yang belum cukup setahun ditandakan sebagai bayaran sebahagian.</p>
@@ -825,6 +825,7 @@ async function approvePayment(id) {
  const card=document.querySelector(`[data-action="approve-payment"][data-id="${id}"]`)?.closest(".admin-card");
  const type=card?.querySelector("[data-fee-type]")?.value || "annual";
  const category=card?.querySelector("[data-rate-category]")?.value || null;
+ if (!category) throw new Error("Pilih kategori kadar bayaran sebelum mengesahkan.");
  const plan=await supabaseRpc("preview_fee_payment_category",{p_payment_id:id,p_fee_type:type,p_rate_category:category});
  const text=plan.allocations.map(line=>`${line.fee_type === "registration" ? "Pendaftaran" : "Yuran ahli"} ${line.year}: ${formatMoney(line.amount)}${line.fee_type === "annual" ? " / kadar "+formatMoney(line.due) : ""}`).join("\n");
  if(!confirm(`Sahkan bayaran untuk ${plan.member_name}?\n\n${text}\n\nJumlah: ${formatMoney(plan.total)}\nLebihan diagih automatik mengikut tahun.`))throw new Error("Pengesahan dibatalkan.");
@@ -1179,6 +1180,6 @@ function escapeHtml(value) {
 }
 
 function feeStatus(status,pending=false) {
- const labels={paid:"Sudah Bayar",partial:"Bayaran Sebahagian",unpaid:"Belum Bayar",needs_ic:"Perlu IC untuk Tentukan Kadar"};
+ const labels={paid:"Sudah Bayar",partial:"Bayaran Sebahagian",unpaid:"Belum Bayar",needs_ic:"Kategori Kadar Belum Ditetapkan"};
  return `<span class="status-pill ${status === "paid" ? "status-pill--success" : ""}">${labels[status] || "Belum Disemak"}</span>${pending ? "<small> · Ada bayaran menunggu pengesahan</small>" : ""}`;
 }
