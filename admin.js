@@ -135,7 +135,8 @@ function showAdminView(view) {
     donations: document.querySelector("#adminDonationSection"),
     transfers: document.querySelector("#adminTransferSection"),
     paid: document.querySelector("#adminPaidSection"),
-    receipt: document.querySelector("#adminReceiptSection")
+    receipt: document.querySelector("#adminReceiptSection"),
+    ic: document.querySelector("#adminIcSection")
   };
 
   Object.entries(sections).forEach(([key, section]) => {
@@ -1186,4 +1187,69 @@ function escapeHtml(value) {
 function feeStatus(status,pending=false) {
  const labels={paid:"Sudah Bayar",partial:"Bayaran Sebahagian",unpaid:"Belum Bayar",needs_ic:"Kategori Kadar Belum Ditetapkan"};
  return `<span class="status-pill ${status === "paid" ? "status-pill--success" : ""}">${labels[status] || "Belum Disemak"}</span>${pending ? "<small> · Ada bayaran menunggu pengesahan</small>" : ""}`;
+}
+
+let adminIcVersion = 0;
+let adminIcTimer;
+const adminIcInput = document.querySelector("#adminIcSearch");
+adminIcInput?.addEventListener("input", () => {
+  clearTimeout(adminIcTimer);
+  adminIcVersion++;
+  const results = document.querySelector("#adminIcResults");
+  results.hidden = true;
+  results.innerHTML = "";
+  document.querySelector("#adminIcButton").disabled = false;
+  setAdminMessage("#adminIcMessage", "");
+  if (/^[0-9]{6}-[0-9]{2}-[0-9]{4}$/.test(adminIcInput.value)) {
+    adminIcTimer = setTimeout(searchAdminIc, 400);
+  }
+});
+document.querySelector("#adminIcForm")?.addEventListener("submit", event => {
+  event.preventDefault();
+  clearTimeout(adminIcTimer);
+  searchAdminIc();
+});
+async function searchAdminIc() {
+  clearTimeout(adminIcTimer);
+  const version = ++adminIcVersion;
+  const ic = adminIcInput.value;
+  const box = document.querySelector("#adminIcResults");
+  const button = document.querySelector("#adminIcButton");
+  box.hidden = true;
+  box.innerHTML = "";
+  if (!/^[0-9]{6}-[0-9]{2}-[0-9]{4}$/.test(ic)) {
+    setAdminMessage("#adminIcMessage", "Masukkan IC penuh mengikut format XXXXXX-XX-XXXX.", "error");
+    return;
+  }
+  button.disabled = true;
+  setAdminMessage("#adminIcMessage", "Sedang mencari rekod ahli dan tanggungan...", "neutral");
+  try {
+    const records = await supabaseRpc("admin_search_ic", {p_ic: ic});
+    if (version !== adminIcVersion || ic !== adminIcInput.value) return;
+    if (!Array.isArray(records)) throw new Error("Respons carian tidak sah. Cuba semula.");
+    if (!records.length) {
+      setAdminMessage("#adminIcMessage", "Tiada rekod ditemui untuk IC ini.", "neutral");
+      return;
+    }
+    box.innerHTML = records.map(record => `<article class="admin-card">
+      <span class="status-pill">${escapeHtml(record.record_type)}</span>
+      <h4>${escapeHtml(record.person_name || "Nama belum direkodkan")}</h4>
+      <p>No. IC: ${escapeHtml(record.ic_no)}</p>
+      <p>Hubungan: ${escapeHtml(record.relationship || "Belum direkodkan")}</p>
+      <p>Ahli utama: <strong>${escapeHtml(record.member_name || "Belum dipautkan")}</strong></p>
+      <p>No. ahli: ${escapeHtml(record.member_no || "Tiada rekod")}</p>
+      <p>Telefon ahli utama: ${escapeHtml(record.member_phone || "Tiada rekod")}</p>
+      <p>Telefon rumah: ${escapeHtml(record.home_phone || "Tiada rekod")}</p>
+      <p>Alamat: ${escapeHtml(record.member_address || "Tiada rekod")}</p>
+      <p>Status ahli utama: ${escapeHtml(record.membership_status || "Belum dipautkan")}</p>
+      ${record.link_status === "unlinked" ? '<p>Pautan kepada ahli utama belum dapat disahkan. Semak rekod tanggungan ini.</p>' : ""}
+    </article>`).join("");
+    box.hidden = false;
+    setAdminMessage("#adminIcMessage", records.length > 1 ? `${records.length} padanan ditemui. Semak semua rekod untuk mengenal pasti orang yang dimaksudkan.` : "1 padanan ditemui.", "success");
+  } catch (error) {
+    if (version !== adminIcVersion || ic !== adminIcInput.value) return;
+    setAdminMessage("#adminIcMessage", error.message, "error");
+  } finally {
+    if (version === adminIcVersion) button.disabled = false;
+  }
 }
