@@ -1224,7 +1224,7 @@ async function searchAdminIc() {
   button.disabled = true;
   setAdminMessage("#adminIcMessage", "Sedang mencari rekod ahli dan tanggungan...", "neutral");
   try {
-    const records = await supabaseRpc("admin_search_ic", {p_ic: ic});
+    const records = await supabaseRpc("admin_search_ic_household", {p_ic: ic});
     if (version !== adminIcVersion || ic !== adminIcInput.value) return;
     if (!Array.isArray(records)) throw new Error("Respons carian tidak sah. Cuba semula.");
     if (!records.length) {
@@ -1242,6 +1242,10 @@ async function searchAdminIc() {
       <p>Telefon rumah: ${escapeHtml(record.home_phone || "Tiada rekod")}</p>
       <p>Alamat: ${escapeHtml(record.member_address || "Tiada rekod")}</p>
       <p>Status ahli utama: ${escapeHtml(record.membership_status || "Belum dipautkan")}</p>
+      <section class="info-card">
+        <h5>Tanggungan di bawah ahli ini (${Array.isArray(record.dependants) ? record.dependants.length : 0})</h5>
+        ${Array.isArray(record.dependants) && record.dependants.length ? `<ul>${record.dependants.map(dep => `<li><strong>${escapeHtml(dep.name || "Nama belum direkodkan")}</strong>${dep.is_match ? " — Pemilik IC yang dicari" : ""}<br>${escapeHtml(dep.relationship || "Hubungan belum direkodkan")}${dep.gender ? " · " + escapeHtml(dep.gender) : ""}${dep.age !== null && dep.age !== undefined ? " · Umur " + escapeHtml(String(dep.age)) : ""}${dep.masked_ic ? " · IC " + escapeHtml(dep.masked_ic) : ""}</li>`).join("")}</ul>` : `<p>${record.link_status === "unlinked" ? "Senarai tanggungan belum dapat dipaparkan kerana pautan ahli utama belum disahkan." : "Tiada tanggungan dalam rekod ahli ini."}</p>`}
+      </section>
       ${record.link_status === "unlinked" ? '<p>Pautan kepada ahli utama belum dapat disahkan. Semak rekod tanggungan ini.</p>' : ""}
     </article>`).join("");
     box.hidden = false;
